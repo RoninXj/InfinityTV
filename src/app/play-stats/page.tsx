@@ -421,7 +421,9 @@ const PlayStatsPage: React.FC = () => {
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    copyPasswordToClipboard(userStat.password, userStat.username);
+                                    if (userStat.password) {
+                                      copyPasswordToClipboard(userStat.password, userStat.username);
+                                    }
                                   }}
                                   className={`p-1 transition-colors ${
                                     copiedPasswords[userStat.username] 
