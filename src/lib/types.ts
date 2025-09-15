@@ -209,6 +209,13 @@ export interface UserPlayStat {
   avgWatchTime: number; // 平均每次观看时长
   mostWatchedSource: string; // 最常观看的来源
   password?: string; // 用户密码（仅管理员可见）
+  lastLoginIP?: string; // 最后登录IP地址
+  lastLoginTime?: string; // 最后登录时间
+  loginHistory?: { // 登录历史记录
+    ip: string;
+    time: string;
+    userAgent?: string;
+  }[];
 }
 
 // 全站播放统计数据结构

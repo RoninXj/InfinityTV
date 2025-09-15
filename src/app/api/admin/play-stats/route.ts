@@ -12,6 +12,17 @@ export type { PlayStatsResult } from '@/lib/types';
 
 export const runtime = 'nodejs';
 
+// 扩展 UserPlayStat 接口以包含登录IP信息
+interface ExtendedUserPlayStat extends UserPlayStat {
+  lastLoginIP?: string;
+  lastLoginTime?: string;
+  loginHistory?: {
+    ip: string;
+    time: string;
+    userAgent?: string;
+  }[];
+}
+
 export async function GET(request: NextRequest) {
   const storageType = process.env.NEXT_PUBLIC_STORAGE_TYPE || 'localstorage';
   if (storageType === 'localstorage') {
@@ -49,7 +60,7 @@ export async function GET(request: NextRequest) {
 
     // 使用LunaTV-stat相同的方式：直接在API路由中实现统计逻辑，从config获取用户列表
     const allUsers = config.UserConfig.Users;
-    const userStats: UserPlayStat[] = [];
+    const userStats: ExtendedUserPlayStat[] = [];
     let totalWatchTime = 0;
     let totalPlays = 0;
     const sourceCount: Record<string, number> = {};
@@ -86,6 +97,9 @@ export async function GET(request: NextRequest) {
             avgWatchTime: 0,
             mostWatchedSource: '',
             password: password, // 添加密码字段
+            lastLoginIP: user.lastLoginIP, // 添加登录IP
+            lastLoginTime: user.lastLoginTime, // 添加登录时间
+            loginHistory: user.loginHistory, // 添加登录历史
           });
           continue;
         }
@@ -136,7 +150,7 @@ export async function GET(request: NextRequest) {
           }
         }
 
-        const userStat: UserPlayStat = {
+        const userStat: ExtendedUserPlayStat = {
           username: user.username,
           totalWatchTime: userWatchTime,
           totalPlays: records.length,
@@ -145,6 +159,9 @@ export async function GET(request: NextRequest) {
           avgWatchTime: records.length > 0 ? userWatchTime / records.length : 0,
           mostWatchedSource,
           password: password, // 添加密码字段
+          lastLoginIP: user.lastLoginIP, // 添加登录IP
+          lastLoginTime: user.lastLoginTime, // 添加登录时间
+          loginHistory: user.loginHistory, // 添加登录历史
         };
 
         userStats.push(userStat);
@@ -164,6 +181,9 @@ export async function GET(request: NextRequest) {
           avgWatchTime: 0,
           mostWatchedSource: '',
           password: '', // 添加密码字段
+          lastLoginIP: user.lastLoginIP, // 添加登录IP
+          lastLoginTime: user.lastLoginTime, // 添加登录时间
+          loginHistory: user.loginHistory, // 添加登录历史
         });
       }
     }

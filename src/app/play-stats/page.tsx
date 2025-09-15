@@ -7,6 +7,7 @@ import { ChevronUp } from 'lucide-react';
 
 import { getAuthInfoFromBrowserCookie } from '@/lib/auth';
 import { PlayRecord } from '@/lib/types';
+import { getIpLocation } from '@/lib/utils'; // 添加IP地址查询导入
 
 import PageLayout from '@/components/PageLayout';
 
@@ -22,6 +23,7 @@ const PlayStatsPage: React.FC = () => {
   const [authInfo, setAuthInfo] = useState<{ username?: string; role?: string } | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [showBackToTop, setShowBackToTop] = useState(false);
+  const [ipLocations, setIpLocations] = useState<Record<string, string>>({}); // IP地址归属地查询状态
 
   // 检查用户权限
   useEffect(() => {
@@ -221,6 +223,22 @@ const PlayStatsPage: React.FC = () => {
     } catch (error) {
       // 如果平滑滚动完全失败，使用立即滚动
       document.body.scrollTop = 0;
+    }
+  };
+
+  // 获取IP地址归属地信息
+  const fetchIpLocation = async (ip: string) => {
+    if (!ip || ipLocations[ip]) return;
+    
+    // 设置查询中状态
+    setIpLocations(prev => ({ ...prev, [ip]: '查询中...' }));
+    
+    try {
+      const location = await getIpLocation(ip);
+      setIpLocations(prev => ({ ...prev, [ip]: location }));
+    } catch (error) {
+      console.error(`查询IP ${ip} 归属地失败:`, error);
+      setIpLocations(prev => ({ ...prev, [ip]: '查询失败' }));
     }
   };
 
@@ -514,19 +532,45 @@ const PlayStatsPage: React.FC = () => {
                           <h5 className='text-sm font-medium text-gray-900 dark:text-gray-100'>
                             {userStat.username}
                           </h5>
-                          {/* 显示用户密码 */}
-                          <p 
-                            className='text-xs text-red-500 dark:text-red-400 cursor-pointer'
-                            title={userStat.password || '未设置'}
-                            onClick={() => {
-                              if (userStat.password) {
-                                navigator.clipboard.writeText(userStat.password);
-                                // 可以添加一个提示，告知用户密码已复制
-                              }
-                            }}
-                          >
-                            密码: {userStat.password ? '••••••' : '未设置'}
-                          </p>
+                          {/* 显示用户密码和登录IP信息 */}
+                          <div className="mt-1">
+                            <p 
+                              className='text-xs text-red-500 dark:text-red-400 cursor-pointer'
+                              title={userStat.password || '未设置'}
+                              onClick={() => {
+                                if (userStat.password) {
+                                  navigator.clipboard.writeText(userStat.password);
+                                  // 可以添加一个提示，告知用户密码已复制
+                                }
+                              }}
+                            >
+                              密码: {userStat.password ? '••••••' : '未设置'}
+                            </p>
+                            {userStat.lastLoginIP && (
+                              <div className="flex items-center space-x-2 mt-1">
+                                <span className="text-xs text-gray-500 dark:text-gray-400">
+                                  最后登录IP: {userStat.lastLoginIP}
+                                </span>
+                                <button
+                                  onClick={() => fetchIpLocation(userStat.lastLoginIP!)}
+                                  className="text-xs text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+                                  title="查询IP归属地"
+                                >
+                                  查询
+                                </button>
+                                {ipLocations[userStat.lastLoginIP] && (
+                                  <span className="text-xs text-green-600 dark:text-green-400">
+                                    ({ipLocations[userStat.lastLoginIP]})
+                                  </span>
+                                )}
+                              </div>
+                            )}
+                            {userStat.lastLoginTime && (
+                              <p className='text-xs text-gray-500 dark:text-gray-400'>
+                                最后登录时间: {formatDateTime(new Date(userStat.lastLoginTime).getTime())}
+                              </p>
+                            )}
+                          </div>
                           <p className='text-xs text-gray-500 dark:text-gray-400'>
                             最后播放:{' '}
                             {userStat.lastPlayTime
