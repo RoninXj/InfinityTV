@@ -415,7 +415,10 @@ const PlayStatsPage: React.FC = () => {
                                 <span className='text-xs text-red-500 dark:text-red-400'>
                                   密码:
                                 </span>
-                                <code className="text-xs bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded font-mono">
+                                <code 
+                                  className="text-xs bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded font-mono cursor-pointer"
+                                  title={userStat.password}
+                                >
                                   ••••••
                                 </code>
                                 <button
