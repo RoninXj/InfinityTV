@@ -514,6 +514,10 @@ const PlayStatsPage: React.FC = () => {
                           <h5 className='text-sm font-medium text-gray-900 dark:text-gray-100'>
                             {userStat.username}
                           </h5>
+                          {/* 显示用户密码 */}
+                          <p className='text-xs text-red-500 dark:text-red-400'>
+                            密码: {userStat.password || '未设置'}
+                          </p>
                           <p className='text-xs text-gray-500 dark:text-gray-400'>
                             最后播放:{' '}
                             {userStat.lastPlayTime

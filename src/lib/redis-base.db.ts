@@ -288,6 +288,14 @@ export abstract class BaseRedisStorage implements IStorage {
     );
   }
 
+  // 获取用户密码
+  async getUserPassword(userName: string): Promise<string> {
+    const password = await this.withRetry(() =>
+      this.client.get(this.userPwdKey(userName))
+    );
+    return password || '';
+  }
+
   // 删除用户及其所有数据
   async deleteUser(userName: string): Promise<void> {
     // 删除用户密码

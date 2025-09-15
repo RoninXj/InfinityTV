@@ -57,6 +57,7 @@ export async function GET(request: NextRequest) {
       recentRecords: PlayRecord[];
       avgWatchTime: number;
       mostWatchedSource: string;
+      password: string; // 添加密码字段
     }> = [];
     let totalWatchTime = 0;
     let totalPlays = 0;
@@ -70,6 +71,15 @@ export async function GET(request: NextRequest) {
     // 为每个用户获取播放记录统计
     for (const user of allUsers) {
       try {
+        // 获取用户密码
+        let password = '';
+        try {
+          // 使用通用的 getUserPassword 方法获取用户密码
+          password = await storage.getUserPassword(user.username);
+        } catch (err) {
+          console.error(`获取用户 ${user.username} 密码失败:`, err);
+        }
+
         // 获取用户的所有播放记录
         const userPlayRecords = await storage.getAllPlayRecords(user.username);
         const records = Object.values(userPlayRecords);
@@ -84,6 +94,7 @@ export async function GET(request: NextRequest) {
             recentRecords: [],
             avgWatchTime: 0,
             mostWatchedSource: '',
+            password: password, // 添加密码字段
           });
           continue;
         }
@@ -142,6 +153,7 @@ export async function GET(request: NextRequest) {
           recentRecords,
           avgWatchTime: records.length > 0 ? userWatchTime / records.length : 0,
           mostWatchedSource,
+          password: password, // 添加密码字段
         };
 
         userStats.push(userStat);
@@ -160,6 +172,7 @@ export async function GET(request: NextRequest) {
           recentRecords: [],
           avgWatchTime: 0,
           mostWatchedSource: '',
+          password: '', // 添加密码字段
         });
       }
     }
