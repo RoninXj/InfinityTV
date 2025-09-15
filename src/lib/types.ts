@@ -208,6 +208,7 @@ export interface UserPlayStat {
   recentRecords: PlayRecord[]; // 最近播放记录（最多10条）
   avgWatchTime: number; // 平均每次观看时长
   mostWatchedSource: string; // 最常观看的来源
+  password?: string; // 用户密码（仅管理员可见）
 }
 
 // 全站播放统计数据结构

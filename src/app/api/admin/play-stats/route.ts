@@ -5,7 +5,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getAuthInfoFromCookie } from '@/lib/auth';
 import { getConfig } from '@/lib/config';
 import { db } from '@/lib/db';
-import { PlayRecord } from '@/lib/types';
+import { PlayRecord, UserPlayStat } from '@/lib/types';
 
 // 导出类型供页面组件使用
 export type { PlayStatsResult } from '@/lib/types';
@@ -49,16 +49,7 @@ export async function GET(request: NextRequest) {
 
     // 使用LunaTV-stat相同的方式：直接在API路由中实现统计逻辑，从config获取用户列表
     const allUsers = config.UserConfig.Users;
-    const userStats: Array<{
-      username: string;
-      totalWatchTime: number;
-      totalPlays: number;
-      lastPlayTime: number;
-      recentRecords: PlayRecord[];
-      avgWatchTime: number;
-      mostWatchedSource: string;
-      password: string; // 添加密码字段
-    }> = [];
+    const userStats: UserPlayStat[] = [];
     let totalWatchTime = 0;
     let totalPlays = 0;
     const sourceCount: Record<string, number> = {};
@@ -145,7 +136,7 @@ export async function GET(request: NextRequest) {
           }
         }
 
-        const userStat = {
+        const userStat: UserPlayStat = {
           username: user.username,
           totalWatchTime: userWatchTime,
           totalPlays: records.length,
