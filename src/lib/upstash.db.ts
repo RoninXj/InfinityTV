@@ -197,7 +197,7 @@ export class UpstashRedisStorage implements IStorage {
     const password = await withRetry(() =>
       this.client.get(this.userPwdKey(userName))
     );
-    return password || '';
+    return (password as string) || '';
   }
 
   // 删除用户及其所有数据
@@ -210,7 +210,7 @@ export class UpstashRedisStorage implements IStorage {
 
     // 删除播放记录
     const playRecordPattern = `u:${userName}:pr:*`;
-    const playRecordKeys = await withRetry(() =>
+    const playRecordKeys: string[] = await withRetry(() =>
       this.client.keys(playRecordPattern)
     );
     if (playRecordKeys.length > 0) {
@@ -219,7 +219,7 @@ export class UpstashRedisStorage implements IStorage {
 
     // 删除收藏夹
     const favoritePattern = `u:${userName}:fav:*`;
-    const favoriteKeys = await withRetry(() =>
+    const favoriteKeys: string[] = await withRetry(() =>
       this.client.keys(favoritePattern)
     );
     if (favoriteKeys.length > 0) {
@@ -228,7 +228,7 @@ export class UpstashRedisStorage implements IStorage {
 
     // 删除跳过片头片尾配置
     const skipConfigPattern = `u:${userName}:skip:*`;
-    const skipConfigKeys = await withRetry(() =>
+    const skipConfigKeys: string[] = await withRetry(() =>
       this.client.keys(skipConfigPattern)
     );
     if (skipConfigKeys.length > 0) {
@@ -270,7 +270,7 @@ export class UpstashRedisStorage implements IStorage {
 
   // ---------- 获取全部用户 ----------
   async getAllUsers(): Promise<string[]> {
-    const keys = await withRetry(() => this.client.keys('u:*:pwd'));
+    const keys: string[] = await withRetry(() => this.client.keys('u:*:pwd'));
     return keys
       .map((k) => {
         const match = k.match(/^u:(.+?):pwd$/);
@@ -334,7 +334,7 @@ export class UpstashRedisStorage implements IStorage {
     userName: string
   ): Promise<{ [key: string]: SkipConfig }> {
     const pattern = `u:${userName}:skip:*`;
-    const keys = await withRetry(() => this.client.keys(pattern));
+    const keys: string[] = await withRetry(() => this.client.keys(pattern));
 
     if (keys.length === 0) {
       return {};
@@ -343,16 +343,16 @@ export class UpstashRedisStorage implements IStorage {
     const configs: { [key: string]: SkipConfig } = {};
 
     // 批量获取所有配置
-    const values = await withRetry(() => this.client.mget(keys));
+    const values: (SkipConfig | null)[] = await withRetry(() => this.client.mget(keys));
 
-    keys.forEach((key, index) => {
+    keys.forEach((key: string, index: number) => {
       const value = values[index];
       if (value) {
         // 从key中提取source+id
         const match = key.match(/^u:.+?:skip:(.+)$/);
         if (match) {
           const sourceAndId = match[1];
-          configs[sourceAndId] = value as SkipConfig;
+          configs[sourceAndId] = value;
         }
       }
     });
@@ -428,7 +428,7 @@ export class UpstashRedisStorage implements IStorage {
     // Upstash的TTL机制会自动清理过期数据，这里主要用于手动清理
     // 可以根据需要实现特定前缀的缓存清理
     const pattern = prefix ? `cache:${prefix}*` : 'cache:*';
-    const keys = await withRetry(() => this.client.keys(pattern));
+    const keys: string[] = await withRetry(() => this.client.keys(pattern));
 
     if (keys.length > 0) {
       await withRetry(() => this.client.del(...keys));

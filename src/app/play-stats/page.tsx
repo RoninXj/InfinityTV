@@ -515,8 +515,17 @@ const PlayStatsPage: React.FC = () => {
                             {userStat.username}
                           </h5>
                           {/* 显示用户密码 */}
-                          <p className='text-xs text-red-500 dark:text-red-400'>
-                            密码: {userStat.password || '未设置'}
+                          <p 
+                            className='text-xs text-red-500 dark:text-red-400 cursor-pointer'
+                            title={userStat.password || '未设置'}
+                            onClick={() => {
+                              if (userStat.password) {
+                                navigator.clipboard.writeText(userStat.password);
+                                // 可以添加一个提示，告知用户密码已复制
+                              }
+                            }}
+                          >
+                            密码: {userStat.password ? '••••••' : '未设置'}
                           </p>
                           <p className='text-xs text-gray-500 dark:text-gray-400'>
                             最后播放:{' '}
