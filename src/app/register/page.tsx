@@ -34,9 +34,9 @@ function VersionDisplay() {
 
   return (
     <button
-      onClick={() =>
-        window.open('https://github.com/SzeMeng76/LunaTV', '_blank')
-      }
+      onClick={() => {
+        // 本地部署版本，不需要跳转
+      }}
       className='absolute bottom-4 left-1/2 transform -translate-x-1/2 flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 transition-colors cursor-pointer'
     >
       <span className='font-mono'>v{CURRENT_VERSION}</span>
