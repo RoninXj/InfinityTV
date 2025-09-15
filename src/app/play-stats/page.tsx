@@ -319,7 +319,7 @@ const PlayStatsPage: React.FC = () => {
             </div>
             <div className='bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700'>
               <div className='text-2xl font-bold text-gray-900 dark:text-white mb-2'>
-                {statsData.activeUsers}
+                {statsData.userStats.filter(user => user.totalPlays > 0).length}
               </div>
               <div className='text-gray-600 dark:text-gray-400'>活跃用户</div>
             </div>
@@ -362,7 +362,14 @@ const PlayStatsPage: React.FC = () => {
                           {formatTime(stat.watchTime)}
                         </td>
                         <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400'>
-                          {stat.activeUsers}
+                          {/* 计算该日期的活跃用户数 */}
+                          {statsData.userStats.filter(user => {
+                            // 检查用户是否有在该日期的播放记录
+                            return user.recentRecords.some(record => {
+                              const recordDate = new Date(record.save_time);
+                              return recordDate.toISOString().split('T')[0] === stat.date;
+                            });
+                          }).length}
                         </td>
                       </tr>
                     ))}
