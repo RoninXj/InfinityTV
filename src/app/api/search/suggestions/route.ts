@@ -10,6 +10,9 @@ import { yellowWords } from '@/lib/yellow';
 
 export const runtime = 'nodejs';
 
+// 添加此配置以避免静态渲染错误
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   try {
     // 从 cookie 获取用户信息
