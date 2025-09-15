@@ -16,7 +16,7 @@ concurrency:
   cancel-in-progress: true
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: katelya77/katelyatv
+  IMAGE_NAME: RoninXj/infinitytv
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
@@ -64,7 +64,7 @@ jobs:
             type=raw,value=latest,enable={{is_default_branch}}
           labels: |
             org.opencontainers.image.title=${{ github.repository }}
-            org.opencontainers.image.description=katelyatv - A modern streaming platform
+            org.opencontainers.image.description=infinitytv - A modern streaming platform
             org.opencontainers.image.url=${{ github.server_url }}/${{ github.repository }}
             org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
             org.opencontainers.image.revision=${{ github.sha }}
