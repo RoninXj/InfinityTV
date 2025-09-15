@@ -47,7 +47,6 @@
 - [自动更新](#自动更新)
 - [环境变量](#环境变量)
 - [AndroidTV 使用](#AndroidTV-使用)
-- [CI/CD 工作流](#cicd-工作流)
 - [Roadmap](#roadmap)
 - [安全与隐私提醒](#安全与隐私提醒)
 - [License](#license)
@@ -256,27 +255,6 @@ NEXT_PUBLIC_DOUBAN_IMAGE_PROXY_TYPE 选项解释：
 目前该项目可以配合 [OrionTV](https://github.com/zimplexing/OrionTV) 在 Android TV 上使用，可以直接作为 OrionTV 后端
 
 已实现播放记录和网页端同步
-
-## CI/CD 工作流
-
-本项目包含多个 GitHub Actions 工作流用于自动化构建和推送 Docker 镜像到 GitHub Container Registry：
-
-1. **docker-image.yml** - 主要的 Docker 镜像构建和推送工作流
-2. **docker-build-push.yml** - 多平台 Docker 镜像构建工作流
-3. **docker-push.yml** - 简化版 Docker 镜像推送工作流
-
-### 工作流触发方式
-
-- **Push 到 main/master 分支** - 自动构建并推送 latest 标签
-- **创建 Git 标签 (v*)** - 自动构建并推送对应的标签版本
-- **手动触发** - 通过 GitHub Actions 界面手动触发，可指定自定义标签
-
-### 支持的平台
-
-- `linux/amd64` - x86_64 架构
-- `linux/arm64` - ARM64 架构
-
-构建的镜像会推送到 GitHub Container Registry (GHCR)。
 
 ## 安全与隐私提醒
 
