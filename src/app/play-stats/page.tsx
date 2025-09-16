@@ -281,70 +281,70 @@ const PlayStatsPage: React.FC = () => {
           {showBackToTop && (
             <button
               onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-              className='fixed bottom-6 right-6 z-50 p-3 bg-green-600 text-white rounded-full shadow-lg hover:bg-green-700 transition-all duration-200 transform hover:scale-110'
+              className='fixed bottom-4 right-4 z-50 p-2 bg-green-600 text-white rounded-full shadow-lg hover:bg-green-700 transition-all duration-200 transform hover:scale-110'
               aria-label='返回顶部'
             >
-              <ChevronUp className='h-6 w-6' />
+              <ChevronUp className='h-5 w-5' />
             </button>
           )}
 
-          <div className='mb-8 text-center'>
-            <h1 className='text-3xl font-bold text-gray-900 dark:text-white mb-2'>
-              播放统计
+          <div className='mb-6 text-center'>
+            <h1 className='text-2xl font-bold text-gray-900 dark:text-white mb-1'>
+              用户统计
             </h1>
-            <p className='text-gray-600 dark:text-gray-400'>
+            <p className='text-gray-600 dark:text-gray-400 text-sm'>
               系统总览和用户播放数据
             </p>
           </div>
 
           {/* 系统统计概览 */}
-          <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8'>
-            <div className='bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700'>
-              <div className='text-2xl font-bold text-gray-900 dark:text-white mb-2'>
+          <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8'>
+            <div className='bg-white dark:bg-gray-800 rounded-lg shadow p-4 border border-gray-200 dark:border-gray-700'>
+              <div className='text-xl font-bold text-gray-900 dark:text-white mb-1'>
                 {statsData.totalUsers}
               </div>
-              <div className='text-gray-600 dark:text-gray-400'>总用户数</div>
+              <div className='text-gray-600 dark:text-gray-400 text-sm'>总用户数</div>
             </div>
-            <div className='bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700'>
-              <div className='text-2xl font-bold text-gray-900 dark:text-white mb-2'>
+            <div className='bg-white dark:bg-gray-800 rounded-lg shadow p-4 border border-gray-200 dark:border-gray-700'>
+              <div className='text-xl font-bold text-gray-900 dark:text-white mb-1'>
                 {statsData.totalPlays}
               </div>
-              <div className='text-gray-600 dark:text-gray-400'>总播放次数</div>
+              <div className='text-gray-600 dark:text-gray-400 text-sm'>总播放次数</div>
             </div>
-            <div className='bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700'>
-              <div className='text-2xl font-bold text-gray-900 dark:text-white mb-2'>
+            <div className='bg-white dark:bg-gray-800 rounded-lg shadow p-4 border border-gray-200 dark:border-gray-700'>
+              <div className='text-xl font-bold text-gray-900 dark:text-white mb-1'>
                 {formatTime(statsData.totalWatchTime)}
               </div>
-              <div className='text-gray-600 dark:text-gray-400'>总观看时长</div>
+              <div className='text-gray-600 dark:text-gray-400 text-sm'>总观看时长</div>
             </div>
-            <div className='bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700'>
-              <div className='text-2xl font-bold text-gray-900 dark:text-white mb-2'>
+            <div className='bg-white dark:bg-gray-800 rounded-lg shadow p-4 border border-gray-200 dark:border-gray-700'>
+              <div className='text-xl font-bold text-gray-900 dark:text-white mb-1'>
                 {statsData.userStats.filter(user => user.totalPlays > 0).length}
               </div>
-              <div className='text-gray-600 dark:text-gray-400'>活跃用户</div>
+              <div className='text-gray-600 dark:text-gray-400 text-sm'>活跃用户</div>
             </div>
           </div>
 
           {/* 按日统计图表 */}
-          <div className='bg-white dark:bg-gray-800 rounded-lg shadow mb-8 border border-gray-200 dark:border-gray-700'>
-            <div className='p-6'>
-              <h2 className='text-xl font-semibold text-gray-900 dark:text-white mb-6'>
+          <div className='bg-white dark:bg-gray-800 rounded-lg shadow mb-6 border border-gray-200 dark:border-gray-700'>
+            <div className='p-4'>
+              <h2 className='text-lg font-semibold text-gray-900 dark:text-white mb-4'>
                 近期播放趋势
               </h2>
               <div className='overflow-x-auto'>
                 <table className='min-w-full divide-y divide-gray-200 dark:divide-gray-700'>
                   <thead className='bg-gray-50 dark:bg-gray-700'>
                     <tr>
-                      <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider'>
+                      <th className='px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider'>
                         日期
                       </th>
-                      <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider'>
+                      <th className='px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider'>
                         播放次数
                       </th>
-                      <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider'>
+                      <th className='px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider'>
                         观看时长
                       </th>
-                      <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider'>
+                      <th className='px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider'>
                         活跃用户
                       </th>
                     </tr>
@@ -352,16 +352,16 @@ const PlayStatsPage: React.FC = () => {
                   <tbody className='bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700'>
                     {statsData.dailyStats.map((stat) => (
                       <tr key={stat.date} className='hover:bg-gray-50 dark:hover:bg-gray-700'>
-                        <td className='px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100'>
+                        <td className='px-4 py-2 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100'>
                           {formatDate(stat.date)}
                         </td>
-                        <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400'>
+                        <td className='px-4 py-2 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400'>
                           {stat.plays}
                         </td>
-                        <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400'>
+                        <td className='px-4 py-2 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400'>
                           {formatTime(stat.watchTime)}
                         </td>
-                        <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400'>
+                        <td className='px-4 py-2 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400'>
                           {/* 计算该日期的活跃用户数 */}
                           {statsData.userStats.filter(user => {
                             // 检查用户是否有在该日期的播放记录
@@ -381,10 +381,10 @@ const PlayStatsPage: React.FC = () => {
 
           {/* 用户播放统计 */}
           <div>
-            <h3 className='text-xl font-semibold text-gray-900 dark:text-white mb-6'>
+            <h3 className='text-lg font-semibold text-gray-900 dark:text-white mb-4'>
               用户播放统计
             </h3>
-            <div className='space-y-4'>
+            <div className='space-y-3'>
               {statsData.userStats.map((userStat) => (
                 <div
                   key={userStat.username}
@@ -392,14 +392,14 @@ const PlayStatsPage: React.FC = () => {
                 >
                   {/* 用户概览行 */}
                   <div
-                    className='p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors'
+                    className='p-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors'
                     onClick={() => toggleUserExpanded(userStat.username)}
                   >
                     <div className='flex items-center justify-between'>
-                      <div className='flex items-center space-x-4'>
+                      <div className='flex items-center space-x-3'>
                         <div className='flex-shrink-0'>
-                          <div className='w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center'>
-                            <span className='text-sm font-medium text-blue-600 dark:text-blue-400'>
+                          <div className='w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center'>
+                            <span className='text-xs font-medium text-blue-600 dark:text-blue-400'>
                               {userStat.username.charAt(0).toUpperCase()}
                             </span>
                           </div>
@@ -434,6 +434,7 @@ const PlayStatsPage: React.FC = () => {
                                       : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'
                                   }`}
                                   title={copiedPasswords[userStat.username] ? "已复制" : "复制密码"}
+                                  aria-label={copiedPasswords[userStat.username] ? "已复制密码" : "复制密码"}
                                 >
                                   {copiedPasswords[userStat.username] ? (
                                     <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
@@ -459,6 +460,7 @@ const PlayStatsPage: React.FC = () => {
                                   }}
                                   className="text-xs text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
                                   title="查询IP归属地"
+                                  aria-label="查询IP归属地"
                                 >
                                   查询
                                 </button>
@@ -488,7 +490,7 @@ const PlayStatsPage: React.FC = () => {
                           )}
                         </div>
                       </div>
-                      <div className='flex items-center space-x-6'>
+                      <div className='flex items-center space-x-4'>
                         <div className='text-right'>
                           <div className='text-sm font-medium text-gray-900 dark:text-gray-100'>
                             {formatTime(userStat.totalWatchTime)}
@@ -505,17 +507,9 @@ const PlayStatsPage: React.FC = () => {
                             播放次数
                           </div>
                         </div>
-                        <div className='text-right'>
-                          <div className='text-sm font-medium text-gray-900 dark:text-gray-100'>
-                            {formatTime(userStat.avgWatchTime)}
-                          </div>
-                          <div className='text-xs text-gray-500 dark:text-gray-400'>
-                            平均时长
-                          </div>
-                        </div>
                         <div className='flex-shrink-0'>
                           <svg
-                            className={`w-5 h-5 text-gray-400 transition-transform ${
+                            className={`w-4 h-4 text-gray-400 transition-transform ${
                               expandedUsers.has(userStat.username)
                                 ? 'rotate-180'
                                 : ''
@@ -538,26 +532,26 @@ const PlayStatsPage: React.FC = () => {
 
                   {/* 展开的播放记录详情 */}
                   {expandedUsers.has(userStat.username) && (
-                    <div className='p-4 bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700'>
+                    <div className='p-3 bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700'>
                       {userStat.recentRecords.length > 0 ? (
                         <>
-                          <h6 className='text-sm font-medium text-gray-700 dark:text-gray-300 mb-4'>
+                          <h6 className='text-sm font-medium text-gray-700 dark:text-gray-300 mb-3'>
                             最近播放记录 (最多显示10条)
                           </h6>
-                          <div className='grid grid-cols-1 lg:grid-cols-2 gap-4'>
+                          <div className='grid grid-cols-1 gap-3'>
                             {userStat.recentRecords.map((record: PlayRecord) => (
                               <div
                                 key={record.title + record.save_time}
-                                className='flex items-center space-x-4 p-3 bg-white dark:bg-gray-800 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors'
+                                className='flex items-center space-x-3 p-2 bg-white dark:bg-gray-800 rounded cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors'
                                 onClick={() => handlePlayRecord(record)}
                               >
-                                <div className='flex-shrink-0 w-12 h-16 bg-gray-200 dark:bg-gray-700 rounded overflow-hidden'>
+                                <div className='flex-shrink-0 w-10 h-14 bg-gray-200 dark:bg-gray-700 rounded overflow-hidden'>
                                   {record.cover ? (
                                     <Image
                                       src={record.cover}
                                       alt={record.title}
-                                      width={48}
-                                      height={64}
+                                      width={40}
+                                      height={56}
                                       className='w-full h-full object-cover'
                                       onError={(e) => {
                                         (
@@ -568,7 +562,7 @@ const PlayStatsPage: React.FC = () => {
                                   ) : (
                                     <div className='w-full h-full flex items-center justify-center text-gray-400 dark:text-gray-500'>
                                       <svg
-                                        className='w-6 h-6'
+                                        className='w-5 h-5'
                                         fill='none'
                                         stroke='currentColor'
                                         viewBox='0 0 24 24'
@@ -595,7 +589,7 @@ const PlayStatsPage: React.FC = () => {
                                     第 {record.index} 集 / 共{' '}
                                     {record.total_episodes} 集
                                   </p>
-                                  <div className='mt-2'>
+                                  <div className='mt-1'>
                                     <div className='flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mb-1'>
                                       <span>播放进度</span>
                                       <span>
@@ -648,7 +642,7 @@ const PlayStatsPage: React.FC = () => {
         <div className='max-w-4xl mx-auto px-4 py-8'>
           <div className='mb-8 text-center'>
             <h1 className='text-3xl font-bold text-gray-900 dark:text-white mb-2'>
-              我的播放统计
+              我的统计
             </h1>
             <p className='text-gray-600 dark:text-gray-400'>
               个人播放数据概览
