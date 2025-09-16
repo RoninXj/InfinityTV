@@ -17,10 +17,10 @@ declare global {
 export class DanmakuPanelManager {
   private player: any;
   private plugin: any;
-  private isPanelVisible: boolean = false;
-  private isMouseOverPanel: boolean = false;
-  private isMouseOverPlayer: boolean = false;
-  private autoHideDelay: number = 3000; // 3秒后自动隐藏
+  private isPanelVisible = false;
+  private isMouseOverPanel = false;
+  private isMouseOverPlayer = false;
+  private autoHideDelay = 3000; // 3秒后自动隐藏
 
   constructor(player: any) {
     this.player = player;
@@ -279,7 +279,10 @@ export function applyDanmakuPanelStyles() {
   document.head.appendChild(style);
 }
 
-export default {
+// 修复导出默认对象的问题
+const danmakuUIOptimizer = {
   DanmakuPanelManager,
   applyDanmakuPanelStyles
 };
+
+export default danmakuUIOptimizer;

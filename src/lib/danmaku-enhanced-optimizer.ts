@@ -20,6 +20,12 @@ interface ArtPlayer {
   };
   fullscreen?: boolean;
   container?: HTMLElement;
+  paused?: boolean;
+  currentTime?: number;
+  duration?: number;
+  notice?: {
+    show?: string;
+  };
 }
 
 interface DanmakuPlugin {
@@ -172,7 +178,7 @@ export function handleResize(player: any) {
   
   // 延迟重置弹幕，避免连续触发（全屏切换优化）
   window.resizeResetTimeoutRef = window.setTimeout(() => {
-    if (player?.plugins?.artplayerPluginDanmuku) {
+    if (player?.plugins?.artplayerPluginDanmaku) {
       // 检查是否处于全屏状态
       const isFullscreen = player.fullscreen || 
                           (player.container && 
@@ -180,7 +186,7 @@ export function handleResize(player: any) {
       
       if (isFullscreen) {
         // 全屏模式下的特殊处理
-        player.plugins.artplayerPluginDanmuku.reset();
+        player.plugins.artplayerPluginDanmaku.reset();
         console.log('全屏模式下窗口尺寸变化，弹幕已重置');
       } else {
         // 非全屏模式下的常规处理
@@ -217,7 +223,7 @@ export function handleDanmakuHover(player: any, isHover: boolean) {
  * @param player ArtPlayer实例
  */
 function showDanmakuConfigPanel(player: any) {
-  if (player?.plugins?.artplayerPluginDanmuku) {
+  if (player?.plugins?.artplayerPluginDanmaku) {
     const configPanel = player.container?.querySelector('.apd-config-panel');
     if (configPanel) {
       configPanel.style.opacity = '1';
@@ -232,7 +238,7 @@ function showDanmakuConfigPanel(player: any) {
  * @param player ArtPlayer实例
  */
 function hideDanmakuConfigPanel(player: any) {
-  if (player?.plugins?.artplayerPluginDanmuku) {
+  if (player?.plugins?.artplayerPluginDanmaku) {
     const configPanel = player.container?.querySelector('.apd-config-panel');
     if (configPanel) {
       configPanel.style.opacity = '0';
@@ -248,9 +254,10 @@ function hideDanmakuConfigPanel(player: any) {
 export class EnhancedDanmakuOptimizer {
   private player: ArtPlayer | null = null;
   private plugin: DanmakuPlugin | null = null;
-  private isFullscreen: boolean = false;
+  private isFullscreen = false;
   private danmuData: any[] = [];
-  private isVisible: boolean = true;
+  private isVisible = true;
+  private isStopped = false;
   private eventListeners: Array<{event: string, handler: (...args: any[]) => void}> = [];
 
   constructor(player: ArtPlayer) {
@@ -261,6 +268,7 @@ export class EnhancedDanmakuOptimizer {
       // 保存初始弹幕数据
       this.danmuData = this.plugin.danmuku || [];
       this.isVisible = !this.plugin.isHide;
+      this.isStopped = this.plugin.isStop || false;
     }
     
     // 初始化事件监听器
@@ -401,10 +409,13 @@ export class EnhancedDanmakuOptimizer {
   }
 }
 
-export default {
+// 修复导出默认对象的问题
+const danmakuOptimizer = {
   applyEnhancedDanmakuCSSFixes,
   handleFullscreenChange,
   handleResize,
   handleDanmakuHover,
   EnhancedDanmakuOptimizer
 };
+
+export default danmakuOptimizer;
