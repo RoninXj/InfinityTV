@@ -243,7 +243,7 @@ const PlayStatsPage: React.FC = () => {
 
   if (loading) {
     return (
-      <PageLayout>
+      <PageLayout activePath="/play-stats">
         <div className='flex items-center justify-center min-h-screen'>
           <div className='animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500'></div>
         </div>
@@ -253,7 +253,7 @@ const PlayStatsPage: React.FC = () => {
 
   if (error) {
     return (
-      <PageLayout>
+      <PageLayout activePath="/play-stats">
         <div className='max-w-4xl mx-auto px-4 py-8'>
           <div className='bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6 text-center'>
             <h2 className='text-xl font-bold text-red-800 dark:text-red-200 mb-2'>
@@ -275,7 +275,7 @@ const PlayStatsPage: React.FC = () => {
   // 管理员视图
   if (isAdmin && statsData) {
     return (
-      <PageLayout>
+      <PageLayout activePath="/play-stats">
         <div className='max-w-6xl mx-auto px-4 py-8'>
           {/* 返回顶部按钮 */}
           {showBackToTop && (
@@ -638,7 +638,7 @@ const PlayStatsPage: React.FC = () => {
   // 普通用户视图
   if (userStats) {
     return (
-      <PageLayout>
+      <PageLayout activePath="/play-stats">
         <div className='max-w-4xl mx-auto px-4 py-8'>
           <div className='mb-8 text-center'>
             <h1 className='text-3xl font-bold text-gray-900 dark:text-white mb-2'>
