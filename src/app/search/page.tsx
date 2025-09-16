@@ -325,7 +325,7 @@ function SearchPageClient() {
   // 非聚合：应用筛选与排序
   const filteredAllResults = useMemo(() => {
     const { source, title, year, yearOrder } = filterAll;
-    let filtered = searchResults.filter((item: SearchResult) => {
+    const filtered = searchResults.filter((item: SearchResult) => {
       if (source !== 'all' && item.source !== source) return false;
       if (title !== 'all' && item.title !== title) return false;
       if (year !== 'all' && item.year !== year) return false;
