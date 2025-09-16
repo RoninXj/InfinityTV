@@ -571,7 +571,7 @@ export const UserMenu: React.FC = () => {
             <Tv className='w-4 h-4 text-gray-500 dark:text-gray-400' />
             <span className='font-medium'>TVBox 配置</span>
           </button>
-          
+
           {/* 修改密码按钮 */}
           {showChangePassword && (
             <button

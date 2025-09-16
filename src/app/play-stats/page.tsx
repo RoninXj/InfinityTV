@@ -7,7 +7,7 @@ import { ChevronUp } from 'lucide-react';
 
 import { getAuthInfoFromBrowserCookie } from '@/lib/auth';
 import { PlayRecord } from '@/lib/types';
-import { getIpLocation } from '@/lib/utils'; // 添加IP地址查询导入
+import { getIpLocation } from '@/lib/utils';
 
 import PageLayout from '@/components/PageLayout';
 
@@ -23,8 +23,8 @@ const PlayStatsPage: React.FC = () => {
   const [authInfo, setAuthInfo] = useState<{ username?: string; role?: string } | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [showBackToTop, setShowBackToTop] = useState(false);
-  const [ipLocations, setIpLocations] = useState<Record<string, string>>({}); // IP地址归属地查询状态
-  const [copiedPasswords, setCopiedPasswords] = useState<Record<string, boolean>>({}); // 密码复制状态
+  const [ipLocations, setIpLocations] = useState<Record<string, string>>({});
+  const [copiedPasswords, setCopiedPasswords] = useState<Record<string, boolean>>({});
 
   // 检查用户权限
   useEffect(() => {
@@ -196,7 +196,6 @@ const PlayStatsPage: React.FC = () => {
       }, 2000);
     } catch (err) {
       console.error('复制密码失败:', err);
-      // 可以添加错误提示
     }
   };
 
@@ -221,51 +220,79 @@ const PlayStatsPage: React.FC = () => {
 
   // 监听滚动位置，显示/隐藏回到顶部按钮
   useEffect(() => {
-    // 获取滚动位置的函数
     const getScrollTop = () => {
       return document.body.scrollTop || document.documentElement.scrollTop || 0;
     };
 
-    // 滚动事件处理函数
     const handleScroll = () => {
       const scrollTop = getScrollTop();
       setShowBackToTop(scrollTop > 300);
     };
 
-    // 添加滚动事件监听器
     window.addEventListener('scroll', handleScroll);
 
-    // 清理函数
     return () => {
       window.removeEventListener('scroll', handleScroll);
     };
   }, []);
 
-  if (loading) {
+  // 返回顶部功能
+  const scrollToTop = () => {
+    try {
+      document.body.scrollTo({
+        top: 0,
+        behavior: 'smooth',
+      });
+    } catch (error) {
+      document.body.scrollTop = 0;
+    }
+  };
+
+  // 未授权时显示加载
+  if (!authInfo) {
     return (
       <PageLayout activePath="/play-stats">
-        <div className='flex items-center justify-center min-h-screen'>
-          <div className='animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500'></div>
+        <div className='text-center py-12'>
+          <div className='inline-flex items-center space-x-2 text-gray-600 dark:text-gray-400'>
+            <svg
+              className='w-6 h-6 animate-spin'
+              fill='none'
+              stroke='currentColor'
+              viewBox='0 0 24 24'
+            >
+              <path
+                strokeLinecap='round'
+                strokeLinejoin='round'
+                strokeWidth='2'
+                d='M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15'
+              />
+            </svg>
+            <span>检查权限中...</span>
+          </div>
         </div>
       </PageLayout>
     );
   }
 
-  if (error) {
+  if (loading) {
     return (
       <PageLayout activePath="/play-stats">
-        <div className='max-w-4xl mx-auto px-4 py-8'>
-          <div className='bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6 text-center'>
-            <h2 className='text-xl font-bold text-red-800 dark:text-red-200 mb-2'>
-              错误
-            </h2>
-            <p className='text-red-600 dark:text-red-400'>{error}</p>
-            <button
-              onClick={() => fetchStats()}
-              className='mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors'
+        <div className='text-center py-12'>
+          <div className='inline-flex items-center space-x-2 text-gray-600 dark:text-gray-400'>
+            <svg
+              className='w-6 h-6 animate-spin'
+              fill='none'
+              stroke='currentColor'
+              viewBox='0 0 24 24'
             >
-              重新加载
-            </button>
+              <path
+                strokeLinecap='round'
+                strokeLinejoin='round'
+                strokeWidth='2'
+                d='M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15'
+              />
+            </svg>
+            <span>{isAdmin ? '加载播放统计中...' : '加载个人统计中...'}</span>
           </div>
         </div>
       </PageLayout>
@@ -276,31 +303,74 @@ const PlayStatsPage: React.FC = () => {
   if (isAdmin && statsData) {
     return (
       <PageLayout activePath="/play-stats">
-        <div className='max-w-6xl mx-auto px-4 py-8'>
-          {/* 返回顶部按钮 */}
-          {showBackToTop && (
+        <div className='max-w-7xl mx-auto px-4 py-8'>
+          {/* 页面标题和刷新按钮 */}
+          <div className='flex justify-between items-center mb-8'>
+            <div>
+              <h1 className='text-3xl font-bold text-gray-900 dark:text-white'>
+                播放统计
+              </h1>
+              <p className='text-gray-600 dark:text-gray-400 mt-2'>
+                查看用户播放数据和趋势分析
+              </p>
+            </div>
             <button
-              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-              className='fixed bottom-4 right-4 z-50 p-2 bg-green-600 text-white rounded-full shadow-lg hover:bg-green-700 transition-all duration-200 transform hover:scale-110'
-              aria-label='返回顶部'
+              onClick={fetchStats}
+              disabled={loading}
+              className='px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white text-sm rounded-lg transition-colors flex items-center space-x-2'
             >
-              <ChevronUp className='h-5 w-5' />
+              <svg
+                className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`}
+                fill='none'
+                stroke='currentColor'
+                viewBox='0 0 24 24'
+              >
+                <path
+                  strokeLinecap='round'
+                  strokeLinejoin='round'
+                  strokeWidth='2'
+                  d='M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15'
+                />
+              </svg>
+              <span>{loading ? '刷新中...' : '刷新数据'}</span>
             </button>
-          )}
-
-          <div className='mb-6 text-center'>
-            <h1 className='text-2xl font-bold text-gray-900 dark:text-white mb-1'>
-              用户统计
-            </h1>
-            <p className='text-gray-600 dark:text-gray-400 text-sm'>
-              系统总览和用户播放数据
-            </p>
           </div>
 
-          {/* 系统统计概览 */}
-          <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8'>
-            <div className='bg-white dark:bg-gray-800 rounded-lg shadow p-4 border border-gray-200 dark:border-gray-700'>
-              <div className='text-xl font-bold text-gray-900 dark:text-white mb-1'>
+          {/* 错误提示 */}
+          {error && (
+            <div className='mb-8 p-4 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800'>
+              <div className='flex items-center space-x-3'>
+                <div className='text-red-600 dark:text-red-400'>
+                  <svg
+                    className='w-5 h-5'
+                    fill='none'
+                    stroke='currentColor'
+                    viewBox='0 0 24 24'
+                  >
+                    <path
+                      strokeLinecap='round'
+                      strokeLinejoin='round'
+                      strokeWidth='2'
+                      d='M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'
+                    />
+                  </svg>
+                </div>
+                <div>
+                  <h4 className='text-sm font-medium text-red-800 dark:text-red-300'>
+                    获取播放统计失败
+                  </h4>
+                  <p className='text-red-700 dark:text-red-400 text-sm mt-1'>
+                    {error}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 全站统计概览 */}
+          <div className='grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4 mb-8'>
+            <div className='p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800'>
+              <div className='text-2xl font-bold text-blue-800 dark:text-blue-300'>
                 {statsData.totalUsers}
               </div>
               <div className='text-gray-600 dark:text-gray-400 text-sm'>总用户数</div>
@@ -362,9 +432,7 @@ const PlayStatsPage: React.FC = () => {
                           {formatTime(stat.watchTime)}
                         </td>
                         <td className='px-4 py-2 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400'>
-                          {/* 计算该日期的活跃用户数 */}
                           {statsData.userStats.filter(user => {
-                            // 检查用户是否有在该日期的播放记录
                             return user.recentRecords.some(record => {
                               const recordDate = new Date(record.save_time);
                               return recordDate.toISOString().split('T')[0] === stat.date;
@@ -639,14 +707,37 @@ const PlayStatsPage: React.FC = () => {
   if (userStats) {
     return (
       <PageLayout activePath="/play-stats">
-        <div className='max-w-4xl mx-auto px-4 py-8'>
-          <div className='mb-8 text-center'>
-            <h1 className='text-3xl font-bold text-gray-900 dark:text-white mb-2'>
-              我的统计
-            </h1>
-            <p className='text-gray-600 dark:text-gray-400'>
-              个人播放数据概览
-            </p>
+        <div className='max-w-6xl mx-auto px-4 py-8'>
+          {/* 页面标题和刷新按钮 */}
+          <div className='flex justify-between items-center mb-8'>
+            <div>
+              <h1 className='text-3xl font-bold text-gray-900 dark:text-white'>
+                个人统计
+              </h1>
+              <p className='text-gray-600 dark:text-gray-400 mt-2'>
+                查看您的个人播放记录和统计数据
+              </p>
+            </div>
+            <button
+              onClick={fetchStats}
+              disabled={loading}
+              className='px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white text-sm rounded-lg transition-colors flex items-center space-x-2'
+            >
+              <svg
+                className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`}
+                fill='none'
+                stroke='currentColor'
+                viewBox='0 0 24 24'
+              >
+                <path
+                  strokeLinecap='round'
+                  strokeLinejoin='round'
+                  strokeWidth='2'
+                  d='M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15'
+                />
+              </svg>
+              <span>{loading ? '刷新中...' : '刷新数据'}</span>
+            </button>
           </div>
 
           {/* 个人统计概览 */}
@@ -792,7 +883,34 @@ const PlayStatsPage: React.FC = () => {
     );
   }
 
-  return null;
+  // 加载中或错误状态
+  return (
+    <PageLayout activePath="/play-stats">
+      <div className='max-w-6xl mx-auto px-4 py-8'>
+        <div className='text-center py-12'>
+          {error ? (
+            <div className='text-red-600 dark:text-red-400'>{error}</div>
+          ) : (
+            <div className='text-gray-600 dark:text-gray-400'>
+              {isAdmin ? '加载播放统计中...' : '加载个人统计中...'}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* 返回顶部悬浮按钮 */}
+      <button
+        onClick={scrollToTop}
+        className={`fixed bottom-20 md:bottom-6 right-6 z-[500] w-12 h-12 bg-green-500/90 hover:bg-green-500 text-white rounded-full shadow-lg backdrop-blur-sm transition-all duration-300 ease-in-out flex items-center justify-center group ${showBackToTop
+          ? 'opacity-100 translate-y-0 pointer-events-auto'
+          : 'opacity-0 translate-y-4 pointer-events-none'
+          }`}
+        aria-label='返回顶部'
+      >
+        <ChevronUp className='w-6 h-6 transition-transform group-hover:scale-110' />
+      </button>
+    </PageLayout>
+  );
 };
 
 export default PlayStatsPage;
