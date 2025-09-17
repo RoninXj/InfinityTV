@@ -410,7 +410,50 @@ export async function getIpLocation(ip: string): Promise<string> {
 
   // API列表，只保留准确性较高的服务
   const apiList = [
-    // 保留准确性较高的API服务
+    // 准确性较高的API服务
+    {
+      name: 'ipapi.co',
+      url: `https://ipapi.co/${ip}/json/`,
+      parser: (data: any) => {
+        if (data.country_name) {
+          const parts = [];
+          if (data.country_name) parts.push(data.country_name);
+          if (data.region) parts.push(data.region);
+          if (data.city) parts.push(data.city);
+          if (data.org) parts.push(data.org);
+          return parts.length > 0 ? parts.join(' ') : null;
+        }
+        return null;
+      }
+    },
+    {
+      name: 'seeip.org',
+      url: `https://api.seeip.org/geoip/${ip}`,
+      parser: (data: any) => {
+        if (data.country) {
+          const parts = [];
+          if (data.country) parts.push(data.country);
+          if (data.region) parts.push(data.region);
+          if (data.city) parts.push(data.city);
+          if (data.organization) parts.push(data.organization);
+          return parts.length > 0 ? parts.join(' ') : null;
+        }
+        return null;
+      }
+    },
+    {
+      name: 'iplocation.net',
+      url: `https://api.iplocation.net/?ip=${ip}`,
+      parser: (data: any) => {
+        if (data.country_name) {
+          const parts = [];
+          if (data.country_name) parts.push(data.country_name);
+          if (data.isp) parts.push(data.isp);
+          return parts.length > 0 ? parts.join(' ') : null;
+        }
+        return null;
+      }
+    },
     {
       name: 'geoiplookup.io',
       url: `https://json.geoiplookup.io/${ip}`,
