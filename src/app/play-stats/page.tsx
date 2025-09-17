@@ -25,6 +25,9 @@ const PlayStatsPage: React.FC = () => {
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [ipLocations, setIpLocations] = useState<Record<string, string>>({});
   const [copiedPasswords, setCopiedPasswords] = useState<Record<string, boolean>>({});
+  // 添加新的状态用于存储用户登录历史
+  const [userLoginHistories, setUserLoginHistories] = useState<Record<string, any[]>>({});
+  const [loadingLoginHistory, setLoadingLoginHistory] = useState<Record<string, boolean>>({});
 
   // 检查用户权限
   useEffect(() => {
@@ -212,30 +215,36 @@ const PlayStatsPage: React.FC = () => {
     }
   };
 
-  // 获取用户登录历史
-  const fetchUserLoginHistory = useCallback(async () => {
-    if (!isAdmin) return;
+  // 获取用户登录历史记录
+  const fetchUserLoginHistory = async (username: string) => {
+    if (!username) return;
     
+    // 如果已经加载过该用户的登录历史，则不再重复加载
+    if (userLoginHistories[username]) return;
+
     try {
-      const response = await fetch('/api/user/login-history');
+      setLoadingLoginHistory(prev => ({ ...prev, [username]: true }));
+      
+      const response = await fetch(`/api/user/login-history?username=${encodeURIComponent(username)}`);
+      
       if (response.ok) {
         const data = await response.json();
-        // 这里可以处理登录历史数据
-        console.log('用户登录历史:', data);
+        setUserLoginHistories(prev => ({ ...prev, [username]: data.loginHistory || [] }));
+      } else {
+        console.error('获取用户登录历史失败:', response.status);
       }
     } catch (err) {
-      console.error('获取登录历史失败:', err);
+      console.error('获取用户登录历史失败:', err);
+    } finally {
+      setLoadingLoginHistory(prev => ({ ...prev, [username]: false }));
     }
-  }, [isAdmin]);
+  };
 
   useEffect(() => {
     if (authInfo) {
       fetchStats();
-      if (isAdmin) {
-        fetchUserLoginHistory();
-      }
     }
-  }, [authInfo, fetchStats, fetchUserLoginHistory]);
+  }, [authInfo, fetchStats]);
 
   // 监听滚动位置，显示/隐藏回到顶部按钮
   useEffect(() => {
@@ -620,45 +629,72 @@ const PlayStatsPage: React.FC = () => {
                   {/* 展开的播放记录详情 */}
                   {expandedUsers.has(userStat.username) && (
                     <div className='p-3 bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700'>
-                      {/* 显示登录历史 */}
-                      {userStat.loginHistory && userStat.loginHistory.length > 0 && (
-                        <div className="mb-4">
-                          <h6 className='text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'>
-                            登录历史
+                      {/* 添加登录历史记录部分 */}
+                      <div className='mb-4'>
+                        <div className='flex items-center justify-between mb-2'>
+                          <h6 className='text-sm font-medium text-gray-700 dark:text-gray-300'>
+                            登录历史记录
                           </h6>
-                          <div className="space-y-2">
-                            {userStat.loginHistory.slice(0, 5).map((login: any, index: number) => (
-                              <div key={index} className="flex items-center justify-between text-xs p-2 bg-white dark:bg-gray-800 rounded">
-                                <div>
-                                  <div className="flex items-center space-x-2">
-                                    <span className="text-gray-900 dark:text-gray-100">
-                                      {login.ip}
-                                    </span>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              fetchUserLoginHistory(userStat.username);
+                            }}
+                            disabled={loadingLoginHistory[userStat.username]}
+                            className='text-xs text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 disabled:opacity-50'
+                          >
+                            {loadingLoginHistory[userStat.username] ? '加载中...' : '刷新'}
+                          </button>
+                        </div>
+                        
+                        {userLoginHistories[userStat.username] ? (
+                          userLoginHistories[userStat.username].length > 0 ? (
+                            <div className='space-y-2'>
+                              {userLoginHistories[userStat.username].map((login, index) => (
+                                <div key={index} className='flex items-center justify-between text-xs p-2 bg-white dark:bg-gray-800 rounded'>
+                                  <div>
+                                    <div className='font-mono'>{login.ip}</div>
+                                    <div className='text-gray-500 dark:text-gray-400'>
+                                      {formatDateTime(new Date(login.time).getTime())}
+                                    </div>
+                                  </div>
+                                  <div className='flex items-center space-x-2'>
                                     <button
                                       onClick={(e) => {
                                         e.stopPropagation();
                                         fetchIpLocation(login.ip);
                                       }}
-                                      className="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+                                      className='text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300'
                                       title="查询IP归属地"
                                     >
                                       查询
                                     </button>
                                     {ipLocations[login.ip] && (
-                                      <span className="text-green-600 dark:text-green-400">
+                                      <span className='text-green-600 dark:text-green-400'>
                                         ({ipLocations[login.ip]})
                                       </span>
                                     )}
                                   </div>
-                                  <div className="text-gray-500 dark:text-gray-400 mt-1">
-                                    {new Date(login.time).toLocaleString('zh-CN')}
-                                  </div>
                                 </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
+                              ))}
+                            </div>
+                          ) : (
+                            <p className='text-gray-500 dark:text-gray-400 text-sm'>
+                              暂无登录历史记录
+                            </p>
+                          )
+                        ) : (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              fetchUserLoginHistory(userStat.username);
+                            }}
+                            className='text-xs text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300'
+                          >
+                            点击加载登录历史记录
+                          </button>
+                        )}
+                      </div>
                       
                       {userStat.recentRecords.length > 0 ? (
                         <>

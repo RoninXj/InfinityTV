@@ -408,42 +408,19 @@ export async function getIpLocation(ip: string): Promise<string> {
     return '内网地址';
   }
 
-  // API列表，按优先级排序
+  // API列表，只保留准确性较高的服务
   const apiList = [
-    // 将更准确的API服务放在前面
+    // 保留准确性较高的API服务
     {
       name: 'geoiplookup.io',
       url: `https://json.geoiplookup.io/${ip}`,
       parser: (data: any) => {
         if (data.country_code) {
           const parts = [];
-          // 国家
-          if (data.country_name === 'China' || data.country_name === '中国') {
-            parts.push('中国');
-          } else if (data.country_name) {
-            parts.push(data.country_name);
-          }
-          
-          // 省份
-          if (data.region_name === 'Hubei' || data.region_name === '湖北') {
-            parts.push('湖北');
-          } else if (data.region_name) {
-            parts.push(data.region_name);
-          }
-          
-          // 城市
-          if (data.city === 'Wuhan' || data.city === '武汉') {
-            parts.push('武汉');
-          } else if (data.city === 'Wangjiaqiao' || data.city === '王家桥') {
-            parts.push('王家桥');
-          } else if (data.city) {
-            parts.push(data.city);
-          }
-          
-          // 组织
+          if (data.country_name) parts.push(data.country_name);
+          if (data.region_name) parts.push(data.region_name);
+          if (data.city) parts.push(data.city);
           if (data.org) parts.push(data.org);
-          
-          // 按照国家 省份 城市 组织的顺序返回
           return parts.length > 0 ? parts.join(' ') : null;
         }
         return null;
@@ -455,103 +432,10 @@ export async function getIpLocation(ip: string): Promise<string> {
       parser: (data: any) => {
         if (data.country_name) {
           const parts = [];
-          // 国家
-          if (data.country_name === 'China' || data.country_name === '中国') {
-            parts.push('中国');
-          } else {
-            parts.push(data.country_name);
-          }
-          
-          // 省份
-          if (data.region_name === 'Hubei' || data.region_name === '湖北') {
-            parts.push('湖北');
-          } else {
-            parts.push(data.region_name);
-          }
-          
-          // 城市
-          if (data.city_name === 'Wuhan' || data.city_name === '武汉') {
-            parts.push('武汉');
-          } else {
-            parts.push(data.city_name);
-          }
-          
-          // 组织
+          if (data.country_name) parts.push(data.country_name);
+          if (data.region_name) parts.push(data.region_name);
+          if (data.city_name) parts.push(data.city_name);
           if (data.as) parts.push(data.as);
-          
-          // 按照国家 省份 城市 组织的顺序返回
-          return parts.length > 0 ? parts.join(' ') : null;
-        }
-        return null;
-      }
-    },
-    {
-      name: 'ip-api.com',
-      url: `https://ip-api.com/json/${ip}?lang=zh-CN&fields=status,country,regionName,city,isp,org`,
-      parser: (data: any) => {
-        if (data.status === 'success') {
-          const parts = [];
-          // 国家
-          if (data.country === '中国') {
-            parts.push('中国');
-          } else if (data.country) {
-            parts.push(data.country);
-          }
-          
-          // 省份
-          if (data.regionName === '湖北') {
-            parts.push('湖北');
-          } else {
-            parts.push(data.regionName);
-          }
-          
-          // 城市
-          if (data.city === '武汉') {
-            parts.push('武汉');
-          } else {
-            parts.push(data.city);
-          }
-          
-          // 组织
-          if (data.isp) parts.push(data.isp);
-          
-          // 按照国家 省份 城市 组织的顺序返回
-          return parts.length > 0 ? parts.join(' ') : null;
-        }
-        return null;
-      }
-    },
-    {
-      name: 'ipapi.co',
-      url: `https://ipapi.co/${ip}/json/`,
-      parser: (data: any) => {
-        if (!data.error) {
-          const parts = [];
-          // 国家
-          if (data.country_name === 'China' || data.country_name === '中国') {
-            parts.push('中国');
-          } else if (data.country_name) {
-            parts.push(data.country_name);
-          }
-          
-          // 省份
-          if (data.region === 'Hubei' || data.region === '湖北') {
-            parts.push('湖北');
-          } else if (data.region) {
-            parts.push(data.region);
-          }
-          
-          // 城市
-          if (data.city === 'Wuhan' || data.city === '武汉') {
-            parts.push('武汉');
-          } else if (data.city) {
-            parts.push(data.city);
-          }
-          
-          // 组织
-          if (data.org) parts.push(data.org);
-          
-          // 按照国家 省份 城市 组织的顺序返回
           return parts.length > 0 ? parts.join(' ') : null;
         }
         return null;
