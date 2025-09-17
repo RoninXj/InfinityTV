@@ -212,11 +212,30 @@ const PlayStatsPage: React.FC = () => {
     }
   };
 
+  // 获取用户登录历史
+  const fetchUserLoginHistory = useCallback(async () => {
+    if (!isAdmin) return;
+    
+    try {
+      const response = await fetch('/api/user/login-history');
+      if (response.ok) {
+        const data = await response.json();
+        // 这里可以处理登录历史数据
+        console.log('用户登录历史:', data);
+      }
+    } catch (err) {
+      console.error('获取登录历史失败:', err);
+    }
+  }, [isAdmin]);
+
   useEffect(() => {
     if (authInfo) {
       fetchStats();
+      if (isAdmin) {
+        fetchUserLoginHistory();
+      }
     }
-  }, [authInfo, fetchStats]);
+  }, [authInfo, fetchStats, fetchUserLoginHistory]);
 
   // 监听滚动位置，显示/隐藏回到顶部按钮
   useEffect(() => {
@@ -601,6 +620,46 @@ const PlayStatsPage: React.FC = () => {
                   {/* 展开的播放记录详情 */}
                   {expandedUsers.has(userStat.username) && (
                     <div className='p-3 bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700'>
+                      {/* 显示登录历史 */}
+                      {userStat.loginHistory && userStat.loginHistory.length > 0 && (
+                        <div className="mb-4">
+                          <h6 className='text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'>
+                            登录历史
+                          </h6>
+                          <div className="space-y-2">
+                            {userStat.loginHistory.slice(0, 5).map((login: any, index: number) => (
+                              <div key={index} className="flex items-center justify-between text-xs p-2 bg-white dark:bg-gray-800 rounded">
+                                <div>
+                                  <div className="flex items-center space-x-2">
+                                    <span className="text-gray-900 dark:text-gray-100">
+                                      {login.ip}
+                                    </span>
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        fetchIpLocation(login.ip);
+                                      }}
+                                      className="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+                                      title="查询IP归属地"
+                                    >
+                                      查询
+                                    </button>
+                                    {ipLocations[login.ip] && (
+                                      <span className="text-green-600 dark:text-green-400">
+                                        ({ipLocations[login.ip]})
+                                      </span>
+                                    )}
+                                  </div>
+                                  <div className="text-gray-500 dark:text-gray-400 mt-1">
+                                    {new Date(login.time).toLocaleString('zh-CN')}
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      
                       {userStat.recentRecords.length > 0 ? (
                         <>
                           <h6 className='text-sm font-medium text-gray-700 dark:text-gray-300 mb-3'>
