@@ -410,6 +410,23 @@ export async function getIpLocation(ip: string): Promise<string> {
 
   // API列表，只保留准确性较高的服务
   const apiList = [
+    // 高准确性的首选API服务
+    {
+      name: 'ip9.com.cn',
+      url: `https://ip9.com.cn/get?ip=${ip}`,
+      parser: (data: any) => {
+        if (data.ret === 200 && data.data) {
+          const d = data.data;
+          const parts = [];
+          if (d.country) parts.push(d.country);
+          if (d.prov) parts.push(d.prov);
+          if (d.city) parts.push(d.city);
+          if (d.isp) parts.push(d.isp);
+          return parts.length > 0 ? parts.join(' ') : null;
+        }
+        return null;
+      }
+    },
     // 准确性较高的API服务
     {
       name: 'ipapi.co',
