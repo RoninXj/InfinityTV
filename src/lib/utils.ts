@@ -408,144 +408,23 @@ export async function getIpLocation(ip: string): Promise<string> {
     return '内网地址';
   }
 
-  // API列表，只保留准确性较高的服务
-  const apiList = [
-    // 高准确性的首选API服务
-    {
-      name: 'ip9.com.cn',
-      url: `https://ip9.com.cn/get?ip=${ip}`,
-      parser: (data: any) => {
-        if (data.ret === 200 && data.data) {
-          const d = data.data;
-          const parts = [];
-          if (d.country) parts.push(d.country);
-          if (d.prov) parts.push(d.prov);
-          if (d.city) parts.push(d.city);
-          if (d.isp) parts.push(d.isp);
-          return parts.length > 0 ? parts.join(' ') : null;
-        }
-        return null;
+  try {
+    // 使用我们自己的API路由来避免CORS问题
+    const response = await fetch(`/api/ip-location?ip=${ip}`, {
+      headers: {
+        'Accept': 'application/json',
       }
-    },
-    // 准确性较高的API服务
-    {
-      name: 'ipapi.co',
-      url: `https://ipapi.co/${ip}/json/`,
-      parser: (data: any) => {
-        if (data.country_name) {
-          const parts = [];
-          if (data.country_name) parts.push(data.country_name);
-          if (data.region) parts.push(data.region);
-          if (data.city) parts.push(data.city);
-          if (data.org) parts.push(data.org);
-          return parts.length > 0 ? parts.join(' ') : null;
-        }
-        return null;
-      }
-    },
-    {
-      name: 'seeip.org',
-      url: `https://api.seeip.org/geoip/${ip}`,
-      parser: (data: any) => {
-        if (data.country) {
-          const parts = [];
-          if (data.country) parts.push(data.country);
-          if (data.region) parts.push(data.region);
-          if (data.city) parts.push(data.city);
-          if (data.organization) parts.push(data.organization);
-          return parts.length > 0 ? parts.join(' ') : null;
-        }
-        return null;
-      }
-    },
-    {
-      name: 'iplocation.net',
-      url: `https://api.iplocation.net/?ip=${ip}`,
-      parser: (data: any) => {
-        if (data.country_name) {
-          const parts = [];
-          if (data.country_name) parts.push(data.country_name);
-          if (data.isp) parts.push(data.isp);
-          return parts.length > 0 ? parts.join(' ') : null;
-        }
-        return null;
-      }
-    },
-    {
-      name: 'geoiplookup.io',
-      url: `https://json.geoiplookup.io/${ip}`,
-      parser: (data: any) => {
-        if (data.country_code) {
-          const parts = [];
-          if (data.country_name) parts.push(data.country_name);
-          if (data.region_name) parts.push(data.region_name);
-          if (data.city) parts.push(data.city);
-          if (data.org) parts.push(data.org);
-          return parts.length > 0 ? parts.join(' ') : null;
-        }
-        return null;
-      }
-    },
-    {
-      name: 'ip2location.io',
-      url: `https://api.ip2location.io/?ip=${ip}&format=json`,
-      parser: (data: any) => {
-        if (data.country_name) {
-          const parts = [];
-          if (data.country_name) parts.push(data.country_name);
-          if (data.region_name) parts.push(data.region_name);
-          if (data.city_name) parts.push(data.city_name);
-          if (data.as) parts.push(data.as);
-          return parts.length > 0 ? parts.join(' ') : null;
-        }
-        return null;
-      }
+    });
+    
+    if (response.ok) {
+      const data = await response.json();
+      return data.location || '查询失败';
+    } else {
+      console.error(`HTTP错误: ${response.status} ${response.statusText}`);
+      return '查询失败';
     }
-  ];
-
-  // 依次尝试API
-  for (const api of apiList) {
-    try {
-      console.log(`尝试使用 ${api.name} 查询IP: ${ip}`);
-      
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 8000); // 8秒超时
-      
-      const response = await fetch(api.url, {
-        signal: controller.signal,
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-          'Accept': 'application/json',
-          'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
-          'Cache-Control': 'no-cache'
-        }
-      });
-      
-      clearTimeout(timeoutId);
-      
-      if (response.ok) {
-        const data = await response.json();
-        const result = api.parser(data);
-        
-        if (result) {
-          console.log(`✅ ${api.name} 查询成功: ${ip} -> ${result}`);
-          return result;
-        } else {
-          console.warn(`❌ ${api.name} 返回数据无效:`, data);
-        }
-      } else {
-        console.warn(`❌ ${api.name} HTTP错误: ${response.status} ${response.statusText}`);
-      }
-    } catch (error: any) {
-      if (error.name === 'AbortError') {
-        console.warn(`⏱️ ${api.name} 请求超时`);
-      } else {
-        console.warn(`❌ ${api.name} 请求失败:`, error.message);
-      }
-      // 继续尝试下一个API
-    }
+  } catch (error: any) {
+    console.error('获取IP归属地失败:', error.message);
+    return '查询失败';
   }
-
-  console.error(`❌ 所有IP查询API都失败了: ${ip}`);
-  return '查询失败';
 }
