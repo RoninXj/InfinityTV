@@ -71,9 +71,9 @@
 
 ```yml
 services:
-  moontv-core:
-    image: ghcr.io/moontechlab/lunatv:latest
-    container_name: moontv-core
+  infinitytv-core:
+    image: ghcr.io/roninxj/infinitytv:latest
+    container_name: infinitytv-core
     restart: on-failure
     ports:
       - '3000:3000'
@@ -81,22 +81,22 @@ services:
       - USERNAME=admin
       - PASSWORD=admin_password
       - NEXT_PUBLIC_STORAGE_TYPE=kvrocks
-      - KVROCKS_URL=redis://moontv-kvrocks:6666
-      - AUTH_TOKEN=授权码
+      - KVROCKS_URL=redis://infinitytv-kvrocks:6666
+      - NEXT_PUBLIC_SITE_NAME=InfinityTV
     networks:
-      - moontv-network
+      - infinitytv-network
     depends_on:
-      - moontv-kvrocks
-  moontv-kvrocks:
+      - infinitytv-kvrocks
+  infinitytv-kvrocks:
     image: apache/kvrocks
-    container_name: moontv-kvrocks
+    container_name: infinitytv-kvrocks
     restart: unless-stopped
     volumes:
       - kvrocks-data:/var/lib/kvrocks
     networks:
-      - moontv-network
+      - infinitytv-network
 networks:
-  moontv-network:
+  infinitytv-network:
     driver: bridge
 volumes:
   kvrocks-data:
@@ -106,9 +106,9 @@ volumes:
 
 ```yml
 services:
-  moontv-core:
-    image: ghcr.io/moontechlab/lunatv:latest
-    container_name: moontv-core
+  infinitytv-core:
+    image: ghcr.io/roninxj/infinitytv:latest
+    container_name: infinitytv-core
     restart: on-failure
     ports:
       - '3000:3000'
@@ -117,22 +117,22 @@ services:
       - PASSWORD=admin_password
       - NEXT_PUBLIC_STORAGE_TYPE=redis
       - REDIS_URL=redis://moontv-redis:6379
-      - AUTH_TOKEN=授权码
+      - NEXT_PUBLIC_SITE_NAME=InfinityTV
     networks:
-      - moontv-network
+      - infinitytv-network
     depends_on:
-      - moontv-redis
-  moontv-redis:
+      - infinitytv-redis
+  infinitytv-redis:
     image: redis:alpine
-    container_name: moontv-redis
+    container_name: infinitytv-redis
     restart: unless-stopped
     networks:
-      - moontv-network
+      - infinitytv-network
     # 请开启持久化，否则升级/重启后数据丢失
     volumes:
       - ./data:/data
 networks:
-  moontv-network:
+  infinitytv-network:
     driver: bridge
 ```
 
@@ -143,9 +143,9 @@ networks:
 3. 使用如下 docker compose
 ```yml
 services:
-  moontv-core:
-    image: ghcr.io/moontechlab/lunatv:latest
-    container_name: moontv-core
+  infinitytv-core:
+    image: ghcr.io/roninxj/infinitytv:latest
+    container_name: infinitytv-core
     restart: on-failure
     ports:
       - '3000:3000'
@@ -155,7 +155,6 @@ services:
       - NEXT_PUBLIC_STORAGE_TYPE=upstash
       - UPSTASH_URL=上面 https 开头的 HTTPS ENDPOINT
       - UPSTASH_TOKEN=上面的 TOKEN
-      - AUTH_TOKEN=授权码
 ```
 
 ## 配置文件
