@@ -116,7 +116,7 @@ services:
       - USERNAME=admin
       - PASSWORD=admin_password
       - NEXT_PUBLIC_STORAGE_TYPE=redis
-      - REDIS_URL=redis://moontv-redis:6379
+      - REDIS_URL=redis://infinitytv-redis:6379
       - NEXT_PUBLIC_SITE_NAME=InfinityTV
     networks:
       - infinitytv-network
