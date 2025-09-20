@@ -103,6 +103,16 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'Missing IP parameter' }, { status: 400 });
   }
 
+  // 本地访问
+  if (ip === 'localhost' || ip === '127.0.0.1' || ip === '::1') {
+    return NextResponse.json({ location: '本地访问' });
+  }
+
+  // 内网IP地址
+  if (isPrivateIP(ip)) {
+    return NextResponse.json({ location: '内网地址' });
+  }
+
   // 依次尝试API
   for (const api of apiList) {
     try {
@@ -138,4 +148,51 @@ export async function GET(request: Request) {
 
   console.error(`❌ 所有IP查询API都失败了: ${ip}`);
   return NextResponse.json({ location: '查询失败' });
+}
+
+/**
+ * 判断是否为内网IP地址
+ * @param ip IP地址
+ * @returns boolean
+ */
+function isPrivateIP(ip: string): boolean {
+  // IPv4内网地址检查
+  if (!ip.includes(':')) {
+    const parts = ip.split('.').map(Number);
+    if (parts.length !== 4 || parts.some(isNaN)) {
+      return false;
+    }
+
+    const [a, b, c, d] = parts;
+    
+    // 10.0.0.0/8
+    if (a === 10) return true;
+    
+    // 172.16.0.0/12
+    if (a === 172 && b >= 16 && b <= 31) return true;
+    
+    // 192.168.0.0/16
+    if (a === 192 && b === 168) return true;
+    
+    // 169.254.0.0/16 (APIPA)
+    if (a === 169 && b === 254) return true;
+    
+    return false;
+  }
+  
+  // IPv6内网地址检查
+  // ::1 localhost
+  if (ip === '::1') return true;
+  
+  // fc00::/7 (唯一本地地址)
+  if (ip.toLowerCase().startsWith('fc') || ip.toLowerCase().startsWith('fd')) {
+    return true;
+  }
+  
+  // fe80::/10 (链路本地地址)
+  if (ip.toLowerCase().startsWith('fe80')) {
+    return true;
+  }
+  
+  return false;
 }
