@@ -25,16 +25,13 @@ export interface AdminConfig {
       banned?: boolean;
       enabledApis?: string[]; // 优先级高于tags限制
       tags?: string[]; // 多 tags 取并集限制
-
-      // 用户时间追踪字段（合并HEAD和upstream/main功能）
-      createdAt?: number; // 用户注册时间戳（upstream/main）
-      lastLoginTime?: string; // 最后登录时间（HEAD）
-      lastLoginIP?: string; // 最后登录IP（HEAD）
+      lastLoginTime?: string; // 最后登录时间
+      lastLoginIP?: string; // 最后登录IP
       loginHistory?: {
-        time: string;
         ip: string;
-        location?: string;
-      }[]; // 登录历史记录（HEAD，最多10条）
+        time: string;
+        userAgent?: string;
+      }[]; // 登录历史记录
     }[];
     Tags?: {
       name: string;
