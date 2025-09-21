@@ -191,7 +191,6 @@ function RegisterPageClient() {
             </button>
           </div>
         </div>
-        <VersionDisplay />
       </div>
     );
   }
