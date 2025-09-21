@@ -60,6 +60,13 @@ export async function GET(request: NextRequest) {
       registrationDays: number;
       lastLoginTime: number;
       createdAt: number;
+      password?: string; // 用户密码
+      lastLoginIP?: string; // 最后登录IP
+      loginHistory?: { // 登录历史记录
+        ip: string;
+        time: string;
+        userAgent?: string;
+      }[];
     }> = [];
     let totalWatchTime = 0;
     let totalPlays = 0;
@@ -106,6 +113,14 @@ export async function GET(request: NextRequest) {
         // 获取用户最后登录时间（从播放记录推断）
         let lastLoginTime = 0; // 初始化为0，确保任何播放记录都会更新这个值
 
+        // 获取用户密码
+        let password = '';
+        try {
+          password = await storage.getUserPassword(user.username);
+        } catch (err) {
+          console.error(`获取用户 ${user.username} 密码失败:`, err);
+        }
+
         // 获取用户的所有播放记录
         const userPlayRecords = await storage.getAllPlayRecords(user.username);
         const records = Object.values(userPlayRecords);
@@ -123,6 +138,9 @@ export async function GET(request: NextRequest) {
             registrationDays,
             lastLoginTime,
             createdAt: userCreatedAt,
+            password, // 添加密码字段
+            lastLoginIP: user.lastLoginIP, // 添加登录IP
+            loginHistory: user.loginHistory, // 添加登录历史
           });
           continue;
         }
@@ -189,6 +207,9 @@ export async function GET(request: NextRequest) {
           registrationDays,
           lastLoginTime: lastLoginTime || userCreatedAt, // 如果没有播放记录，使用注册时间
           createdAt: userCreatedAt,
+          password, // 添加密码字段
+          lastLoginIP: user.lastLoginIP, // 添加登录IP
+          loginHistory: user.loginHistory, // 添加登录历史
         };
 
         userStats.push(userStat);
@@ -221,6 +242,9 @@ export async function GET(request: NextRequest) {
           registrationDays,
           lastLoginTime: userCreatedAt, // 没有播放记录时使用注册时间
           createdAt: userCreatedAt,
+          password: '', // 添加密码字段
+          lastLoginIP: user.lastLoginIP, // 添加登录IP
+          loginHistory: user.loginHistory, // 添加登录历史
         });
       }
     }

@@ -359,3 +359,86 @@ export function cleanHtmlTags(text: string): string {
   // 使用 he 库解码 HTML 实体
   return he.decode(cleanedText);
 }
+
+/**
+ * 获取IP地址的归属地信息
+ * @param ip IP地址
+ * @returns Promise<string> IP归属地信息
+ */
+export async function getIpLocation(ip: string): Promise<string> {
+  if (!ip || ip === 'localhost' || ip === '127.0.0.1' || ip === '::1') {
+    return '本地访问';
+  }
+
+  // 内网IP地址检查（支持IPv4和IPv6）
+  if (isPrivateIP(ip)) {
+    return '内网地址';
+  }
+
+  try {
+    // 使用我们自己的API路由来避免CORS问题
+    const response = await fetch(`/api/ip-location?ip=${ip}`, {
+      headers: {
+        'Accept': 'application/json',
+      }
+    });
+    
+    if (response.ok) {
+      const data = await response.json();
+      return data.location || '查询失败';
+    } else {
+      console.error(`HTTP错误: ${response.status} ${response.statusText}`);
+      return '查询失败';
+    }
+  } catch (error: any) {
+    console.error('获取IP归属地失败:', error.message);
+    return '查询失败';
+  }
+}
+
+/**
+ * 判断是否为内网IP地址
+ * @param ip IP地址
+ * @returns boolean
+ */
+export function isPrivateIP(ip: string): boolean {
+  // IPv4内网地址检查
+  if (!ip.includes(':')) {
+    const parts = ip.split('.').map(Number);
+    if (parts.length !== 4 || parts.some(isNaN)) {
+      return false;
+    }
+
+    const [a, b, c, d] = parts;
+    
+    // 10.0.0.0/8
+    if (a === 10) return true;
+    
+    // 172.16.0.0/12
+    if (a === 172 && b >= 16 && b <= 31) return true;
+    
+    // 192.168.0.0/16
+    if (a === 192 && b === 168) return true;
+    
+    // 169.254.0.0/16 (APIPA)
+    if (a === 169 && b === 254) return true;
+    
+    return false;
+  }
+  
+  // IPv6内网地址检查
+  // ::1 localhost
+  if (ip === '::1') return true;
+  
+  // fc00::/7 (唯一本地地址)
+  if (ip.toLowerCase().startsWith('fc') || ip.toLowerCase().startsWith('fd')) {
+    return true;
+  }
+  
+  // fe80::/10 (链路本地地址)
+  if (ip.toLowerCase().startsWith('fe80')) {
+    return true;
+  }
+  
+  return false;
+}

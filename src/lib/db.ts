@@ -158,6 +158,14 @@ export class DbManager {
     await this.storage.changePassword(userName, newPassword);
   }
 
+  // 获取用户密码
+  async getUserPassword(userName: string): Promise<string> {
+    if (typeof this.storage.getUserPassword === 'function') {
+      return await this.storage.getUserPassword(userName);
+    }
+    return '';
+  }
+
   async deleteUser(userName: string): Promise<void> {
     await this.storage.deleteUser(userName);
   }

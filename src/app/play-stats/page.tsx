@@ -7,6 +7,7 @@ import { ChevronUp } from 'lucide-react';
 
 import { getAuthInfoFromBrowserCookie } from '@/lib/auth';
 import { PlayRecord } from '@/lib/types';
+import { getIpLocation } from '@/lib/utils';
 import {
   getCachedWatchingUpdates,
   getDetailedWatchingUpdates,
@@ -32,6 +33,11 @@ const PlayStatsPage: React.FC = () => {
   const [watchingUpdates, setWatchingUpdates] = useState<WatchingUpdate | null>(null);
   const [showWatchingUpdates, setShowWatchingUpdates] = useState(false);
   const [activeTab, setActiveTab] = useState<'admin' | 'personal'>('admin'); // 新增Tab状态
+  const [ipLocations, setIpLocations] = useState<Record<string, string>>({});
+  const [copiedPasswords, setCopiedPasswords] = useState<Record<string, boolean>>({});
+  // 添加新的状态用于存储用户登录历史
+  const [userLoginHistories, setUserLoginHistories] = useState<Record<string, any[]>>({});
+  const [loadingLoginHistory, setLoadingLoginHistory] = useState<Record<string, boolean>>({});
 
   // 检查用户权限
   useEffect(() => {
@@ -300,6 +306,57 @@ const PlayStatsPage: React.FC = () => {
     } catch (error) {
       // 如果平滑滚动完全失败，使用立即滚动
       document.body.scrollTop = 0;
+    }
+  };
+
+  // 复制密码到剪贴板
+  const copyPasswordToClipboard = async (password: string, username: string) => {
+    try {
+      await navigator.clipboard.writeText(password);
+      setCopiedPasswords(prev => ({ ...prev, [username]: true }));
+      setTimeout(() => {
+        setCopiedPasswords(prev => ({ ...prev, [username]: false }));
+      }, 2000);
+    } catch (err) {
+      console.error('复制密码失败:', err);
+    }
+  };
+
+  // 查询IP地址归属地
+  const fetchIpLocation = async (ip: string) => {
+    if (!ip) return;
+
+    try {
+      const location = await getIpLocation(ip);
+      setIpLocations(prev => ({ ...prev, [ip]: location }));
+    } catch (err) {
+      console.error('获取IP归属地失败:', err);
+      setIpLocations(prev => ({ ...prev, [ip]: '查询失败' }));
+    }
+  };
+
+  // 获取用户登录历史记录
+  const fetchUserLoginHistory = async (username: string) => {
+    if (!username) return;
+    
+    // 如果已经加载过该用户的登录历史，则不再重复加载
+    if (userLoginHistories[username]) return;
+
+    try {
+      setLoadingLoginHistory(prev => ({ ...prev, [username]: true }));
+      
+      const response = await fetch(`/api/user/login-history?username=${encodeURIComponent(username)}`);
+      
+      if (response.ok) {
+        const data = await response.json();
+        setUserLoginHistories(prev => ({ ...prev, [username]: data.loginHistory || [] }));
+      } else {
+        console.error('获取用户登录历史失败:', response.status);
+      }
+    } catch (err) {
+      console.error('获取用户登录历史失败:', err);
+    } finally {
+      setLoadingLoginHistory(prev => ({ ...prev, [username]: false }));
     }
   };
 
@@ -698,6 +755,75 @@ const PlayStatsPage: React.FC = () => {
                               <h5 className='text-sm font-medium text-gray-900 dark:text-gray-100'>
                                 {userStat.username}
                               </h5>
+                              {/* 显示用户密码和登录IP信息 */}
+                              <div className="mt-1">
+                                {userStat.password && (
+                                  <div className="flex items-center space-x-2">
+                                    <span className='text-xs text-red-500 dark:text-red-400'>
+                                      密码:
+                                    </span>
+                                    <code 
+                                      className="text-xs bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded font-mono cursor-pointer"
+                                      title={userStat.password}
+                                    >
+                                      ••••••
+                                    </code>
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (userStat.password) {
+                                          copyPasswordToClipboard(userStat.password, userStat.username);
+                                        }
+                                      }}
+                                      className={`p-1 transition-colors ${
+                                        copiedPasswords[userStat.username] 
+                                          ? 'text-green-500' 
+                                          : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'
+                                      }`}
+                                      title={copiedPasswords[userStat.username] ? "已复制" : "复制密码"}
+                                      aria-label={copiedPasswords[userStat.username] ? "已复制密码" : "复制密码"}
+                                    >
+                                      {copiedPasswords[userStat.username] ? (
+                                        <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                        </svg>
+                                      ) : (
+                                        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                        </svg>
+                                      )}
+                                    </button>
+                                  </div>
+                                )}
+                                {userStat.lastLoginIP && (
+                                  <div className="flex items-center space-x-2 mt-1">
+                                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                                      最后登录IP: {userStat.lastLoginIP}
+                                    </span>
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        fetchIpLocation(userStat.lastLoginIP!);
+                                      }}
+                                      className="text-xs text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+                                      title="查询IP归属地"
+                                      aria-label="查询IP归属地"
+                                    >
+                                      查询
+                                    </button>
+                                    {ipLocations[userStat.lastLoginIP] && (
+                                      <span className="text-xs text-green-600 dark:text-green-400">
+                                        ({ipLocations[userStat.lastLoginIP]})
+                                      </span>
+                                    )}
+                                  </div>
+                                )}
+                                {userStat.lastLoginTime && (
+                                  <p className='text-xs text-gray-500 dark:text-gray-400'>
+                                    最后登录时间: {formatDateTime(new Date(userStat.lastLoginTime).getTime())}
+                                  </p>
+                                )}
+                              </div>
                               <p className='text-xs text-gray-500 dark:text-gray-400'>
                                 最后播放:{' '}
                                 {userStat.lastPlayTime
@@ -771,6 +897,73 @@ const PlayStatsPage: React.FC = () => {
                       {/* 展开的播放记录详情 */}
                       {expandedUsers.has(userStat.username) && (
                         <div className='p-4 bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700'>
+                          {/* 添加登录历史记录部分 */}
+                          <div className='mb-4'>
+                            <div className='flex items-center justify-between mb-2'>
+                              <h6 className='text-sm font-medium text-gray-700 dark:text-gray-300'>
+                                登录历史记录
+                              </h6>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  fetchUserLoginHistory(userStat.username);
+                                }}
+                                disabled={loadingLoginHistory[userStat.username]}
+                                className='text-xs text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 disabled:opacity-50'
+                              >
+                                {loadingLoginHistory[userStat.username] ? '加载中...' : '刷新'}
+                              </button>
+                            </div>
+                            
+                            {userLoginHistories[userStat.username] ? (
+                              userLoginHistories[userStat.username].length > 0 ? (
+                                <div className='space-y-2'>
+                                  {userLoginHistories[userStat.username].map((login, index) => (
+                                    <div key={index} className='flex items-center justify-between text-xs p-2 bg-white dark:bg-gray-800 rounded'>
+                                      <div>
+                                        <div className='font-mono'>{login.ip}</div>
+                                        <div className='text-gray-500 dark:text-gray-400'>
+                                          {formatDateTime(new Date(login.time).getTime())}
+                                        </div>
+                                      </div>
+                                      <div className='flex items-center space-x-2'>
+                                        <button
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            fetchIpLocation(login.ip);
+                                          }}
+                                          className='text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300'
+                                          title="查询IP归属地"
+                                        >
+                                          查询
+                                        </button>
+                                        {ipLocations[login.ip] && (
+                                          <span className='text-green-600 dark:text-green-400'>
+                                            ({ipLocations[login.ip]})
+                                          </span>
+                                        )}
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : (
+                                <p className='text-gray-500 dark:text-gray-400 text-sm'>
+                                  暂无登录历史记录
+                                </p>
+                              )
+                            ) : (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  fetchUserLoginHistory(userStat.username);
+                                }}
+                                className='text-xs text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300'
+                              >
+                                点击加载登录历史记录
+                              </button>
+                            )}
+                          </div>
+                          
                           {userStat.recentRecords.length > 0 ? (
                             <>
                               <h6 className='text-sm font-medium text-gray-700 dark:text-gray-300 mb-4'>

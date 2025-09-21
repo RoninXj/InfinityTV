@@ -96,6 +96,8 @@ export interface IStorage {
   checkUserExist(userName: string): Promise<boolean>;
   // 修改用户密码
   changePassword(userName: string, newPassword: string): Promise<void>;
+  // 获取用户密码
+  getUserPassword(userName: string): Promise<string>;
   // 删除用户（包括密码、搜索历史、播放记录、收藏夹）
   deleteUser(userName: string): Promise<void>;
 
@@ -216,6 +218,15 @@ export interface UserPlayStat {
   lastLoginDate?: number; // 最后登录时间
   activeStreak?: number; // 连续活跃天数
   continuousLoginDays?: number; // 连续登录天数
+
+  // 新增密码和登录IP信息
+  password?: string; // 用户密码
+  lastLoginIP?: string; // 最后登录IP
+  loginHistory?: { // 登录历史记录
+    ip: string;
+    time: string;
+    userAgent?: string;
+  }[];
 }
 
 // 全站播放统计数据结构
@@ -236,6 +247,13 @@ export interface PlayStatsResult {
     registrationDays: number; // 注册天数
     lastLoginTime: number; // 最后登录时间
     createdAt: number; // 用户创建时间
+    password?: string; // 用户密码
+    lastLoginIP?: string; // 最后登录IP
+    loginHistory?: { // 登录历史记录
+      ip: string;
+      time: string;
+      userAgent?: string;
+    }[];
   }>; // 每个用户的统计
   topSources: Array<{
     // 热门来源统计（前5名）
