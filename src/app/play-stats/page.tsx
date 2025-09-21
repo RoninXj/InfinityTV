@@ -500,8 +500,7 @@ const PlayStatsPage: React.FC = () => {
           )}
 
           {/* Tab 内容 */}
-          {activeTab === 'admin' ? (
-            {/* 全站统计内容 */}
+          {activeTab === 'admin' && (
             <>
               {/* 全站统计概览 */}
               <div className='grid grid-cols-1 md:grid-cols-2 xl:grid-cols-7 gap-4 mb-8'>
@@ -668,8 +667,7 @@ const PlayStatsPage: React.FC = () => {
           </div>
 
           {/* Tab 内容 */}
-          {activeTab === 'admin' ? (
-            {/* 全站统计内容 */}
+          {activeTab === 'admin' && (
             <>
               {/* 全站统计概览 */}
               <div className='grid grid-cols-1 md:grid-cols-2 xl:grid-cols-7 gap-4 mb-8'>
@@ -729,7 +727,6 @@ const PlayStatsPage: React.FC = () => {
                     日活跃用户
                   </div>
                 </div>
-              </div>
               </div>
 
           {/* 活跃用户统计 */}
