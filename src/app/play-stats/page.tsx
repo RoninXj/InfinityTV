@@ -405,7 +405,7 @@ const PlayStatsPage: React.FC = () => {
     );
   }
 
-// 管理员视图
+{/* 管理员视图 */}
   if (isAdmin && statsData) {
     return (
       <PageLayout activePath="/play-stats">
@@ -1548,7 +1548,7 @@ const PlayStatsPage: React.FC = () => {
     );
   }
 
-  // 加载中或错误状态
+  {/* 加载中或错误状态 */}
   return (
     <PageLayout activePath="/play-stats">
       <div className='max-w-6xl mx-auto px-4 py-8'>
