@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 
-import { BackButton } from './BackButton';
 import { useSite } from './SiteProvider';
 import { ThemeToggle } from './ThemeToggle';
 import { UserMenu } from './UserMenu';
@@ -51,7 +50,15 @@ const MobileHeader = ({ showBackButton = false }: MobileHeaderProps) => {
       <div className='absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2'>
         <Link
           href='/'
-          className='text-2xl font-bold dynamic-gradient-text tracking-tight hover:opacity-80 transition-opacity'
+          className='text-2xl font-bold tracking-tight hover:opacity-80 transition-opacity'
+          style={{
+            background: 'linear-gradient(45deg, #ff0000, #ff8000, #ffff00, #80ff00, #00ff00, #00ff80, #00ffff, #0080ff, #0000ff, #8000ff, #ff00ff, #ff0080)',
+            backgroundSize: '1200% 1200%',
+            WebkitBackgroundClip: 'text',
+            backgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            animation: 'gradient-animation 8s ease infinite',
+          }}
         >
           {siteName}
         </Link>
@@ -59,5 +66,21 @@ const MobileHeader = ({ showBackButton = false }: MobileHeaderProps) => {
     </header>
   );
 };
+
+// 添加动画关键帧的组件内样式
+const gradientAnimationStyle = `
+  @keyframes gradient-animation {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+`;
+
+// 在组件外部添加样式
+if (typeof document !== 'undefined') {
+  const styleElement = document.createElement('style');
+  styleElement.textContent = gradientAnimationStyle;
+  document.head.appendChild(styleElement);
+}
 
 export default MobileHeader;

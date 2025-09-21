@@ -34,12 +34,38 @@ const Logo = () => {
       href='/'
       className='flex items-center justify-center h-16 select-none hover:opacity-80 transition-opacity duration-200'
     >
-      <span className='text-2xl font-bold dynamic-gradient-text tracking-tight'>
+      <span 
+        className='text-2xl font-bold tracking-tight'
+        style={{
+          background: 'linear-gradient(45deg, #ff0000, #ff8000, #ffff00, #80ff00, #00ff00, #00ff80, #00ffff, #0080ff, #0000ff, #8000ff, #ff00ff, #ff0080)',
+          backgroundSize: '1200% 1200%',
+          WebkitBackgroundClip: 'text',
+          backgroundClip: 'text',
+          WebkitTextFillColor: 'transparent',
+          animation: 'gradient-animation 8s ease infinite',
+        }}
+      >
         {siteName}
       </span>
     </Link>
   );
 };
+
+// 添加动画关键帧的组件内样式
+const gradientAnimationStyle = `
+  @keyframes gradient-animation {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+`;
+
+// 在组件外部添加样式
+if (typeof document !== 'undefined') {
+  const styleElement = document.createElement('style');
+  styleElement.textContent = gradientAnimationStyle;
+  document.head.appendChild(styleElement);
+}
 
 interface SidebarProps {
   onToggle?: (collapsed: boolean) => void;
