@@ -7,118 +7,119 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useState } from 'react';
 
 import { CURRENT_VERSION } from '@/lib/version';
+import { checkForUpdates, UpdateStatus } from '@/lib/version_check';
+
 import { useSite } from '@/components/SiteProvider';
 import { ThemeToggle } from '@/components/ThemeToggle';
 
-
-// 添加动画关键帧的组件内样式
-const gradientAnimationStyle = `
-  @keyframes gradient-animation {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-  }
-`;
-
 // 版本显示组件
 function VersionDisplay() {
+  const [updateStatus, setUpdateStatus] = useState<UpdateStatus | null>(null);
+  const [isChecking, setIsChecking] = useState(true);
+
+  useEffect(() => {
+    const checkUpdate = async () => {
+      try {
+        const status = await checkForUpdates();
+        setUpdateStatus(status);
+      } catch (_) {
+        // do nothing
+      } finally {
+        setIsChecking(false);
+      }
+    };
+
+    checkUpdate();
+  }, []);
+
   return (
-    <div className='absolute bottom-4 left-1/2 transform -translate-x-1/2 flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400'>
+    <button
+      onClick={() => {
+        // 本地部署版本，不需要跳转
+      }}
+      className='absolute bottom-4 left-1/2 transform -translate-x-1/2 flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 transition-colors cursor-pointer'
+    >
       <span className='font-mono'>v{CURRENT_VERSION}</span>
-    </div>
+      {!isChecking && updateStatus !== UpdateStatus.FETCH_FAILED && (
+        <div
+          className={`flex items-center gap-1.5 ${updateStatus === UpdateStatus.HAS_UPDATE
+            ? 'text-yellow-600 dark:text-yellow-400'
+            : updateStatus === UpdateStatus.NO_UPDATE
+              ? 'text-green-600 dark:text-green-400'
+              : ''
+            }`}
+        >
+          {updateStatus === UpdateStatus.HAS_UPDATE && (
+            <>
+              <AlertCircle className='w-3.5 h-3.5' />
+              <span className='font-semibold text-xs'>有新版本</span>
+            </>
+          )}
+          {updateStatus === UpdateStatus.NO_UPDATE && (
+            <>
+              <CheckCircle className='w-3.5 h-3.5' />
+              <span className='font-semibold text-xs'>已是最新</span>
+            </>
+          )}
+        </div>
+      )}
+    </button>
   );
 }
 
 function LoginPageClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { siteName } = useSite();
-  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [username, setUsername] = useState('');
+  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [shouldAskUsername, setShouldAskUsername] = useState(false);
-  const [updateStatus, setUpdateStatus] = useState<
-    'checking' | 'has_update' | 'no_update' | 'error'
-  >('checking');
 
-  // 检查更新状态
+  const { siteName } = useSite();
+
+  // 在客户端挂载后设置配置
   useEffect(() => {
-    const checkForUpdates = async () => {
-      try {
-        const response = await fetch(
-          'https://api.github.com/repos/MoonTechLab/LunaTV/releases/latest'
-        );
-        const data = await response.json();
-        const latestVersion = data.tag_name?.replace('v', '');
-        
-        if (latestVersion && latestVersion > CURRENT_VERSION) {
-          setUpdateStatus('has_update');
-        } else {
-          setUpdateStatus('no_update');
-        }
-      } catch (error) {
-        console.error('检查更新失败:', error);
-        setUpdateStatus('error');
-      }
-    };
-
-    checkForUpdates();
+    if (typeof window !== 'undefined') {
+      const storageType = (window as any).RUNTIME_CONFIG?.STORAGE_TYPE;
+      setShouldAskUsername(storageType && storageType !== 'localstorage');
+    }
   }, []);
 
-  // 检查是否需要用户名（非 localStorage 模式）
-  useEffect(() => {
-    const storageType = process.env.NEXT_PUBLIC_STORAGE_TYPE || 'localstorage';
-    setShouldAskUsername(storageType !== 'localstorage');
-  }, []);
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setLoading(true);
-    setError('');
+    setError(null);
+
+    if (!password || (shouldAskUsername && !username)) return;
 
     try {
-      const formData = new FormData();
-      if (shouldAskUsername) {
-        formData.append('username', username);
-      }
-      formData.append('password', password);
-
+      setLoading(true);
       const res = await fetch('/api/login', {
         method: 'POST',
-        body: formData,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          password,
+          ...(shouldAskUsername ? { username } : {}),
+        }),
       });
 
-      const data = await res.json();
-
       if (res.ok) {
-        // 登录成功，重定向到首页
-        router.push('/');
-        router.refresh();
+        const redirect = searchParams.get('redirect') || '/';
+        router.replace(redirect);
+      } else if (res.status === 401) {
+        setError('密码错误');
       } else {
-        setError(data.error || '登录失败');
+        const data = await res.json().catch(() => ({}));
+        setError(data.error ?? '服务器错误');
       }
-    } catch (err) {
+    } catch (error) {
       setError('网络错误，请稍后重试');
-      console.error('登录错误:', err);
     } finally {
       setLoading(false);
     }
   };
 
-  // 在组件挂载时添加样式
-  useEffect(() => {
-    const styleElement = document.createElement('style');
-    styleElement.textContent = gradientAnimationStyle;
-    document.head.appendChild(styleElement);
 
-    // 清理函数
-    return () => {
-      if (styleElement.parentNode) {
-        styleElement.parentNode.removeChild(styleElement);
-      }
-    };
-  }, []);
 
   return (
     <div className='relative min-h-screen flex items-center justify-center px-4 overflow-hidden'>
@@ -126,17 +127,7 @@ function LoginPageClient() {
         <ThemeToggle />
       </div>
       <div className='relative z-10 w-full max-w-md rounded-3xl bg-gradient-to-b from-white/90 via-white/70 to-white/40 dark:from-zinc-900/90 dark:via-zinc-900/70 dark:to-zinc-900/40 backdrop-blur-xl shadow-2xl p-10 dark:border dark:border-zinc-800'>
-        <h1 
-          className='text-center text-3xl font-extrabold mb-8 tracking-tight drop-shadow-sm'
-          style={{
-            background: 'linear-gradient(45deg, #ff0000, #ff8000, #ffff00, #80ff00, #00ff00, #00ff80, #00ffff, #0080ff, #0000ff, #8000ff, #ff00ff, #ff0080)',
-            backgroundSize: '1200% 1200%',
-            WebkitBackgroundClip: 'text',
-            backgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            animation: 'gradient-animation 8s ease infinite',
-          }}
-        >
+        <h1 className='text-green-600 tracking-tight text-center text-3xl font-extrabold mb-8 bg-clip-text drop-shadow-sm'>
           {siteName}
         </h1>
         <form onSubmit={handleSubmit} className='space-y-8'>

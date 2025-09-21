@@ -5,107 +5,128 @@
 import { AlertCircle, CheckCircle } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useState } from 'react';
+
 import { CURRENT_VERSION } from '@/lib/version';
+import { checkForUpdates, UpdateStatus } from '@/lib/version_check';
+
 import { useSite } from '@/components/SiteProvider';
 import { ThemeToggle } from '@/components/ThemeToggle';
 
-
-// 添加动画关键帧的组件内样式
-const gradientAnimationStyle = `
-  @keyframes gradient-animation {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-  }
-`;
-
 // 版本显示组件
 function VersionDisplay() {
+  const [updateStatus, setUpdateStatus] = useState<UpdateStatus | null>(null);
+  const [isChecking, setIsChecking] = useState(true);
+
+  useEffect(() => {
+    const checkUpdate = async () => {
+      try {
+        const status = await checkForUpdates();
+        setUpdateStatus(status);
+      } catch (_) {
+        // do nothing
+      } finally {
+        setIsChecking(false);
+      }
+    };
+
+    checkUpdate();
+  }, []);
+
   return (
-    <div className='absolute bottom-4 left-1/2 transform -translate-x-1/2 flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400'>
+    <button
+      onClick={() => {
+        // 本地部署版本，不需要跳转
+      }}
+      className='absolute bottom-4 left-1/2 transform -translate-x-1/2 flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 transition-colors cursor-pointer'
+    >
       <span className='font-mono'>v{CURRENT_VERSION}</span>
-    </div>
+      {!isChecking && updateStatus !== UpdateStatus.FETCH_FAILED && (
+        <div
+          className={`flex items-center gap-1.5 ${updateStatus === UpdateStatus.HAS_UPDATE
+            ? 'text-yellow-600 dark:text-yellow-400'
+            : updateStatus === UpdateStatus.NO_UPDATE
+              ? 'text-green-600 dark:text-green-400'
+              : ''
+            }`}
+        >
+          {updateStatus === UpdateStatus.HAS_UPDATE && (
+            <>
+              <AlertCircle className='w-3.5 h-3.5' />
+              <span className='font-semibold text-xs'>有新版本</span>
+            </>
+          )}
+          {updateStatus === UpdateStatus.NO_UPDATE && (
+            <>
+              <CheckCircle className='w-3.5 h-3.5' />
+              <span className='font-semibold text-xs'>已是最新</span>
+            </>
+          )}
+        </div>
+      )}
+    </button>
   );
 }
 
 function RegisterPageClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { siteName } = useSite();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [shouldShowRegister, setShouldShowRegister] = useState(false);
   const [registrationDisabled, setRegistrationDisabled] = useState(false);
   const [disabledReason, setDisabledReason] = useState('');
-  const [updateStatus, setUpdateStatus] = useState<
-    'checking' | 'has_update' | 'no_update' | 'error'
-  >('checking');
 
-  // 检查更新状态
+  const { siteName } = useSite();
+
+  // 检查注册是否可用
   useEffect(() => {
-    const checkForUpdates = async () => {
+    const checkRegistrationAvailable = async () => {
       try {
-        const response = await fetch(
-          'https://api.github.com/repos/MoonTechLab/LunaTV/releases/latest'
-        );
-        const data = await response.json();
-        const latestVersion = data.tag_name?.replace('v', '');
+        // 用空数据检测，这样不会创建用户但能得到正确的错误信息
+        const res = await fetch('/api/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: '', password: '', confirmPassword: '' }),
+        });
         
-        if (latestVersion && latestVersion > CURRENT_VERSION) {
-          setUpdateStatus('has_update');
-        } else {
-          setUpdateStatus('no_update');
+        const data = await res.json();
+        
+        // 如果是localStorage模式，跳转登录
+        if (data.error === 'localStorage 模式不支持用户注册') {
+          router.replace('/login');
+          return;
         }
+        
+        // 如果是管理员关闭了注册
+        if (data.error === '管理员已关闭用户注册功能') {
+          setRegistrationDisabled(true);
+          setDisabledReason('管理员已关闭用户注册功能');
+          setShouldShowRegister(true);
+          return;
+        }
+        
+        // 其他情况显示注册表单（包括用户名已存在等正常的验证错误）
+        setShouldShowRegister(true);
       } catch (error) {
-        console.error('检查更新失败:', error);
-        setUpdateStatus('error');
+        // 网络错误也显示注册页面
+        setShouldShowRegister(true);
       }
     };
 
-    checkForUpdates();
-  }, []);
+    checkRegistrationAvailable();
+  }, [router]);
 
-  // 检查注册是否被禁用
-  useEffect(() => {
-    const checkRegistrationStatus = async () => {
-      try {
-        const res = await fetch('/api/admin/config');
-        if (res.ok) {
-          const config = await res.json();
-          setRegistrationDisabled(!config.UserConfig.AllowRegister);
-          if (!config.UserConfig.AllowRegister) {
-            setDisabledReason('管理员已关闭用户注册功能');
-          }
-        }
-      } catch (err) {
-        console.error('获取配置失败:', err);
-      }
-    };
-
-    checkRegistrationStatus();
-  }, []);
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setError('');
-    setSuccess('');
+    setError(null);
+    setSuccess(null);
 
-    // 基本验证
-    if (username.length < 3 || username.length > 20) {
-      setError('用户名长度应在3-20位之间');
-      return;
-    }
-
-    if (!/^[a-zA-Z0-9_]+$/.test(username)) {
-      setError('用户名只能包含字母、数字和下划线');
-      return;
-    }
-
-    if (password.length < 6) {
-      setError('密码长度至少6位');
+    if (!username || !password || !confirmPassword) {
+      setError('请填写完整信息');
       return;
     }
 
@@ -114,50 +135,44 @@ function RegisterPageClient() {
       return;
     }
 
-    setLoading(true);
-
     try {
+      setLoading(true);
       const res = await fetch('/api/register', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ username, password }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username,
+          password,
+          confirmPassword,
+        }),
       });
 
-      const data = await res.json();
-
       if (res.ok) {
-        setSuccess('注册成功！正在跳转到登录页面...');
-        // 3秒后跳转到登录页面
+        await res.json(); // 读取响应但不使用
+        // 显示成功消息，稍等一下再跳转
+        setError(null);
+        setSuccess('注册成功！正在跳转...');
+        // 给用户一个成功提示，然后再跳转
         setTimeout(() => {
-          router.push('/login');
-        }, 3000);
+          const redirect = searchParams.get('redirect') || '/';
+          router.replace(redirect);
+        }, 1500); // 1.5秒后跳转，让用户看到成功消息
       } else {
-        setError(data.error || '注册失败');
+        const data = await res.json();
+        setError(data.error ?? '注册失败');
       }
-    } catch (err) {
+    } catch (error) {
       setError('网络错误，请稍后重试');
-      console.error('注册错误:', err);
     } finally {
       setLoading(false);
     }
   };
 
-  // 在组件挂载时添加样式
-  useEffect(() => {
-    const styleElement = document.createElement('style');
-    styleElement.textContent = gradientAnimationStyle;
-    document.head.appendChild(styleElement);
+  if (!shouldShowRegister) {
+    return <div>Loading...</div>;
+  }
 
-    // 清理函数
-    return () => {
-      if (styleElement.parentNode) {
-        styleElement.parentNode.removeChild(styleElement);
-      }
-    };
-  }, []);
-
+  // 如果注册被禁用，显示提示页面
   if (registrationDisabled) {
     return (
       <div className='relative min-h-screen flex items-center justify-center px-4 overflow-hidden'>
@@ -165,17 +180,7 @@ function RegisterPageClient() {
           <ThemeToggle />
         </div>
         <div className='relative z-10 w-full max-w-md rounded-3xl bg-gradient-to-b from-white/90 via-white/70 to-white/40 dark:from-zinc-900/90 dark:via-zinc-900/70 dark:to-zinc-900/40 backdrop-blur-xl shadow-2xl p-10 dark:border dark:border-zinc-800'>
-          <h1 
-            className='text-center text-3xl font-extrabold mb-2 tracking-tight drop-shadow-sm'
-            style={{
-              background: 'linear-gradient(45deg, #ff0000, #ff8000, #ffff00, #80ff00, #00ff00, #00ff80, #00ffff, #0080ff, #0000ff, #8000ff, #ff00ff, #ff0080)',
-              backgroundSize: '1200% 1200%',
-              WebkitBackgroundClip: 'text',
-              backgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              animation: 'gradient-animation 8s ease infinite',
-            }}
-          >
+          <h1 className='text-green-600 tracking-tight text-center text-3xl font-extrabold mb-2 bg-clip-text drop-shadow-sm'>
             {siteName}
           </h1>
           <div className='text-center space-y-6'>
@@ -210,17 +215,7 @@ function RegisterPageClient() {
         <ThemeToggle />
       </div>
       <div className='relative z-10 w-full max-w-md rounded-3xl bg-gradient-to-b from-white/90 via-white/70 to-white/40 dark:from-zinc-900/90 dark:via-zinc-900/70 dark:to-zinc-900/40 backdrop-blur-xl shadow-2xl p-10 dark:border dark:border-zinc-800'>
-        <h1 
-          className='text-center text-3xl font-extrabold mb-2 tracking-tight drop-shadow-sm'
-          style={{
-            background: 'linear-gradient(45deg, #ff0000, #ff8000, #ffff00, #80ff00, #00ff00, #00ff80, #00ffff, #0080ff, #0000ff, #8000ff, #ff00ff, #ff0080)',
-            backgroundSize: '1200% 1200%',
-            WebkitBackgroundClip: 'text',
-            backgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            animation: 'gradient-animation 8s ease infinite',
-          }}
-        >
+        <h1 className='text-green-600 tracking-tight text-center text-3xl font-extrabold mb-2 bg-clip-text drop-shadow-sm'>
           {siteName}
         </h1>
         <p className='text-center text-gray-600 dark:text-gray-400 text-sm mb-8'>
