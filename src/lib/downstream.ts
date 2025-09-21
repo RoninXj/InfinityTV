@@ -32,9 +32,7 @@ async function searchWithCache(
   const cached = getCachedSearchPage(apiSite.key, query, page);
   if (cached) {
     if (cached.status === 'ok') {
-      // 对缓存结果也进行相关性过滤
-      const filteredResults = filterByRelevance(cached.data, query);
-      return { results: filteredResults, pageCount: cached.pageCount };
+      return { results: cached.data, pageCount: cached.pageCount };
     } else {
       return { results: [] };
     }
@@ -120,10 +118,7 @@ async function searchWithCache(
     });
 
     // 过滤掉集数为 0 的结果
-    let results = allResults.filter((result: SearchResult) => result.episodes.length > 0);
-    
-    // 基于相关性过滤结果
-    results = filterByRelevance(results, query);
+    const results = allResults.filter((result: SearchResult) => result.episodes.length > 0);
 
     const pageCount = page === 1 ? data.pagecount || 1 : undefined;
     // 写入缓存（成功）
@@ -441,63 +436,4 @@ async function handleSpecialSourceDetail(
     type_name: '',
     douban_id: 0,
   };
-}
-
-// 新增：基于相关性的过滤函数
-function filterByRelevance(results: SearchResult[], query: string): SearchResult[] {
-  const trimmedQuery = query.trim().toLowerCase();
-  if (!trimmedQuery) return results;
-
-  // 分词查询词
-  const queryWords = trimmedQuery.split(/\s+/).filter(word => word.length > 0);
-  
-  return results.filter(result => {
-    // 获取标题和描述
-    const title = (result.title || '').toLowerCase();
-    const desc = (result.desc || '').toLowerCase();
-    const typeName = (result.type_name || '').toLowerCase();
-    const year = (result.year || '').toLowerCase();
-    
-    // 计算相关性得分
-    let score = 0;
-    
-    // 完全匹配标题得高分
-    if (title === trimmedQuery) {
-      score += 100;
-    } else if (title.includes(trimmedQuery)) {
-      score += 50;
-    }
-    
-    // 包含所有查询词得中等分数
-    const allWordsInTitle = queryWords.every(word => title.includes(word));
-    if (allWordsInTitle) {
-      score += 30;
-    }
-    
-    // 部分匹配查询词得低分
-    const someWordsInTitle = queryWords.some(word => title.includes(word));
-    if (someWordsInTitle) {
-      score += 10;
-    }
-    
-    // 描述匹配加分
-    const allWordsInDesc = queryWords.every(word => desc.includes(word));
-    if (allWordsInDesc) {
-      score += 5;
-    }
-    
-    // 类型匹配加分
-    const allWordsInType = queryWords.every(word => typeName.includes(word));
-    if (allWordsInType) {
-      score += 3;
-    }
-    
-    // 年份匹配加分
-    if (year.includes(trimmedQuery)) {
-      score += 2;
-    }
-    
-    // 返回得分大于0的结果
-    return score > 0;
-  });
 }

@@ -96,8 +96,6 @@ export interface IStorage {
   checkUserExist(userName: string): Promise<boolean>;
   // 修改用户密码
   changePassword(userName: string, newPassword: string): Promise<void>;
-  // 获取用户密码
-  getUserPassword(userName: string): Promise<string>;
   // 删除用户（包括密码、搜索历史、播放记录、收藏夹）
   deleteUser(userName: string): Promise<void>;
 
@@ -208,14 +206,16 @@ export interface UserPlayStat {
   recentRecords: PlayRecord[]; // 最近播放记录（最多10条）
   avgWatchTime: number; // 平均每次观看时长
   mostWatchedSource: string; // 最常观看的来源
-  password?: string; // 用户密码（仅管理员可见）
-  lastLoginIP?: string; // 最后登录IP地址
-  lastLoginTime?: string; // 最后登录时间
-  loginHistory?: { // 登录历史记录
-    ip: string;
-    time: string;
-    userAgent?: string;
-  }[];
+
+  // 新增LunaTV-alpha的高级统计字段
+  totalMovies?: number; // 观看影片总数（去重）
+  firstWatchDate?: number; // 首次观看时间戳
+  lastUpdateTime?: number; // 最后更新时间戳
+  createdAt?: number; // 注册时间戳
+  loginDays?: number; // 累计登录天数
+  lastLoginDate?: number; // 最后登录时间
+  activeStreak?: number; // 连续活跃天数
+  continuousLoginDays?: number; // 连续登录天数
 }
 
 // 全站播放统计数据结构
@@ -225,7 +225,18 @@ export interface PlayStatsResult {
   totalPlays: number; // 全站总播放次数
   avgWatchTimePerUser: number; // 用户平均观看时长
   avgPlaysPerUser: number; // 用户平均播放次数
-  userStats: UserPlayStat[]; // 每个用户的统计
+  userStats: Array<{
+    username: string;
+    totalWatchTime: number;
+    totalPlays: number;
+    lastPlayTime: number;
+    recentRecords: PlayRecord[];
+    avgWatchTime: number;
+    mostWatchedSource: string;
+    registrationDays: number; // 注册天数
+    lastLoginTime: number; // 最后登录时间
+    createdAt: number; // 用户创建时间
+  }>; // 每个用户的统计
   topSources: Array<{
     // 热门来源统计（前5名）
     source: string;
@@ -237,6 +248,22 @@ export interface PlayStatsResult {
     watchTime: number;
     plays: number;
   }>;
+  // 新增：用户注册统计
+  registrationStats: {
+    todayNewUsers: number; // 今日新增用户
+    totalRegisteredUsers: number; // 总注册用户数
+    registrationTrend: Array<{
+      // 近7天注册趋势
+      date: string;
+      newUsers: number;
+    }>;
+  };
+  // 新增：用户活跃度统计
+  activeUsers: {
+    daily: number; // 日活跃用户数
+    weekly: number; // 周活跃用户数
+    monthly: number; // 月活跃用户数
+  };
 }
 
 // 内容热度统计数据结构

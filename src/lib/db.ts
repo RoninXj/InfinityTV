@@ -158,11 +158,6 @@ export class DbManager {
     await this.storage.changePassword(userName, newPassword);
   }
 
-  // 添加获取用户密码的方法
-  async getUserPassword(userName: string): Promise<string> {
-    return this.storage.getUserPassword(userName);
-  }
-
   async deleteUser(userName: string): Promise<void> {
     await this.storage.deleteUser(userName);
   }
@@ -294,7 +289,19 @@ export class DbManager {
       avgPlaysPerUser: 0,
       userStats: [],
       topSources: [],
-      dailyStats: []
+      dailyStats: [],
+      // 新增：用户注册统计
+      registrationStats: {
+        todayNewUsers: 0,
+        totalRegisteredUsers: 0,
+        registrationTrend: [],
+      },
+      // 新增：用户活跃度统计
+      activeUsers: {
+        daily: 0,
+        weekly: 0,
+        monthly: 0,
+      },
     };
   }
 

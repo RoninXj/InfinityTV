@@ -191,37 +191,12 @@ function SearchPageClient() {
     return order === 'asc' ? aNum - bNum : bNum - aNum;
   };
 
-  // 聚合后的结果（按标题和年份分组，并考虑相关性）
+  // 聚合后的结果（按标题和年份分组）
   const aggregatedResults = useMemo(() => {
     const map = new Map<string, SearchResult[]>();
     const keyOrder: string[] = []; // 记录键出现的顺序
 
-    // 先对搜索结果按相关性排序
-    const sortedResults = [...searchResults].sort((a: SearchResult, b: SearchResult) => {
-      // 优先显示与搜索词完全匹配的标题
-      const query = searchQuery.trim().toLowerCase();
-      const aTitle = (a.title || '').toLowerCase();
-      const bTitle = (b.title || '').toLowerCase();
-      
-      // 完全匹配得高分
-      const aExactMatch = aTitle === query ? 1 : 0;
-      const bExactMatch = bTitle === query ? 1 : 0;
-      
-      // 包含查询词的数量
-      const aWordMatches = query.split(/\s+/).filter((word: string) => aTitle.includes(word)).length;
-      const bWordMatches = query.split(/\s+/).filter((word: string) => bTitle.includes(word)).length;
-      
-      // 按得分排序
-      if (aExactMatch !== bExactMatch) return bExactMatch - aExactMatch;
-      if (aWordMatches !== bWordMatches) return bWordMatches - aWordMatches;
-      
-      // 默认按年份排序
-      const aYear = parseInt(a.year || '0', 10);
-      const bYear = parseInt(b.year || '0', 10);
-      return bYear - aYear;
-    });
-
-    sortedResults.forEach((item: SearchResult) => {
+    searchResults.forEach((item) => {
       // 使用 title + year + type 作为键，year 必然存在，但依然兜底 'unknown'
       const key = `${item.title.replaceAll(' ', '')}-${item.year || 'unknown'
         }-${item.episodes.length === 1 ? 'movie' : 'tv'}`;
@@ -237,12 +212,12 @@ function SearchPageClient() {
     });
 
     // 按出现顺序返回聚合结果
-    return keyOrder.map((key: string) => [key, map.get(key)!] as [string, SearchResult[]]);
-  }, [searchResults, searchQuery]);
+    return keyOrder.map(key => [key, map.get(key)!] as [string, SearchResult[]]);
+  }, [searchResults]);
 
   // 当聚合结果变化时，如果某个聚合已存在，则调用其卡片 ref 的 set 方法增量更新
   useEffect(() => {
-    aggregatedResults.forEach(([mapKey, group]: [string, SearchResult[]]) => {
+    aggregatedResults.forEach(([mapKey, group]) => {
       const stats = computeGroupStats(group);
       const prev = groupStatsRef.current.get(mapKey);
       if (!prev) {
@@ -325,23 +300,10 @@ function SearchPageClient() {
   // 非聚合：应用筛选与排序
   const filteredAllResults = useMemo(() => {
     const { source, title, year, yearOrder } = filterAll;
-    const filtered = searchResults.filter((item: SearchResult) => {
+    const filtered = searchResults.filter((item) => {
       if (source !== 'all' && item.source !== source) return false;
       if (title !== 'all' && item.title !== title) return false;
       if (year !== 'all' && item.year !== year) return false;
-      
-      // 增加相关性过滤：确保结果与搜索关键词相关
-      if (searchQuery) {
-        const query = searchQuery.trim().toLowerCase();
-        const itemTitle = (item.title || '').toLowerCase();
-        const itemDesc = (item.desc || '').toLowerCase();
-        
-        // 如果搜索词不为空，但结果标题和描述都不包含搜索词，则过滤掉
-        if (query && !itemTitle.includes(query) && !itemDesc.includes(query)) {
-          return false;
-        }
-      }
-      
       return true;
     });
 
@@ -351,7 +313,7 @@ function SearchPageClient() {
     }
 
     // 简化排序：1. 年份排序，2. 年份相同时精确匹配在前，3. 标题排序
-    return filtered.sort((a: SearchResult, b: SearchResult) => {
+    return filtered.sort((a, b) => {
       // 首先按年份排序
       const yearComp = compareYear(a.year, b.year, yearOrder);
       if (yearComp !== 0) return yearComp;
@@ -372,26 +334,13 @@ function SearchPageClient() {
   // 聚合：应用筛选与排序
   const filteredAggResults = useMemo(() => {
     const { source, title, year, yearOrder } = filterAgg as any;
-    const filtered = aggregatedResults.filter(([_, group]: [string, SearchResult[]]) => {
+    const filtered = aggregatedResults.filter(([_, group]) => {
       const gTitle = group[0]?.title ?? '';
       const gYear = group[0]?.year ?? 'unknown';
-      const hasSource = source === 'all' ? true : group.some((item: SearchResult) => item.source === source);
+      const hasSource = source === 'all' ? true : group.some((item) => item.source === source);
       if (!hasSource) return false;
       if (title !== 'all' && gTitle !== title) return false;
       if (year !== 'all' && gYear !== year) return false;
-      
-      // 增加相关性过滤：确保聚合结果与搜索关键词相关
-      if (searchQuery) {
-        const query = searchQuery.trim().toLowerCase();
-        const groupTitle = gTitle.toLowerCase();
-        const groupDesc = (group[0]?.desc || '').toLowerCase();
-        
-        // 如果搜索词不为空，但聚合组的标题和描述都不包含搜索词，则过滤掉
-        if (query && !groupTitle.includes(query) && !groupDesc.includes(query)) {
-          return false;
-        }
-      }
-      
       return true;
     });
 
@@ -401,7 +350,7 @@ function SearchPageClient() {
     }
 
     // 简化排序：1. 年份排序，2. 年份相同时精确匹配在前，3. 标题排序
-    return filtered.sort((a: [string, SearchResult[]], b: [string, SearchResult[]]) => {
+    return filtered.sort((a, b) => {
       // 首先按年份排序
       const aYear = a[1][0].year;
       const bYear = b[1][0].year;
@@ -572,35 +521,30 @@ function SearchPageClient() {
                 setCompletedSources(0);
                 break;
               case 'source_result': {
-                setCompletedSources((prev: number) => prev + 1);
+                setCompletedSources((prev) => prev + 1);
                 if (Array.isArray(payload.results) && payload.results.length > 0) {
-                  // 对结果进行相关性过滤
-                  const relevantResults = filterResultsByRelevance(payload.results, trimmed);
-                  
-                  if (relevantResults.length > 0) {
-                    // 缓冲新增结果，节流刷入，避免频繁重渲染导致闪烁
-                    const activeYearOrder = (viewMode === 'agg' ? (filterAgg.yearOrder) : (filterAll.yearOrder));
-                    const incoming: SearchResult[] =
-                      activeYearOrder === 'none'
-                        ? sortBatchForNoOrder(relevantResults as SearchResult[])
-                        : (relevantResults as SearchResult[]);
-                    pendingResultsRef.current.push(...incoming);
-                    if (!flushTimerRef.current) {
-                      flushTimerRef.current = window.setTimeout(() => {
-                        const toAppend = pendingResultsRef.current;
-                        pendingResultsRef.current = [];
-                        startTransition(() => {
-                          setSearchResults((prev) => prev.concat(toAppend));
-                        });
-                        flushTimerRef.current = null;
-                      }, 80);
-                    }
+                  // 缓冲新增结果，节流刷入，避免频繁重渲染导致闪烁
+                  const activeYearOrder = (viewMode === 'agg' ? (filterAgg.yearOrder) : (filterAll.yearOrder));
+                  const incoming: SearchResult[] =
+                    activeYearOrder === 'none'
+                      ? sortBatchForNoOrder(payload.results as SearchResult[])
+                      : (payload.results as SearchResult[]);
+                  pendingResultsRef.current.push(...incoming);
+                  if (!flushTimerRef.current) {
+                    flushTimerRef.current = window.setTimeout(() => {
+                      const toAppend = pendingResultsRef.current;
+                      pendingResultsRef.current = [];
+                      startTransition(() => {
+                        setSearchResults((prev) => prev.concat(toAppend));
+                      });
+                      flushTimerRef.current = null;
+                    }, 80);
                   }
                 }
                 break;
               }
               case 'source_error':
-                setCompletedSources((prev: number) => prev + 1);
+                setCompletedSources((prev) => prev + 1);
                 break;
               case 'complete':
                 setCompletedSources(payload.completedSources || totalSources);
@@ -653,14 +597,11 @@ function SearchPageClient() {
             if (currentQueryRef.current !== trimmed) return;
 
             if (data.results && Array.isArray(data.results)) {
-              // 对结果进行相关性过滤
-              const relevantResults = filterResultsByRelevance(data.results, trimmed);
-              
               const activeYearOrder = (viewMode === 'agg' ? (filterAgg.yearOrder) : (filterAll.yearOrder));
               const results: SearchResult[] =
                 activeYearOrder === 'none'
-                  ? sortBatchForNoOrder(relevantResults as SearchResult[])
-                  : (relevantResults as SearchResult[]);
+                  ? sortBatchForNoOrder(data.results as SearchResult[])
+                  : (data.results as SearchResult[]);
 
               setSearchResults(results);
               setTotalSources(1);
@@ -840,45 +781,6 @@ function SearchPageClient() {
       // 如果平滑滚动完全失败，使用立即滚动
       document.body.scrollTop = 0;
     }
-  };
-
-  // 新增：基于相关性的结果过滤函数
-  const filterResultsByRelevance = (results: SearchResult[], query: string): SearchResult[] => {
-    const trimmedQuery = query.trim().toLowerCase();
-    if (!trimmedQuery) return results;
-
-    // 分词查询词
-    const queryWords = trimmedQuery.split(/\s+/).filter(word => word.length > 0);
-    
-    return results.filter(result => {
-      const title = (result.title || '').toLowerCase();
-      const desc = (result.desc || '').toLowerCase();
-      
-      // 完全匹配标题
-      if (title === trimmedQuery) {
-        return true;
-      }
-      
-      // 包含完整查询词
-      if (title.includes(trimmedQuery)) {
-        return true;
-      }
-      
-      // 包含所有查询词
-      const allWordsInTitle = queryWords.every(word => title.includes(word));
-      if (allWordsInTitle) {
-        return true;
-      }
-      
-      // 描述匹配查询词
-      const someWordsInDesc = queryWords.some(word => desc.includes(word));
-      if (someWordsInDesc) {
-        return true;
-      }
-      
-      // 如果没有任何匹配，过滤掉该结果
-      return false;
-    });
   };
 
   return (

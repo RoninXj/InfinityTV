@@ -15,76 +15,6 @@ const STORAGE_TYPE =
     | 'kvrocks'
     | undefined) || 'localstorage';
 
-// 获取客户端IP地址
-function getClientIP(request: NextRequest): string {
-  // 优先级按照：代理服务器设置的头部 -> 直连 IP
-  const forwarded = request.headers.get('x-forwarded-for');
-  if (forwarded) {
-    // x-forwarded-for 可能包含多个IP，取第一个（最原始的客户端IP）
-    return forwarded.split(',')[0].trim();
-  }
-  
-  const realIP = request.headers.get('x-real-ip');
-  if (realIP) {
-    return realIP;
-  }
-  
-  const cfConnectingIP = request.headers.get('cf-connecting-ip'); // Cloudflare
-  if (cfConnectingIP) {
-    return cfConnectingIP;
-  }
-  
-  // 如果都没有，返回连接IP（可能是代理服务器IP）
-  return request.ip || '未知';
-}
-
-// 更新用户登录信息
-async function updateUserLoginInfo(username: string, ip: string, userAgent?: string): Promise<void> {
-  try {
-    const config = await getConfig();
-    let user = config.UserConfig.Users.find(u => u.username === username);
-    
-    // 如果用户不存在（比如站长），创建一个新的用户记录
-    if (!user) {
-      const newUser = {
-        username: username,
-        role: (username === process.env.USERNAME ? 'owner' : 'user') as 'owner' | 'admin' | 'user',
-      };
-      config.UserConfig.Users.push(newUser);
-      user = newUser;
-    }
-    
-    const now = new Date().toISOString();
-    
-    // 更新登录信息
-    user.lastLoginTime = now;
-    user.lastLoginIP = ip;
-    
-    // 添加到登录历史（保留最近10条记录）
-    if (!user.loginHistory) {
-      user.loginHistory = [];
-    }
-    
-    user.loginHistory.unshift({
-      ip,
-      time: now,
-      userAgent: userAgent || undefined
-    });
-    
-    // 只保留最近10条登录历史
-    if (user.loginHistory.length > 10) {
-      user.loginHistory = user.loginHistory.slice(0, 10);
-    }
-    
-    // 保存配置
-    await db.saveAdminConfig(config);
-    
-    console.log(`用户 ${username} 登录信息已更新，IP: ${ip}`);
-  } catch (error) {
-    console.error('更新用户登录信息失败:', error);
-  }
-}
-
 // 生成签名
 async function generateSignature(
   data: string,
@@ -208,13 +138,6 @@ export async function POST(req: NextRequest) {
       username === process.env.USERNAME &&
       password === process.env.PASSWORD
     ) {
-      // 获取登录IP地址
-      const clientIP = getClientIP(req);
-      const userAgent = req.headers.get('user-agent') || undefined;
-      
-      // 更新用户登录信息
-      await updateUserLoginInfo(username, clientIP, userAgent);
-      
       // 验证成功，设置认证cookie
       const response = NextResponse.json({ ok: true });
       const cookieValue = await generateAuthCookie(
@@ -255,13 +178,6 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      // 获取登录IP地址
-      const clientIP = getClientIP(req);
-      const userAgent = req.headers.get('user-agent') || undefined;
-      
-      // 更新用户登录信息
-      await updateUserLoginInfo(username, clientIP, userAgent);
-      
       // 验证成功，设置认证cookie
       const response = NextResponse.json({ ok: true });
       const cookieValue = await generateAuthCookie(

@@ -558,7 +558,7 @@ export const UserMenu: React.FC = () => {
             >
               <BarChart3 className='w-4 h-4 text-gray-500 dark:text-gray-400' />
               <span className='font-medium'>
-                {authInfo?.role === 'owner' || authInfo?.role === 'admin' ? '用户统计' : '个人统计'}
+                {authInfo?.role === 'owner' || authInfo?.role === 'admin' ? '播放统计' : '个人统计'}
               </span>
             </button>
           )}
