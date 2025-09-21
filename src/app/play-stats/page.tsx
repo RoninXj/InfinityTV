@@ -246,8 +246,15 @@ const PlayStatsPage: React.FC = () => {
 
   // 处理追番更新卡片点击
   const handleWatchingUpdatesClick = () => {
-    if (watchingUpdates && watchingUpdates.hasUpdates) {
+    console.log('点击追番卡片，watchingUpdates:', watchingUpdates);
+    console.log('updatedCount:', watchingUpdates?.updatedCount);
+    console.log('continueWatchingCount:', watchingUpdates?.continueWatchingCount);
+
+    if (watchingUpdates && ((watchingUpdates.updatedCount || 0) > 0 || (watchingUpdates.continueWatchingCount || 0) > 0)) {
+      console.log('条件满足，显示弹窗');
       setShowWatchingUpdates(true);
+    } else {
+      console.log('条件不满足，不显示弹窗');
     }
   };
 
@@ -255,7 +262,7 @@ const PlayStatsPage: React.FC = () => {
   const handleCloseWatchingUpdates = () => {
     setShowWatchingUpdates(false);
     markUpdatesAsViewed();
-    setWatchingUpdates(prev => prev ? { ...prev, hasUpdates: false, updatedCount: 0 } : null);
+    setWatchingUpdates(prev => prev ? { ...prev, hasUpdates: false, updatedCount: 0, continueWatchingCount: 0 } : null);
   };
 
   // 格式化更新时间
@@ -1141,32 +1148,64 @@ const PlayStatsPage: React.FC = () => {
                     常用来源
                   </div>
                 </div>
+                {/* 新集数更新 */}
                 <div
                   className={`p-4 rounded-lg border cursor-pointer transition-all ${
-                    watchingUpdates?.hasUpdates
+                    (watchingUpdates?.updatedCount || 0) > 0
                       ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 hover:bg-red-100 dark:hover:bg-red-900/30'
                       : 'bg-gray-50 dark:bg-gray-900/20 border-gray-200 dark:border-gray-800 hover:bg-gray-100 dark:hover:bg-gray-900/30'
                   }`}
                   onClick={handleWatchingUpdatesClick}
-                  title={watchingUpdates?.hasUpdates ? '点击查看更新详情' : '暂无剧集更新'}
+                  title={(watchingUpdates?.updatedCount || 0) > 0 ? '点击查看新集数详情' : '暂无新集数更新'}
                 >
                   <div className={`text-2xl font-bold ${
-                    watchingUpdates?.hasUpdates
+                    (watchingUpdates?.updatedCount || 0) > 0
                       ? 'text-red-800 dark:text-red-300'
                       : 'text-gray-800 dark:text-gray-300'
                   }`}>
                     {watchingUpdates?.updatedCount || 0}
                   </div>
                   <div className={`text-sm ${
-                    watchingUpdates?.hasUpdates
+                    (watchingUpdates?.updatedCount || 0) > 0
                       ? 'text-red-600 dark:text-red-400'
                       : 'text-gray-600 dark:text-gray-400'
                   }`}>
-                    追番更新
+                    新集数更新
                   </div>
-                  {watchingUpdates?.hasUpdates && (
+                  {(watchingUpdates?.updatedCount || 0) > 0 && (
                     <div className='text-xs text-red-500 dark:text-red-400 mt-1'>
-                      有新集数！
+                      有新集数发布！
+                    </div>
+                  )}
+                </div>
+
+                {/* 继续观看提醒 */}
+                <div
+                  className={`p-4 rounded-lg border cursor-pointer transition-all ${
+                    (watchingUpdates?.continueWatchingCount || 0) > 0
+                      ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800 hover:bg-blue-100 dark:hover:bg-blue-900/30'
+                      : 'bg-gray-50 dark:bg-gray-900/20 border-gray-200 dark:border-gray-800 hover:bg-gray-100 dark:hover:bg-gray-900/30'
+                  }`}
+                  onClick={handleWatchingUpdatesClick}
+                  title={(watchingUpdates?.continueWatchingCount || 0) > 0 ? '点击查看继续观看详情' : '暂无待续看剧集'}
+                >
+                  <div className={`text-2xl font-bold ${
+                    (watchingUpdates?.continueWatchingCount || 0) > 0
+                      ? 'text-blue-800 dark:text-blue-300'
+                      : 'text-gray-800 dark:text-gray-300'
+                  }`}>
+                    {watchingUpdates?.continueWatchingCount || 0}
+                  </div>
+                  <div className={`text-sm ${
+                    (watchingUpdates?.continueWatchingCount || 0) > 0
+                      ? 'text-blue-600 dark:text-blue-400'
+                      : 'text-gray-600 dark:text-gray-400'
+                  }`}>
+                    继续观看
+                  </div>
+                  {(watchingUpdates?.continueWatchingCount || 0) > 0 && (
+                    <div className='text-xs text-blue-500 dark:text-blue-400 mt-1'>
+                      有剧集待续看！
                     </div>
                   )}
                 </div>
@@ -1414,32 +1453,64 @@ const PlayStatsPage: React.FC = () => {
                 常用来源
               </div>
             </div>
+            {/* 新集数更新 */}
             <div
               className={`p-4 rounded-lg border cursor-pointer transition-all ${
-                watchingUpdates?.hasUpdates
+                (watchingUpdates?.updatedCount || 0) > 0
                   ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 hover:bg-red-100 dark:hover:bg-red-900/30'
                   : 'bg-gray-50 dark:bg-gray-900/20 border-gray-200 dark:border-gray-800 hover:bg-gray-100 dark:hover:bg-gray-900/30'
               }`}
               onClick={handleWatchingUpdatesClick}
-              title={watchingUpdates?.hasUpdates ? '点击查看更新详情' : '暂无剧集更新'}
+              title={(watchingUpdates?.updatedCount || 0) > 0 ? '点击查看新集数详情' : '暂无新集数更新'}
             >
               <div className={`text-2xl font-bold ${
-                watchingUpdates?.hasUpdates
+                (watchingUpdates?.updatedCount || 0) > 0
                   ? 'text-red-800 dark:text-red-300'
                   : 'text-gray-800 dark:text-gray-300'
               }`}>
                 {watchingUpdates?.updatedCount || 0}
               </div>
               <div className={`text-sm ${
-                watchingUpdates?.hasUpdates
+                (watchingUpdates?.updatedCount || 0) > 0
                   ? 'text-red-600 dark:text-red-400'
                   : 'text-gray-600 dark:text-gray-400'
               }`}>
-                追番更新
+                新集数更新
               </div>
-              {watchingUpdates?.hasUpdates && (
+              {(watchingUpdates?.updatedCount || 0) > 0 && (
                 <div className='text-xs text-red-500 dark:text-red-400 mt-1'>
-                  有新集数！
+                  有新集数发布！
+                </div>
+              )}
+            </div>
+
+            {/* 继续观看提醒 */}
+            <div
+              className={`p-4 rounded-lg border cursor-pointer transition-all ${
+                (watchingUpdates?.continueWatchingCount || 0) > 0
+                  ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800 hover:bg-blue-100 dark:hover:bg-blue-900/30'
+                  : 'bg-gray-50 dark:bg-gray-900/20 border-gray-200 dark:border-gray-800 hover:bg-gray-100 dark:hover:bg-gray-900/30'
+              }`}
+              onClick={handleWatchingUpdatesClick}
+              title={(watchingUpdates?.continueWatchingCount || 0) > 0 ? '点击查看继续观看详情' : '暂无待续看剧集'}
+            >
+              <div className={`text-2xl font-bold ${
+                (watchingUpdates?.continueWatchingCount || 0) > 0
+                  ? 'text-blue-800 dark:text-blue-300'
+                  : 'text-gray-800 dark:text-gray-300'
+              }`}>
+                {watchingUpdates?.continueWatchingCount || 0}
+              </div>
+              <div className={`text-sm ${
+                (watchingUpdates?.continueWatchingCount || 0) > 0
+                  ? 'text-blue-600 dark:text-blue-400'
+                  : 'text-gray-600 dark:text-gray-400'
+              }`}>
+                继续观看
+              </div>
+              {(watchingUpdates?.continueWatchingCount || 0) > 0 && (
+                <div className='text-xs text-blue-500 dark:text-blue-400 mt-1'>
+                  有剧集待续看！
                 </div>
               )}
             </div>
@@ -1582,17 +1653,15 @@ const PlayStatsPage: React.FC = () => {
 
               {/* 内容区域 */}
               <div className="p-4 max-h-[400px] overflow-y-auto">
-                {watchingUpdates.updatedCount > 0 ? (
-                  <>
+                {/* 新集数更新 */}
+                {(watchingUpdates.updatedCount || 0) > 0 && (
+                  <div className="mb-6">
                     <div className="mb-4 text-center">
-                      <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                      <div className="text-2xl font-bold text-red-600 dark:text-red-400">
                         {watchingUpdates.updatedCount}
                       </div>
                       <div className="text-sm text-gray-600 dark:text-gray-400">
-                        个剧集有更新
-                      </div>
-                      <div className="text-xs text-gray-500 dark:text-gray-500 mt-1">
-                        {formatLastUpdate(watchingUpdates.timestamp)}
+                        个剧集有新集数更新
                       </div>
                     </div>
 
@@ -1601,7 +1670,42 @@ const PlayStatsPage: React.FC = () => {
                         .filter(series => series.hasNewEpisode)
                         .map((series, index) => (
                           <div
-                            key={`${series.title}_${series.year}_${index}`}
+                            key={`new-${series.title}_${series.year}_${index}`}
+                            className="p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800"
+                          >
+                            <div className="font-medium text-gray-900 dark:text-white">
+                              {series.title}
+                            </div>
+                            <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                              来源: {series.source_name} | 年份: {series.year}
+                            </div>
+                            <div className="text-sm text-red-600 dark:text-red-400 mt-1">
+                              新增 {series.newEpisodes} 集！
+                            </div>
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* 继续观看提醒 */}
+                {(watchingUpdates.continueWatchingCount || 0) > 0 && (
+                  <div className="mb-6">
+                    <div className="mb-4 text-center">
+                      <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                        {watchingUpdates.continueWatchingCount}
+                      </div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400">
+                        个剧集需要继续观看
+                      </div>
+                    </div>
+
+                    <div className="space-y-3">
+                      {watchingUpdates.updatedSeries
+                        .filter(series => series.hasContinueWatching)
+                        .map((series, index) => (
+                          <div
+                            key={`continue-${series.title}_${series.year}_${index}`}
                             className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800"
                           >
                             <div className="font-medium text-gray-900 dark:text-white">
@@ -1611,23 +1715,30 @@ const PlayStatsPage: React.FC = () => {
                               来源: {series.source_name} | 年份: {series.year}
                             </div>
                             <div className="text-sm text-blue-600 dark:text-blue-400 mt-1">
-                              已观看至第 {series.currentEpisode} 集，可能有新集数更新
+                              已观看第 {series.currentEpisode} 集，还有 {series.remainingEpisodes} 集未看
                             </div>
                           </div>
                         ))}
                     </div>
-                  </>
-                ) : (
+                  </div>
+                )}
+
+                {/* 无提醒状态 */}
+                {(watchingUpdates.updatedCount || 0) === 0 && (watchingUpdates.continueWatchingCount || 0) === 0 && (
                   <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                     <svg className="w-12 h-12 mx-auto mb-4 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5 5v-5zM8 17l-3-3 3-3m5 0l3 3-3 3" />
                     </svg>
-                    <p>暂无剧集更新</p>
+                    <p>暂无追番提醒</p>
                     <p className="text-sm mt-2">
-                      系统会定期检查您追番的更新情况
+                      系统会定期检查您的观看进度
                     </p>
                   </div>
                 )}
+
+                <div className="text-xs text-gray-500 dark:text-gray-500 text-center mt-4">
+                  {formatLastUpdate(watchingUpdates.timestamp)}
+                </div>
               </div>
 
               {/* 底部按钮 */}
