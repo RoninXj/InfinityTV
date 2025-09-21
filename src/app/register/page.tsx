@@ -9,7 +9,7 @@ import { Suspense, useEffect, useState } from 'react';
 import { CURRENT_VERSION } from '@/lib/version';
 import { useSite } from '@/components/SiteProvider';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import VersionDisplay from '@/components/VersionDisplay';
+
 
 // 添加动画关键帧的组件内样式
 const gradientAnimationStyle = `
@@ -298,7 +298,6 @@ function RegisterPageClient() {
         </form>
       </div>
 
-      <VersionDisplay />
     </div>
   );
 }

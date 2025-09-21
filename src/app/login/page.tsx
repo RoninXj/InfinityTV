@@ -8,8 +8,8 @@ import { Suspense, useEffect, useState } from 'react';
 
 import { CURRENT_VERSION } from '@/lib/version';
 import { useSite } from '@/components/SiteProvider';
-import ThemeToggle from '@/components/ThemeToggle';
-import VersionDisplay from '@/components/VersionDisplay';
+import { ThemeToggle } from '@/components/ThemeToggle';
+
 
 // 添加动画关键帧的组件内样式
 const gradientAnimationStyle = `
@@ -197,7 +197,6 @@ function LoginPageClient() {
       </div>
 
       {/* 版本信息显示 */}
-      <VersionDisplay />
     </div>
   );
 }
