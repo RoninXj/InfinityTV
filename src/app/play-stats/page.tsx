@@ -405,7 +405,6 @@ const PlayStatsPage: React.FC = () => {
     );
   }
 
-{/* 管理员视图 */}
   if (isAdmin && statsData) {
     return (
       <PageLayout activePath="/play-stats">
@@ -502,7 +501,7 @@ const PlayStatsPage: React.FC = () => {
 
           {/* Tab 内容 */}
           {activeTab === 'admin' ? (
-            /* 全站统计内容 */
+            {/* 全站统计内容 */}
             <>
               {/* 全站统计概览 */}
               <div className='grid grid-cols-1 md:grid-cols-2 xl:grid-cols-7 gap-4 mb-8'>
@@ -670,7 +669,7 @@ const PlayStatsPage: React.FC = () => {
 
           {/* Tab 内容 */}
           {activeTab === 'admin' ? (
-            /* 全站统计内容 */
+            {/* 全站统计内容 */}
             <>
               {/* 全站统计概览 */}
               <div className='grid grid-cols-1 md:grid-cols-2 xl:grid-cols-7 gap-4 mb-8'>
@@ -1094,7 +1093,7 @@ const PlayStatsPage: React.FC = () => {
               </div>
             </>
           ) : (
-            /* 个人统计内容 */
+            {/* 个人统计内容 */}
             <>
               {/* 个人统计概览 */}
               <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-7 gap-4 mb-8'>
@@ -1548,7 +1547,7 @@ const PlayStatsPage: React.FC = () => {
     );
   }
 
-  {/* 加载中或错误状态 */}
+  // 加载中或错误状态
   return (
     <PageLayout activePath="/play-stats">
       <div className='max-w-6xl mx-auto px-4 py-8'>
