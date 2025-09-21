@@ -5,7 +5,6 @@
 import { AlertCircle, CheckCircle } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useState } from 'react';
-
 import { CURRENT_VERSION } from '@/lib/version';
 import { useSite } from '@/components/SiteProvider';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -19,6 +18,15 @@ const gradientAnimationStyle = `
     100% { background-position: 0% 50%; }
   }
 `;
+
+// 版本显示组件
+function VersionDisplay() {
+  return (
+    <div className='absolute bottom-4 left-1/2 transform -translate-x-1/2 flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400'>
+      <span className='font-mono'>v{CURRENT_VERSION}</span>
+    </div>
+  );
+}
 
 function RegisterPageClient() {
   const router = useRouter();
@@ -191,6 +199,7 @@ function RegisterPageClient() {
             </button>
           </div>
         </div>
+        <VersionDisplay />
       </div>
     );
   }
@@ -297,6 +306,7 @@ function RegisterPageClient() {
         </form>
       </div>
 
+      <VersionDisplay />
     </div>
   );
 }
