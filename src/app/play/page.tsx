@@ -8,6 +8,7 @@ import { Heart, ChevronUp } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 import EpisodeSelector from '@/components/EpisodeSelector';
+import VideoRecommendations from '@/components/VideoRecommendations.js';
 import NetDiskSearchResults from '@/components/NetDiskSearchResults';
 import PageLayout from '@/components/PageLayout';
 import artplayerPluginChromecast from '@/lib/artplayer-plugin-chromecast';
@@ -4707,6 +4708,13 @@ function PlayPageClient() {
               </div>
             </div>
           </div>
+
+          {/* 相关推荐 */}
+          <VideoRecommendations 
+            currentTitle={videoTitle}
+            currentType={searchType || (detail?.episodes && detail.episodes > 1 ? 'tv' : 'movie')}
+            currentYear={videoYear}
+          />
 
           {/* 封面展示 */}
           <div className='hidden md:block md:col-span-1 md:order-first'>
