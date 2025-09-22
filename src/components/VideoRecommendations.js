@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from 'react';
 import VideoCard from './VideoCard';
-import { sendAIRecommendMessage } from '@/lib/ai-recommend.client';
+import { getDoubanRecommends } from '@/lib/douban.client';
 
 export default function VideoRecommendations({ 
   currentTitle, 
@@ -17,30 +17,24 @@ export default function VideoRecommendations({
     const fetchRecommendations = async () => {
       try {
         setLoading(true);
-        // 构造推荐请求
-        const message = `基于影片"${currentTitle}"(${currentYear || '未知年份'})，这是一部${currentType === 'movie' ? '电影' : '电视剧'}，请推荐几部相似类型的影片。请直接列出片名，每部影片占一行。`;
         
-        const response = await sendAIRecommendMessage([
-          {
-            role: 'user',
-            content: message
-          }
-        ]);
+        // 根据当前影片类型获取相关推荐
+        const kind = currentType === 'movie' ? 'movie' : 'tv';
+        
+        // 获取豆瓣推荐数据
+        const response = await getDoubanRecommends({
+          kind: kind,
+          pageLimit: 6, // 限制6个推荐
+          pageStart: 0,
+          // 可以根据影片类型、年份等添加更多筛选条件
+        });
 
-        // 处理推荐结果
-        if (response.recommendations && response.recommendations.length > 0) {
-          setRecommendations(response.recommendations.slice(0, 6)); // 限制6个推荐
-        } else {
-          // 如果没有结构化推荐，从文本中提取
-          const titles = extractMovieTitles(response.choices[0].message.content);
-          const mockRecommendations = titles.slice(0, 6).map(title => ({
-            title,
-            description: 'AI推荐影片'
-          }));
-          setRecommendations(mockRecommendations);
+        if (response.code === 200 && response.list && response.list.length > 0) {
+          // 只取前6个推荐
+          setRecommendations(response.list.slice(0, 6));
         }
       } catch (error) {
-        console.error('获取推荐失败:', error);
+        console.error('获取豆瓣推荐失败:', error);
       } finally {
         setLoading(false);
       }
@@ -53,28 +47,6 @@ export default function VideoRecommendations({
       setLoading(false);
     }
   }, [currentTitle, currentType, currentYear]);
-
-  // 从文本中提取影片标题的辅助函数
-  const extractMovieTitles = (content) => {
-    const titles = [];
-    const patterns = [
-      /《([^》]+)》/g,
-      /"([^"]+)"/g,
-      /【([^】]+)】/g
-    ];
-    
-    patterns.forEach(pattern => {
-      let match;
-      while ((match = pattern.exec(content)) !== null) {
-        const title = match[1]?.trim();
-        if (title && title.length > 1 && title.length < 50 && !titles.includes(title)) {
-          titles.push(title);
-        }
-      }
-    });
-    
-    return titles;
-  };
 
   if (loading) {
     return (
@@ -101,14 +73,22 @@ export default function VideoRecommendations({
       <h3 className="text-lg font-semibold mb-4">相关推荐</h3>
       <div className="grid grid-cols-3 sm:grid-cols-6 gap-4">
         {recommendations.map((rec, index) => (
-          <div key={index} className="cursor-pointer" 
-               onClick={() => window.open(`/search?q=${encodeURIComponent(rec.title)}`, '_blank')}>
+          <div 
+            key={index} 
+            className="min-w-[96px] w-24 sm:min-w-[180px] sm:w-44 cursor-pointer"
+            onClick={() => {
+              // 直接跳转到播放页面，而不是搜索页面
+              const url = `/play?title=${encodeURIComponent(rec.title)}&year=${rec.year || ''}&douban_id=${rec.id}&stype=${currentType === 'movie' ? 'movie' : 'tv'}`;
+              window.open(url, '_blank');
+            }}
+          >
             <VideoCard
               title={rec.title}
               poster={rec.poster || ''}
               year={rec.year || ''}
-              from="search"
-              type={currentType}
+              from="douban"
+              douban_id={parseInt(rec.id)}
+              rate={rec.rate}
             />
           </div>
         ))}
