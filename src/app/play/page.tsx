@@ -4712,7 +4712,7 @@ function PlayPageClient() {
           {/* 相关推荐 */}
           <VideoRecommendations 
             currentTitle={videoTitle}
-            currentType={searchType || (detail?.episodes && detail.episodes > 1 ? 'tv' : 'movie')}
+            currentType={searchType || (detail?.episodes && parseInt(detail.episodes) > 1 ? 'tv' : 'movie')}
             currentYear={videoYear}
           />
 
