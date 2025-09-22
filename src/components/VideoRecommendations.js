@@ -54,9 +54,14 @@ export default function VideoRecommendations({
         <h3 className="text-lg font-semibold mb-4">相关推荐</h3>
         <div className="grid grid-cols-3 sm:grid-cols-6 gap-4">
           {[...Array(6)].map((_, i) => (
-            <div key={i} className="animate-pulse">
-              <div className="bg-gray-200 dark:bg-gray-700 aspect-[2/3] rounded-lg"></div>
-              <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded mt-2"></div>
+            <div
+              key={i}
+              className='min-w-[96px] w-24 sm:min-w-[180px] sm:w-44'
+            >
+              <div className='relative aspect-[2/3] w-full overflow-hidden rounded-lg bg-gray-200 animate-pulse dark:bg-gray-800'>
+                <div className='absolute inset-0 bg-gray-300 dark:bg-gray-700'></div>
+              </div>
+              <div className='mt-2 h-4 bg-gray-200 rounded animate-pulse dark:bg-gray-800'></div>
             </div>
           ))}
         </div>
@@ -73,9 +78,9 @@ export default function VideoRecommendations({
       <h3 className="text-lg font-semibold mb-4">相关推荐</h3>
       <div className="grid grid-cols-3 sm:grid-cols-6 gap-4">
         {recommendations.map((rec, index) => (
-          <div 
-            key={index} 
-            className="min-w-[96px] w-24 sm:min-w-[180px] sm:w-44 cursor-pointer"
+          <div
+            key={index}
+            className='min-w-[96px] w-24 sm:min-w-[180px] sm:w-44 cursor-pointer'
             onClick={() => {
               // 直接跳转到播放页面，而不是搜索页面
               const url = `/play?title=${encodeURIComponent(rec.title)}&year=${rec.year || ''}&douban_id=${rec.id}&stype=${currentType === 'movie' ? 'movie' : 'tv'}`;
