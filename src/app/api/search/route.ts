@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 import { getAuthInfoFromCookie } from '@/lib/auth';
 import { getAvailableApiSites, getCacheTime, getConfig } from '@/lib/config';
-import { searchFromApi } from '@/lib/downstream';
+import { searchFromApi, sortResultsByRelevance, filterLowRelevanceResults } from '@/lib/downstream';
 import { yellowWords } from '@/lib/yellow';
 
 export const runtime = 'nodejs';
@@ -62,6 +62,14 @@ export async function GET(request: NextRequest) {
         return !yellowWords.some((word: string) => typeName.includes(word));
       });
     }
+    
+    // 添加相关性排序和过滤
+    // 首先基于相关性对结果进行排序
+    flattenedResults = sortResultsByRelevance(flattenedResults, query);
+    
+    // 然后过滤掉相关性不高的结果
+    flattenedResults = filterLowRelevanceResults(flattenedResults, query);
+    
     const cacheTime = await getCacheTime();
 
     if (flattenedResults.length === 0) {

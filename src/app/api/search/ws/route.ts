@@ -4,8 +4,9 @@ import { NextRequest, NextResponse } from 'next/server';
 
 import { getAuthInfoFromCookie } from '@/lib/auth';
 import { getAvailableApiSites, getConfig } from '@/lib/config';
-import { searchFromApi } from '@/lib/downstream';
+import { searchFromApi, sortResultsByRelevance, filterLowRelevanceResults } from '@/lib/downstream';
 import { yellowWords } from '@/lib/yellow';
+import { SearchResult } from '@/lib/types';
 
 export const runtime = 'nodejs';
 
@@ -72,7 +73,7 @@ export async function GET(request: NextRequest) {
 
       // 记录已完成的源数量
       let completedSources = 0;
-      const allResults: any[] = [];
+      const allResults: SearchResult[] = [];
 
       // 为每个源创建搜索 Promise
       const searchPromises = apiSites.map(async (site) => {
@@ -85,16 +86,21 @@ export async function GET(request: NextRequest) {
             ),
           ]);
 
-          const results = await searchPromise as any[];
+          let results = await searchPromise as SearchResult[];
 
           // 过滤黄色内容
-          let filteredResults = results;
           if (!config.SiteConfig.DisableYellowFilter) {
-            filteredResults = results.filter((result) => {
+            results = results.filter((result: SearchResult) => {
               const typeName = result.type_name || '';
               return !yellowWords.some((word: string) => typeName.includes(word));
             });
           }
+          
+          // 基于相关性对结果进行排序
+          results = sortResultsByRelevance(results, query);
+          
+          // 过滤掉相关性不高的结果
+          results = filterLowRelevanceResults(results, query);
 
           // 发送该源的搜索结果
           completedSources++;
@@ -104,7 +110,7 @@ export async function GET(request: NextRequest) {
               type: 'source_result',
               source: site.key,
               sourceName: site.name,
-              results: filteredResults,
+              results: results,
               timestamp: Date.now()
             })}\n\n`;
 
@@ -114,8 +120,8 @@ export async function GET(request: NextRequest) {
             }
           }
 
-          if (filteredResults.length > 0) {
-            allResults.push(...filteredResults);
+          if (results.length > 0) {
+            allResults.push(...results);
           }
 
         } catch (error) {

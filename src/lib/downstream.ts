@@ -321,6 +321,119 @@ function calculateRelevanceScore(originalQuery: string, variant: string, results
   return score;
 }
 
+/**
+ * 计算单个搜索结果的相关性得分（用于结果过滤和排序）
+ * @param result 搜索结果
+ * @param query 查询词
+ * @param queryWords 查询词分词结果
+ * @returns 相关性得分
+ */
+function calculateSingleResultRelevanceScore(result: SearchResult, query: string, queryWords: string[]): number {
+  const trimmedQuery = query.trim().toLowerCase();
+  const title = (result.title || '').toLowerCase();
+  const desc = (result.desc || '').toLowerCase();
+  const typeName = (result.type_name || '').toLowerCase();
+  const year = (result.year || '').toLowerCase();
+  
+  let score = 0;
+  
+  // 完全匹配标题得最高分
+  if (title === trimmedQuery) {
+    score += 1000;
+  } else if (title.includes(trimmedQuery)) {
+    score += 500;
+  }
+  
+  // 包含所有查询词得高分
+  const allWordsInTitle = queryWords.every(word => title.includes(word));
+  if (allWordsInTitle) {
+    score += 300;
+  }
+  
+  // 查询词在标题中的位置越靠前得分越高
+  const firstWordIndex = title.indexOf(queryWords[0] || '');
+  if (firstWordIndex === 0) {
+    score += 100;
+  } else if (firstWordIndex > 0) {
+    score += 50;
+  }
+  
+  // 部分匹配查询词得中等分数
+  const someWordsInTitle = queryWords.some(word => title.includes(word));
+  if (someWordsInTitle) {
+    score += 50;
+  }
+  
+  // 标题长度适中加分（避免过短或过长的标题）
+  const titleLength = title.length;
+  if (titleLength >= 2 && titleLength <= 50) {
+    score += 20;
+  }
+  
+  // 描述匹配加分
+  const allWordsInDesc = queryWords.every(word => desc.includes(word));
+  if (allWordsInDesc) {
+    score += 30;
+  }
+  
+  // 类型匹配加分
+  const allWordsInType = queryWords.every(word => typeName.includes(word));
+  if (allWordsInType) {
+    score += 20;
+  }
+  
+  // 年份匹配加分
+  if (year.includes(trimmedQuery)) {
+    score += 10;
+  }
+  
+  return score;
+}
+
+/**
+ * 基于相关性的排序函数
+ * @param results 搜索结果
+ * @param query 查询词
+ * @returns 排序后的搜索结果
+ */
+export function sortResultsByRelevance(results: SearchResult[], query: string): SearchResult[] {
+  const trimmedQuery = query.trim().toLowerCase();
+  if (!trimmedQuery) return results;
+
+  // 分词查询词
+  const queryWords = trimmedQuery.split(/\s+/).filter(word => word.length > 0);
+
+  return results.sort((a, b) => {
+    // 计算a和b的相关性得分
+    const scoreA = calculateSingleResultRelevanceScore(a, query, queryWords);
+    const scoreB = calculateSingleResultRelevanceScore(b, query, queryWords);
+    
+    // 按得分降序排列
+    return scoreB - scoreA;
+  });
+}
+
+/**
+ * 过滤掉相关性不高的搜索结果
+ * @param results 搜索结果
+ * @param query 查询词
+ * @returns 过滤后的搜索结果
+ */
+export function filterLowRelevanceResults(results: SearchResult[], query: string): SearchResult[] {
+  const trimmedQuery = query.trim().toLowerCase();
+  if (!trimmedQuery) return results;
+
+  // 分词查询词
+  const queryWords = trimmedQuery.split(/\s+/).filter(word => word.length > 0);
+  
+  // 过滤掉相关性得分低于阈值的结果
+  return results.filter(result => {
+    const score = calculateSingleResultRelevanceScore(result, query, queryWords);
+    // 设置相关性阈值，低于此值的结果将被过滤掉
+    return score >= 30;
+  });
+}
+
 // 匹配 m3u8 链接的正则
 const M3U8_PATTERN = /(https?:\/\/[^"'\s]+?\.m3u8)/g;
 
