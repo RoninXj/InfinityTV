@@ -6,6 +6,9 @@ import { getConfig } from '@/lib/config';
 
 export const runtime = 'nodejs';
 
+// 添加这个导出以避免静态渲染错误
+export const dynamic = 'force-dynamic';
+
 // 获取用户登录历史记录
 export async function GET(req: NextRequest) {
   try {
