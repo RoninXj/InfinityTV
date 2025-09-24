@@ -90,7 +90,7 @@ function SearchPageClient() {
     onlyRated: false,
     sortBy: 'popularity',
     sortOrder: 'desc',
-    limit: 50
+    limit: undefined // 移除默认限制，显示所有结果
   });
 
   // TMDB筛选面板显示状态
@@ -765,6 +765,8 @@ function SearchPageClient() {
   const handleTmdbActorSearch = async (query: string, type = tmdbActorType, filterState = tmdbFilterState) => {
     if (!query.trim()) return;
 
+    console.log(`🚀 [前端TMDB] 开始搜索: ${query}, type=${type}`);
+
     setTmdbActorLoading(true);
     setTmdbActorError(null);
     setTmdbActorResults(null);
@@ -773,9 +775,13 @@ function SearchPageClient() {
       // 构建筛选参数
       const params = new URLSearchParams({
         actor: query.trim(),
-        type: type,
-        limit: (filterState.limit || 50).toString()
+        type: type
       });
+
+      // 只有设置了limit且大于0时才添加limit参数
+      if (filterState.limit && filterState.limit > 0) {
+        params.append('limit', filterState.limit.toString());
+      }
 
       // 添加筛选参数
       if (filterState.startYear) params.append('startYear', filterState.startYear.toString());
