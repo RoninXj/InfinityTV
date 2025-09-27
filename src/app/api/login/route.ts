@@ -1,7 +1,7 @@
 /* eslint-disable no-console,@typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from 'next/server';
 
-import { getConfig } from '@/lib/config';
+import { getConfig, clearConfigCache } from '@/lib/config';
 import { db } from '@/lib/db';
 
 export const runtime = 'nodejs';
@@ -176,6 +176,51 @@ export async function POST(req: NextRequest) {
           { error: '用户名或密码错误' },
           { status: 401 }
         );
+      }
+
+      // 获取客户端IP地址
+      const clientIP = req.headers.get('x-forwarded-for') || 
+                      req.headers.get('x-real-ip') || 
+                      req.socket?.remoteAddress || 
+                      'unknown';
+
+      // 获取用户代理
+      const userAgent = req.headers.get('user-agent') || 'unknown';
+
+      // 更新用户登录信息
+      try {
+        const config = await getConfig();
+        const user = config.UserConfig.Users.find(u => u.username === username);
+        if (user) {
+          // 更新最后登录时间和IP
+          user.lastLoginTime = new Date().toISOString();
+          user.lastLoginIP = clientIP;
+          
+          // 更新登录历史记录
+          if (!user.loginHistory) {
+            user.loginHistory = [];
+          }
+          
+          // 添加新的登录记录到历史记录
+          user.loginHistory.unshift({
+            ip: clientIP,
+            time: new Date().toISOString(),
+            userAgent: userAgent
+          });
+          
+          // 限制登录历史记录数量，只保留最近50条
+          if (user.loginHistory.length > 50) {
+            user.loginHistory = user.loginHistory.slice(0, 50);
+          }
+          
+          // 保存更新后的配置
+          await db.saveAdminConfig(config);
+          // 清除配置缓存
+          clearConfigCache();
+        }
+      } catch (updateError) {
+        console.error('更新用户登录信息失败:', updateError);
+        // 不中断登录流程，只是记录错误
       }
 
       // 验证成功，设置认证cookie
