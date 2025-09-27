@@ -148,6 +148,13 @@ export interface IStorage {
     id: string,
     watchTime: number
   ): Promise<void>;
+
+  // 登入统计相关
+  updateUserLoginStats(
+    userName: string,
+    loginTime: number,
+    isFirstLogin?: boolean
+  ): Promise<void>;
 }
 
 // 搜索结果数据结构
@@ -216,7 +223,10 @@ export interface UserPlayStat {
   lastUpdateTime?: number; // 最后更新时间戳
   createdAt?: number; // 注册时间戳
   loginDays?: number; // 累计登录天数
-  lastLoginDate?: number; // 最后登录时间
+  lastLoginDate?: number; // 最后登录时间（已有字段）
+  lastLoginTime?: number; // 最后登入时间戳（新增，与lastLoginDate统一概念）
+  firstLoginTime?: number; // 首次登入时间戳（新增）
+  loginCount?: number; // 登入次数（新增）
   activeStreak?: number; // 连续活跃天数
   continuousLoginDays?: number; // 连续登录天数
 
@@ -247,6 +257,7 @@ export interface PlayStatsResult {
     mostWatchedSource: string;
     registrationDays: number; // 注册天数
     lastLoginTime: number; // 最后登录时间
+    loginCount: number; // 登入次数
     createdAt: number; // 用户创建时间
     password?: string; // 用户密码
     lastLoginIP?: string; // 最后登录IP

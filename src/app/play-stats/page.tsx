@@ -1039,10 +1039,13 @@ const PlayStatsPage: React.FC = () => {
                                 注册天数: {userStat.registrationDays} 天
                               </p>
                               <p className='text-xs text-gray-500 dark:text-gray-400'>
-                                最后活跃:{' '}
+                                最后登入:{' '}
                                 {userStat.lastLoginTime !== userStat.createdAt
                                   ? formatDateTime(userStat.lastLoginTime)
                                   : '注册时'}
+                              </p>
+                              <p className='text-xs text-gray-500 dark:text-gray-400'>
+                                登入次数: {userStat.loginCount || 0} 次
                               </p>
                               {userStat.mostWatchedSource && (
                                 <p className='text-xs text-gray-500 dark:text-gray-400'>
@@ -1289,7 +1292,7 @@ const PlayStatsPage: React.FC = () => {
             /* 个人统计内容 */
             <>
               {/* 个人统计概览 */}
-              <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-7 gap-4 mb-8'>
+              <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-8 gap-4 mb-8'>
                 <div className='p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800'>
                   <div className='text-2xl font-bold text-blue-800 dark:text-blue-300'>
                     {formatTime(userStats.totalWatchTime)}
@@ -1336,6 +1339,14 @@ const PlayStatsPage: React.FC = () => {
                   </div>
                   <div className='text-sm text-yellow-600 dark:text-yellow-400'>
                     平均观看时长
+                  </div>
+                </div>
+                <div className='p-4 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800'>
+                  <div className='text-2xl font-bold text-red-800 dark:text-red-300'>
+                    {userStats.loginCount || 0}
+                  </div>
+                  <div className='text-sm text-red-600 dark:text-red-400'>
+                    登入次数
                   </div>
                 </div>
                 <div className='p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg border border-orange-200 dark:border-orange-800'>
@@ -1803,7 +1814,7 @@ const PlayStatsPage: React.FC = () => {
           )}
 
           {/* 个人统计概览 */}
-          <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-7 gap-4 mb-8'>
+          <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-8 gap-4 mb-8'>
             <div className='p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800'>
               <div className='text-2xl font-bold text-blue-800 dark:text-blue-300'>
                 {formatTime(userStats.totalWatchTime)}
@@ -1850,6 +1861,14 @@ const PlayStatsPage: React.FC = () => {
               </div>
               <div className='text-sm text-yellow-600 dark:text-yellow-400'>
                 平均观看时长
+              </div>
+            </div>
+            <div className='p-4 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800'>
+              <div className='text-2xl font-bold text-red-800 dark:text-red-300'>
+                {userStats.loginCount || 0}
+              </div>
+              <div className='text-sm text-red-600 dark:text-red-400'>
+                登入次数
               </div>
             </div>
             <div className='p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg border border-orange-200 dark:border-orange-800'>
