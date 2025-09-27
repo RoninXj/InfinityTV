@@ -181,7 +181,7 @@ export async function POST(req: NextRequest) {
       // 获取客户端IP地址
       const clientIP = req.headers.get('x-forwarded-for') || 
                       req.headers.get('x-real-ip') || 
-                      req.socket?.remoteAddress || 
+                      req.headers.get('x-forwarded-host') ||
                       'unknown';
 
       // 获取用户代理
