@@ -9,6 +9,7 @@ import { searchFromApi } from '@/lib/downstream';
 import { yellowWords } from '@/lib/yellow';
 
 export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 // 添加这个导出以避免静态渲染错误
 export const dynamic = 'force-dynamic';
