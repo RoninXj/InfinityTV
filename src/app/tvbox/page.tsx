@@ -34,6 +34,8 @@ interface DiagnosisResult {
   status?: number;
   contentType?: string;
   hasJson?: boolean;
+  receivedToken?: string;
+  size?: number;
   sitesCount?: number;
   livesCount?: number;
   parsesCount?: number;
@@ -49,6 +51,7 @@ export default function TVBoxConfigPage() {
   const [format, setFormat] = useState<'json' | 'base64'>('json');
   const [configMode, setConfigMode] = useState<'standard' | 'safe' | 'fast' | 'yingshicang'>('standard');
   const [securityConfig, setSecurityConfig] = useState<SecurityConfig | null>(null);
+  const [siteName, setSiteName] = useState('MoonTV');
   const [loading, setLoading] = useState(true);
   const [diagnosing, setDiagnosing] = useState(false);
   const [diagnosisResult, setDiagnosisResult] = useState<DiagnosisResult | null>(null);
@@ -60,6 +63,7 @@ export default function TVBoxConfigPage() {
       if (response.ok) {
         const data = await response.json();
         setSecurityConfig(data.securityConfig || null);
+        setSiteName(data.siteName || 'MoonTV');
       }
     } catch (error) {
       console.error('获取安全配置失败:', error);
@@ -134,7 +138,7 @@ export default function TVBoxConfigPage() {
                 TVBox 配置
               </h1>
               <p className="text-gray-600 dark:text-gray-400">
-                将 LunaTV 的视频源导入到 TVBox 应用中使用
+                将 {siteName} 的视频源导入到 TVBox 应用中使用
               </p>
             </div>
           </div>
@@ -326,6 +330,33 @@ export default function TVBoxConfigPage() {
                 </div>
               ) : (
                 <>
+                  {/* 基本信息 */}
+                  <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-700">
+                    <h3 className="font-semibold text-green-900 dark:text-green-300 mb-3">✓ 基本信息</h3>
+                    <div className="grid grid-cols-2 gap-2 text-sm">
+                      <div className="text-gray-600 dark:text-gray-400">状态码:</div>
+                      <div className="text-gray-900 dark:text-gray-100 font-medium">{diagnosisResult.status || 'N/A'}</div>
+
+                      <div className="text-gray-600 dark:text-gray-400">Content-Type:</div>
+                      <div className="text-gray-900 dark:text-gray-100 font-mono text-xs">{diagnosisResult.contentType || 'N/A'}</div>
+
+                      <div className="text-gray-600 dark:text-gray-400">JSON解析:</div>
+                      <div className={diagnosisResult.hasJson ? 'text-green-600 dark:text-green-400 font-medium' : 'text-red-600 dark:text-red-400 font-medium'}>
+                        {diagnosisResult.hasJson ? '✓ 成功' : '✗ 失败'}
+                      </div>
+
+                      {diagnosisResult.receivedToken && (
+                        <>
+                          <div className="text-gray-600 dark:text-gray-400">接收到的Token:</div>
+                          <div className="text-gray-900 dark:text-gray-100 font-mono text-xs">{diagnosisResult.receivedToken}</div>
+                        </>
+                      )}
+
+                      <div className="text-gray-600 dark:text-gray-400">配置大小:</div>
+                      <div className="text-gray-900 dark:text-gray-100 font-medium">{diagnosisResult.size ? `${diagnosisResult.size.toLocaleString()} 字节` : 'N/A'}</div>
+                    </div>
+                  </div>
+
                   {/* Spider JAR 状态 */}
                   <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
                     <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Spider JAR:</h3>
