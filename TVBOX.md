@@ -2,13 +2,13 @@
 
 ## 🎯 功能介绍
 
-LunaTV 提供完整的 TVBox 配置接口，将您的视频源无缝导入到 TVBox 应用中。支持多种配置模式、智能 spider jar 管理、安全访问控制等高级功能。
+InfinityTV 提供完整的 TVBox 配置接口，将您的视频源无缝导入到 TVBox 应用中。支持多种配置模式、智能 spider jar 管理、安全访问控制等高级功能。
 
 ## 🚀 快速开始
 
 ### 1. 访问配置页面
 
-在 LunaTV 网站中，点击左侧导航栏的"TVBox 配置"菜单，或直接访问：
+在 InfinityTV 网站中，点击左侧导航栏的"TVBox 配置"菜单，或直接访问：
 
 ```
 https://your-domain.com/tvbox
@@ -16,7 +16,7 @@ https://your-domain.com/tvbox
 
 ### 2. 选择配置模式
 
-LunaTV 提供 4 种配置模式，适应不同使用场景：
+InfinityTV 提供 4 种配置模式，适应不同使用场景：
 
 #### 📊 **标准模式**（推荐）
 ```
@@ -105,7 +105,7 @@ https://your-domain.com/api/tvbox?format=json&token=YOUR_TOKEN
 
 ### 🔄 Spider Jar 智能管理
 
-LunaTV 自动管理 spider jar 文件，确保最佳可用性：
+InfinityTV 自动管理 spider jar 文件，确保最佳可用性：
 
 **工作原理：**
 1. 后端自动探测多个 jar 源（gitcode、gitee、GitHub 等）
@@ -308,7 +308,7 @@ https://your-domain.com/api/tvbox?format=json&mode=yingshicang&forceSpiderRefres
 **问题：配置导入失败**
 - 检查网络连接
 - 尝试不同 format（json/base64）
-- 确认 LunaTV 服务器可访问
+- 确认 InfinityTV 服务器可访问
 
 **问题：源站不显示**
 - 检查源站是否被禁用
@@ -382,7 +382,7 @@ GET /api/tvbox/health?url=JAR_URL
 ## 🔗 相关链接
 
 - [安全配置详解](./TVBOX_SECURITY.md)
-- [LunaTV 主项目](https://github.com/SzeMeng76/LunaTV)
+- [InfinityTV 主项目](https://github.com/roninxj/InfinityTV)
 - [TVBox 开源版本](https://github.com/o0HalfLife0o/TVBoxOSC)
 
 ## 🙏 致谢
