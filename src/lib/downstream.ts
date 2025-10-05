@@ -114,6 +114,7 @@ async function searchWithCache(
         desc: cleanHtmlTags(item.vod_content || ''),
         type_name: item.type_name,
         douban_id: item.vod_douban_id,
+        remarks: item.vod_remarks, // 传递备注信息（如"已完结"等）
       };
     });
 
@@ -680,6 +681,7 @@ export async function getDetailFromApi(
     desc: cleanHtmlTags(videoDetail.vod_content),
     type_name: videoDetail.type_name,
     douban_id: videoDetail.vod_douban_id,
+    remarks: videoDetail.vod_remarks, // 传递备注信息（如"已完结"等）
   };
 }
 
@@ -760,5 +762,6 @@ async function handleSpecialSourceDetail(
     desc: descText,
     type_name: '',
     douban_id: 0,
+    remarks: undefined, // HTML解析无法获取remarks信息
   };
 }
