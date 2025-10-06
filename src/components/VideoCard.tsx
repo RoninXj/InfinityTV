@@ -595,14 +595,10 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
           <div
             className="absolute inset-0 rounded-lg pointer-events-none z-10"
             style={{
-              boxShadow: `
-                ${hoverPosition === 'left' ? `inset ${20 * hoverIntensity}px 0 ${20 * hoverIntensity}px -${10 * hoverIntensity}px rgba(0, 255, 150, ${0.3 * hoverIntensity})` : ''}
-                ${hoverPosition === 'right' ? `inset -${20 * hoverIntensity}px 0 ${20 * hoverIntensity}px -${10 * hoverIntensity}px rgba(0, 255, 150, ${0.3 * hoverIntensity})` : ''}
-                ${hoverPosition === 'top' ? `inset 0 ${20 * hoverIntensity}px ${20 * hoverIntensity}px -${10 * hoverIntensity}px rgba(0, 255, 150, ${0.3 * hoverIntensity})` : ''}
-                ${hoverPosition === 'bottom' ? `inset 0 -${20 * hoverIntensity}px ${20 * hoverIntensity}px -${10 * hoverIntensity}px rgba(0, 255, 150, ${0.3 * hoverIntensity})` : ''}
-              `.trim(),
+              boxShadow: `0 0 ${15 * hoverIntensity}px ${5 * hoverIntensity}px rgba(0, 255, 150, ${0.5 * hoverIntensity})`,
+              border: `${2 * hoverIntensity}px solid rgba(0, 255, 150, ${0.8 * hoverIntensity})`,
               opacity: hoverIntensity,
-              transition: 'opacity 0.2s ease-out, box-shadow 0.2s ease-out'
+              transition: 'opacity 0.3s ease-out, box-shadow 0.3s ease-out, border 0.3s ease-out'
             }}
           />
         )}
