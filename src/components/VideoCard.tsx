@@ -592,14 +592,52 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
       >
         {/* 发光边框效果 */}
         {hoverIntensity > 0 && (
-          <div
-            className={`absolute inset-0 rounded-lg pointer-events-none z-10 ${hoverPosition === 'top' ? 'glow-border-top' : ''} ${hoverPosition === 'right' ? 'glow-border-right' : ''} ${hoverPosition === 'bottom' ? 'glow-border-bottom' : ''} ${hoverPosition === 'left' ? 'glow-border-left' : ''}`}
-            style={{
-              boxShadow: `0 0 ${20 * hoverIntensity}px ${5 * hoverIntensity}px rgba(0, 255, 150, ${0.3 * hoverIntensity})`,
-              opacity: hoverIntensity,
-              transition: 'opacity 0.2s ease-out, box-shadow 0.2s ease-out'
-            }}
-          />
+          <>
+            {/* 顶部发光边框 */}
+            {hoverPosition === 'top' && (
+              <div
+                className="absolute inset-0 rounded-lg pointer-events-none z-10 glow-border-top"
+                style={{
+                  boxShadow: `0 0 ${20 * hoverIntensity}px ${5 * hoverIntensity}px rgba(0, 255, 150, ${0.3 * hoverIntensity})`,
+                  opacity: hoverIntensity,
+                  transition: 'opacity 0.2s ease-out, box-shadow 0.2s ease-out'
+                }}
+              />
+            )}
+            {/* 右边发光边框 */}
+            {hoverPosition === 'right' && (
+              <div
+                className="absolute inset-0 rounded-lg pointer-events-none z-10 glow-border-right"
+                style={{
+                  boxShadow: `0 0 ${20 * hoverIntensity}px ${5 * hoverIntensity}px rgba(0, 255, 150, ${0.3 * hoverIntensity})`,
+                  opacity: hoverIntensity,
+                  transition: 'opacity 0.2s ease-out, box-shadow 0.2s ease-out'
+                }}
+              />
+            )}
+            {/* 底部发光边框 */}
+            {hoverPosition === 'bottom' && (
+              <div
+                className="absolute inset-0 rounded-lg pointer-events-none z-10 glow-border-bottom"
+                style={{
+                  boxShadow: `0 0 ${20 * hoverIntensity}px ${5 * hoverIntensity}px rgba(0, 255, 150, ${0.3 * hoverIntensity})`,
+                  opacity: hoverIntensity,
+                  transition: 'opacity 0.2s ease-out, box-shadow 0.2s ease-out'
+                }}
+              />
+            )}
+            {/* 左边发光边框 */}
+            {hoverPosition === 'left' && (
+              <div
+                className="absolute inset-0 rounded-lg pointer-events-none z-10 glow-border-left"
+                style={{
+                  boxShadow: `0 0 ${20 * hoverIntensity}px ${5 * hoverIntensity}px rgba(0, 255, 150, ${0.3 * hoverIntensity})`,
+                  opacity: hoverIntensity,
+                  transition: 'opacity 0.2s ease-out, box-shadow 0.2s ease-out'
+                }}
+              />
+            )}
+          </>
         )}
 
         {/* 海报容器 */}
