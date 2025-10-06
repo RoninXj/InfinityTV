@@ -335,7 +335,7 @@ Zeabur 会自动检测项目中的 Dockerfile 并完成部署。
 
 4. **配置环境变量**
 
-   在 LunaTV 服务的环境变量中添加：
+   在 InfinityTV 服务的环境变量中添加：
 
    ```env
    # 必填：管理员账号
@@ -348,8 +348,8 @@ Zeabur 会自动检测项目中的 Dockerfile 并完成部署。
 
    # 可选：站点配置
    SITE_BASE=https://your-domain.zeabur.app
-   NEXT_PUBLIC_SITE_NAME=LunaTV Enhanced
-   ANNOUNCEMENT=欢迎使用 LunaTV Enhanced Edition
+   NEXT_PUBLIC_SITE_NAME=InfinityTV Enhanced
+   ANNOUNCEMENT=欢迎使用 InfinityTV Enhanced Edition
 
    # 可选：豆瓣代理配置（推荐）
    NEXT_PUBLIC_DOUBAN_PROXY_TYPE=cmliussss-cdn-tencent
@@ -376,7 +376,7 @@ Zeabur 会自动检测项目中的 Dockerfile 并完成部署。
 
 1. **添加 LunaTV 服务**
    - 点击 "Add Service" > "Docker Images"
-   - 输入镜像名称：`ghcr.io/szemeng76/lunatv:latest`
+   - 输入镜像名称：`ghcr.io/roninxj/infinitytv:latest`
    - 配置端口：`3000` (HTTP)
 
 2. **添加 KVRocks 服务**
