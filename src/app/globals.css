@@ -509,4 +509,59 @@ div[data-media-provider] video {
     visibility: hidden !important;
     transition: none !important;
   }
+
+  /* 视频卡片发光边框闪烁效果 */
+  .glow-border-top,
+  .glow-border-right,
+  .glow-border-bottom,
+  .glow-border-left {
+    position: absolute;
+    pointer-events: none;
+    z-index: 10;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .glow-border-top.active,
+  .glow-border-right.active,
+  .glow-border-bottom.active,
+  .glow-border-left.active {
+    opacity: 1;
+    animation: glow-pulse 1.5s ease-in-out infinite;
+  }
+
+  @keyframes glow-pulse {
+    0% {
+      opacity: 0.3;
+      box-shadow: 0 0 5px #3b82f6;
+    }
+    50% {
+      opacity: 1;
+      box-shadow: 0 0 15px #3b82f6, 0 0 20px #3b82f6;
+    }
+    100% {
+      opacity: 0.3;
+      box-shadow: 0 0 5px #3b82f6;
+    }
+  }
+
+  /* 四周边框同时闪烁发光效果 */
+  .animate-pulse-glow {
+    animation: pulse-glow 1.5s ease-in-out infinite;
+  }
+
+  @keyframes pulse-glow {
+    0% {
+      opacity: 0.3;
+      filter: brightness(0.8);
+    }
+    50% {
+      opacity: 1;
+      filter: brightness(1.5);
+    }
+    100% {
+      opacity: 0.3;
+      filter: brightness(0.8);
+    }
+  }
 }

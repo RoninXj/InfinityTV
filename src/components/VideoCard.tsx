@@ -90,6 +90,7 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
   const [hoverIntensity, setHoverIntensity] = useState<number>(0); // 鼠标悬停发光强度
   const [hoverPosition, setHoverPosition] = useState<string>(''); // 鼠标悬停位置
   const [hoverDistance, setHoverDistance] = useState<string>(''); // 鼠标距离边缘的距离
+  const [isHovered, setIsHovered] = useState<boolean>(false); // 鼠标是否悬停
 
   // 可外部修改的可控字段
   const [dynamicEpisodes, setDynamicEpisodes] = useState<number | undefined>(
@@ -321,47 +322,16 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
   }, [showMobileActions, from, isAggregate, actualSource, actualId, searchFavorited, checkSearchFavoriteStatus]);
 
   // 鼠标悬停效果处理
+  const handleMouseEnter = useCallback(() => {
+    setIsHovered(true);
+  }, []);
+
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    const cardElement = e.currentTarget;
-    const rect = cardElement.getBoundingClientRect();
-    
-    // 计算鼠标相对于卡片的位置
-    const mouseX = e.clientX - rect.left;
-    const mouseY = e.clientY - rect.top;
-    
-    // 卡片尺寸
-    const cardWidth = rect.width;
-    const cardHeight = rect.height;
-    
-    // 计算到四边的距离
-    const distanceToLeft = mouseX;
-    const distanceToRight = cardWidth - mouseX;
-    const distanceToTop = mouseY;
-    const distanceToBottom = cardHeight - mouseY;
-    
-    // 找到最近边的距离
-    const minDistance = Math.min(distanceToLeft, distanceToRight, distanceToTop, distanceToBottom);
-    
-    // 计算发光强度：距离越近，强度越大（0-1范围）
-    const maxDistance = Math.min(cardWidth, cardHeight) * 0.3; // 最大有效距离为卡片较小尺寸的30%
-    const intensity = Math.max(0, 1 - (minDistance / maxDistance));
-    
-    // 确定发光位置
-    let position = '';
-    if (minDistance === distanceToLeft) position = 'left';
-    else if (minDistance === distanceToRight) position = 'right';
-    else if (minDistance === distanceToTop) position = 'top';
-    else position = 'bottom';
-    
-    setHoverIntensity(intensity);
-    setHoverPosition(position);
-    setHoverDistance(`${Math.round(minDistance)}px`);
+    setIsHovered(true);
   }, []);
 
   const handleMouseLeave = useCallback(() => {
-    setHoverIntensity(0);
-    setHoverPosition('');
-    setHoverDistance('');
+    setIsHovered(false);
   }, []);
 
   // 长按手势hook
@@ -555,6 +525,7 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
       <div
         className='group relative w-full rounded-lg bg-transparent cursor-pointer transition-all duration-300 ease-in-out hover:scale-[1.05] hover:z-[500] hover-glow-border'
         onClick={handleClick}
+        onMouseEnter={handleMouseEnter}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
         {...longPressProps}
@@ -591,14 +562,13 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
         }}
       >
         {/* 发光边框效果 */}
-        {hoverIntensity > 0 && (
+        {isHovered && (
           <div
             className="absolute inset-0 rounded-lg pointer-events-none z-10"
             style={{
-              boxShadow: `0 0 ${15 * hoverIntensity}px ${5 * hoverIntensity}px rgba(0, 255, 150, ${0.5 * hoverIntensity})`,
-              border: `${2 * hoverIntensity}px solid rgba(0, 255, 150, ${0.8 * hoverIntensity})`,
-              opacity: hoverIntensity,
-              transition: 'opacity 0.3s ease-out, box-shadow 0.3s ease-out, border 0.3s ease-out'
+              boxShadow: `0 0 20px 5px rgba(0, 255, 150, 0.7)`,
+              border: `2px solid rgba(0, 255, 150, 0.9)`,
+              animation: 'glow-pulse 0.5s ease-in-out infinite alternate'
             }}
           />
         )}
@@ -1115,6 +1085,20 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
           )}
         </div>
       </div>
+
+      {/* 发光边框效果 - 四边同时闪烁 */}
+      {isHovered && (
+        <>
+          {/* 上边框 */}
+          <div className="glow-border-top animate-pulse-glow" />
+          {/* 右边框 */}
+          <div className="glow-border-right animate-pulse-glow" />
+          {/* 下边框 */}
+          <div className="glow-border-bottom animate-pulse-glow" />
+          {/* 左边框 */}
+          <div className="glow-border-left animate-pulse-glow" />
+        </>
+      )}
 
       {/* 操作菜单 - 支持右键和长按触发 */}
       <MobileActionSheet
