@@ -561,16 +561,9 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
           return false;
         }}
       >
-        {/* 发光边框效果 */}
+        {/* 影片卡片专用发光边框效果 */}
         {isHovered && (
-          <div
-            className="absolute inset-0 rounded-lg pointer-events-none z-10"
-            style={{
-              boxShadow: `0 0 20px 5px rgba(0, 255, 150, 0.7)`,
-              border: `2px solid rgba(0, 255, 150, 0.9)`,
-              animation: 'glow-pulse 0.5s ease-in-out infinite alternate'
-            }}
-          />
+          <div className="video-card-glow-border" />
         )}
 
         {/* 海报容器 */}
@@ -1086,19 +1079,7 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
         </div>
       </div>
 
-      {/* 发光边框效果 - 四边同时闪烁 */}
-      {isHovered && (
-        <>
-          {/* 上边框 */}
-          <div className="glow-border-top animate-pulse-glow" />
-          {/* 右边框 */}
-          <div className="glow-border-right animate-pulse-glow" />
-          {/* 下边框 */}
-          <div className="glow-border-bottom animate-pulse-glow" />
-          {/* 左边框 */}
-          <div className="glow-border-left animate-pulse-glow" />
-        </>
-      )}
+
 
       {/* 操作菜单 - 支持右键和长按触发 */}
       <MobileActionSheet
