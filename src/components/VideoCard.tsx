@@ -11,6 +11,7 @@ import React, {
   useImperativeHandle,
   useMemo,
   useState,
+  MouseEvent,
 } from 'react';
 
 import {
@@ -86,6 +87,9 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
   const [isLoading, setIsLoading] = useState(false);
   const [showMobileActions, setShowMobileActions] = useState(false);
   const [searchFavorited, setSearchFavorited] = useState<boolean | null>(null); // 搜索结果的收藏状态
+  const [hoverIntensity, setHoverIntensity] = useState<number>(0); // 鼠标悬停发光强度
+  const [hoverPosition, setHoverPosition] = useState<string>(''); // 鼠标悬停位置
+  const [hoverDistance, setHoverDistance] = useState<string>(''); // 鼠标距离边缘的距离
 
   // 可外部修改的可控字段
   const [dynamicEpisodes, setDynamicEpisodes] = useState<number | undefined>(
@@ -316,6 +320,50 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
     }
   }, [showMobileActions, from, isAggregate, actualSource, actualId, searchFavorited, checkSearchFavoriteStatus]);
 
+  // 鼠标悬停效果处理
+  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    const cardElement = e.currentTarget;
+    const rect = cardElement.getBoundingClientRect();
+    
+    // 计算鼠标相对于卡片的位置
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+    
+    // 卡片尺寸
+    const cardWidth = rect.width;
+    const cardHeight = rect.height;
+    
+    // 计算到四边的距离
+    const distanceToLeft = mouseX;
+    const distanceToRight = cardWidth - mouseX;
+    const distanceToTop = mouseY;
+    const distanceToBottom = cardHeight - mouseY;
+    
+    // 找到最近边的距离
+    const minDistance = Math.min(distanceToLeft, distanceToRight, distanceToTop, distanceToBottom);
+    
+    // 计算发光强度：距离越近，强度越大（0-1范围）
+    const maxDistance = Math.min(cardWidth, cardHeight) * 0.3; // 最大有效距离为卡片较小尺寸的30%
+    const intensity = Math.max(0, 1 - (minDistance / maxDistance));
+    
+    // 确定发光位置
+    let position = '';
+    if (minDistance === distanceToLeft) position = 'left';
+    else if (minDistance === distanceToRight) position = 'right';
+    else if (minDistance === distanceToTop) position = 'top';
+    else position = 'bottom';
+    
+    setHoverIntensity(intensity);
+    setHoverPosition(position);
+    setHoverDistance(`${Math.round(minDistance)}px`);
+  }, []);
+
+  const handleMouseLeave = useCallback(() => {
+    setHoverIntensity(0);
+    setHoverPosition('');
+    setHoverDistance('');
+  }, []);
+
   // 长按手势hook
   const longPressProps = useLongPress({
     onLongPress: handleLongPress,
@@ -505,8 +553,10 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
   return (
     <>
       <div
-        className='group relative w-full rounded-lg bg-transparent cursor-pointer transition-all duration-300 ease-in-out hover:scale-[1.05] hover:z-[500]'
+        className='group relative w-full rounded-lg bg-transparent cursor-pointer transition-all duration-300 ease-in-out hover:scale-[1.05] hover:z-[500] hover-glow-border'
         onClick={handleClick}
+        onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
         {...longPressProps}
         style={{
           // 禁用所有默认的长按和选择效果
@@ -540,6 +590,18 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
           return false;
         }}
       >
+        {/* 发光边框效果 */}
+        {hoverIntensity > 0 && (
+          <div
+            className={`absolute inset-0 rounded-lg pointer-events-none z-10 ${hoverPosition === 'top' ? 'glow-border-top' : ''} ${hoverPosition === 'right' ? 'glow-border-right' : ''} ${hoverPosition === 'bottom' ? 'glow-border-bottom' : ''} ${hoverPosition === 'left' ? 'glow-border-left' : ''}`}
+            style={{
+              boxShadow: `0 0 ${20 * hoverIntensity}px ${5 * hoverIntensity}px rgba(0, 255, 150, ${0.3 * hoverIntensity})`,
+              opacity: hoverIntensity,
+              transition: 'opacity 0.2s ease-out, box-shadow 0.2s ease-out'
+            }}
+          />
+        )}
+
         {/* 海报容器 */}
         <div
           className={`relative aspect-[2/3] overflow-hidden rounded-lg ${origin === 'live' ? 'ring-1 ring-gray-300/80 dark:ring-gray-600/80' : ''}`}
