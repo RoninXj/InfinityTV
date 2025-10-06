@@ -337,7 +337,7 @@ Zeabur automatically detects the Dockerfile in your project and completes the de
 
 4. **Configure Environment Variables**
 
-   Add the following environment variables to your LunaTV service:
+   Add the following environment variables to your InfinityTV service:
 
    ```env
    # Required: Admin Account
@@ -350,8 +350,8 @@ Zeabur automatically detects the Dockerfile in your project and completes the de
 
    # Optional: Site Configuration
    SITE_BASE=https://your-domain.zeabur.app
-   NEXT_PUBLIC_SITE_NAME=LunaTV Enhanced
-   ANNOUNCEMENT=Welcome to LunaTV Enhanced Edition
+   NEXT_PUBLIC_SITE_NAME=InfinityTV Enhanced
+   ANNOUNCEMENT=Welcome to InfinityTV Enhanced Edition
 
    # Optional: Douban Proxy (Recommended)
    NEXT_PUBLIC_DOUBAN_PROXY_TYPE=cmliussss-cdn-tencent
@@ -378,7 +378,7 @@ If you need to use pre-built images, you can deploy directly using prebuilt imag
 
 1. **Add LunaTV Service**
    - Click "Add Service" > "Docker Images"
-   - Enter image name: `ghcr.io/szemeng76/lunatv:latest`
+   - Enter image name: `ghcr.io/roninxj/infinitytv:latest`
    - Configure port: `3000` (HTTP)
 
 2. **Add KVRocks Service**
