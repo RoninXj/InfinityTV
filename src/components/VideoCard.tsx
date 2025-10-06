@@ -561,9 +561,15 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
           return false;
         }}
       >
-        {/* 影片卡片专用发光边框效果 */}
+        {/* 影片卡片边框发光效果 */}
         {isHovered && (
-          <div className="video-card-glow-border" />
+          <>
+            <div className="video-card-glow-border" />
+            <div className="border-glow-top" />
+            <div className="border-glow-right" />
+            <div className="border-glow-bottom" />
+            <div className="border-glow-left" />
+          </>
         )}
 
         {/* 海报容器 */}

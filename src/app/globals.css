@@ -581,7 +581,7 @@ div[data-media-provider] video {
     }
   }
 
-  /* 影片卡片专用发光边框样式 */
+  /* 影片卡片专用边框发光样式 */
   .video-card-glow-border {
     position: absolute;
     top: -2px;
@@ -594,36 +594,133 @@ div[data-media-provider] video {
     opacity: 0;
     transition: opacity 0.5s ease;
     border: 2px solid transparent;
-    background: linear-gradient(45deg, 
-      rgba(0, 255, 150, 0.1) 0%,
-      rgba(0, 255, 150, 0.3) 25%,
-      rgba(0, 255, 150, 0.5) 50%,
-      rgba(0, 255, 150, 0.3) 75%,
-      rgba(0, 255, 150, 0.1) 100%
-    );
-    animation: video-card-glow 3s ease-in-out infinite;
+    background: transparent;
+    animation: border-glow-fade 3s ease-in-out infinite;
   }
 
-  @keyframes video-card-glow {
+  @keyframes border-glow-fade {
     0% {
       opacity: 0.2;
-      box-shadow: 0 0 8px rgba(0, 255, 150, 0.3);
+      box-shadow: 
+        inset 0 0 5px rgba(0, 255, 150, 0.3),
+        0 0 5px rgba(0, 255, 150, 0.3);
     }
     25% {
       opacity: 0.6;
-      box-shadow: 0 0 15px rgba(0, 255, 150, 0.6), 0 0 25px rgba(0, 255, 150, 0.4);
+      box-shadow: 
+        inset 0 0 10px rgba(0, 255, 150, 0.6),
+        0 0 10px rgba(0, 255, 150, 0.6);
     }
     50% {
       opacity: 0.9;
-      box-shadow: 0 0 20px rgba(0, 255, 150, 0.9), 0 0 35px rgba(0, 255, 150, 0.7);
+      box-shadow: 
+        inset 0 0 15px rgba(0, 255, 150, 0.9),
+        0 0 15px rgba(0, 255, 150, 0.9);
     }
     75% {
       opacity: 0.6;
-      box-shadow: 0 0 15px rgba(0, 255, 150, 0.6), 0 0 25px rgba(0, 255, 150, 0.4);
+      box-shadow: 
+        inset 0 0 10px rgba(0, 255, 150, 0.6),
+        0 0 10px rgba(0, 255, 150, 0.6);
     }
     100% {
       opacity: 0.2;
-      box-shadow: 0 0 8px rgba(0, 255, 150, 0.3);
+      box-shadow: 
+        inset 0 0 5px rgba(0, 255, 150, 0.3),
+        0 0 5px rgba(0, 255, 150, 0.3);
     }
+  }
+
+  /* 四周边框单独发光效果 */
+  .border-glow-top {
+    position: absolute;
+    top: -2px;
+    left: 0;
+    right: 0;
+    height: 3px;
+    border-radius: 2px;
+    pointer-events: none;
+    z-index: 10;
+    opacity: 0;
+    background: linear-gradient(90deg, 
+      transparent 0%,
+      rgba(0, 255, 150, 0.8) 50%,
+      transparent 100%
+    );
+    animation: border-top-glow 3s ease-in-out infinite;
+  }
+
+  .border-glow-right {
+    position: absolute;
+    top: 0;
+    right: -2px;
+    bottom: 0;
+    width: 3px;
+    border-radius: 2px;
+    pointer-events: none;
+    z-index: 10;
+    opacity: 0;
+    background: linear-gradient(180deg, 
+      transparent 0%,
+      rgba(0, 255, 150, 0.8) 50%,
+      transparent 100%
+    );
+    animation: border-right-glow 3s ease-in-out infinite;
+  }
+
+  .border-glow-bottom {
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    right: 0;
+    height: 3px;
+    border-radius: 2px;
+    pointer-events: none;
+    z-index: 10;
+    opacity: 0;
+    background: linear-gradient(90deg, 
+      transparent 0%,
+      rgba(0, 255, 150, 0.8) 50%,
+      transparent 100%
+    );
+    animation: border-bottom-glow 3s ease-in-out infinite;
+  }
+
+  .border-glow-left {
+    position: absolute;
+    top: 0;
+    left: -2px;
+    bottom: 0;
+    width: 3px;
+    border-radius: 2px;
+    pointer-events: none;
+    z-index: 10;
+    opacity: 0;
+    background: linear-gradient(180deg, 
+      transparent 0%,
+      rgba(0, 255, 150, 0.8) 50%,
+      transparent 100%
+    );
+    animation: border-left-glow 3s ease-in-out infinite;
+  }
+
+  @keyframes border-top-glow {
+    0%, 100% { opacity: 0.2; transform: scaleX(0.8); }
+    50% { opacity: 0.9; transform: scaleX(1); }
+  }
+
+  @keyframes border-right-glow {
+    0%, 100% { opacity: 0.2; transform: scaleY(0.8); }
+    50% { opacity: 0.9; transform: scaleY(1); }
+  }
+
+  @keyframes border-bottom-glow {
+    0%, 100% { opacity: 0.2; transform: scaleX(0.8); }
+    50% { opacity: 0.9; transform: scaleX(1); }
+  }
+
+  @keyframes border-left-glow {
+    0%, 100% { opacity: 0.2; transform: scaleY(0.8); }
+    50% { opacity: 0.9; transform: scaleY(1); }
   }
 }
