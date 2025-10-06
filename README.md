@@ -328,10 +328,10 @@ Zeabur 会自动检测项目中的 Dockerfile 并完成部署。
    - 登录并创建新项目
    - 点击 "Add Service" > "Git" 导入你的仓库
 
-3. **添加 KVRocks 数据库**
+3. **添加 Redis 数据库**
    - 在同一项目中点击 "Add Service" > "Prebuilt Services"
-   - 搜索并添加 "KVRocks"（或手动添加 Docker 镜像）
-   - Zeabur 会自动创建 KVRocks 服务
+   - 搜索并添加 "Redis"（或手动添加 Docker 镜像）
+   - Zeabur 会自动创建 Redis 服务
 
 4. **配置环境变量**
 
