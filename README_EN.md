@@ -345,8 +345,8 @@ Zeabur automatically detects the Dockerfile in your project and completes the de
    PASSWORD=your_secure_password
 
    # Required: Storage Configuration
-   NEXT_PUBLIC_STORAGE_TYPE=kvrocks
-   KVROCKS_URL=redis://${KVROCKS_HOST}:${KVROCKS_PORT}
+   NEXT_PUBLIC_STORAGE_TYPE=redis
+   REDIS_URL=redis://${REDIS_HOST}:${REDIS_PORT}
 
    # Optional: Site Configuration
    SITE_BASE=https://your-domain.zeabur.app
