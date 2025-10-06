@@ -330,10 +330,10 @@ Zeabur automatically detects the Dockerfile in your project and completes the de
    - Login and create a new project
    - Click "Add Service" > "Git" to import your repository
 
-3. **Add KVRocks Database**
+3. **Add Redis Database**
    - In the same project, click "Add Service" > "Prebuilt Services"
-   - Search and add "KVRocks" (or manually add Docker image)
-   - Zeabur will automatically create the KVRocks service
+   - Search and add "Redis" (or manually add Docker image)
+   - Zeabur will automatically create the Redis service
 
 4. **Configure Environment Variables**
 
