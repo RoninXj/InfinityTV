@@ -343,8 +343,8 @@ Zeabur 会自动检测项目中的 Dockerfile 并完成部署。
    PASSWORD=your_secure_password
 
    # 必填：存储配置
-   NEXT_PUBLIC_STORAGE_TYPE=kvrocks
-   KVROCKS_URL=redis://${KVROCKS_HOST}:${KVROCKS_PORT}
+   NEXT_PUBLIC_STORAGE_TYPE=redis
+   REDIS_URL=redis://${REDIS_HOST}:${REDIS_PORT}
 
    # 可选：站点配置
    SITE_BASE=https://your-domain.zeabur.app
