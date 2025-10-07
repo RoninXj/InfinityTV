@@ -1026,22 +1026,71 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
             >
               {actualTitle}
             </span>
-            {/* 自定义 tooltip */}
+            {/* 滚动显示长标题的 tooltip */}
             <div
-              className='absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1 bg-gray-800 text-white text-xs rounded-md shadow-lg opacity-0 invisible peer-hover:opacity-100 peer-hover:visible transition-all duration-200 ease-out delay-100 whitespace-nowrap pointer-events-none'
+              className='scroll-text-container absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 bg-gray-800/95 backdrop-blur-sm text-white text-xs rounded-md shadow-xl border border-gray-600/30 opacity-0 invisible peer-hover:opacity-100 peer-hover:visible transition-all duration-200 ease-out delay-100 pointer-events-none z-50 overflow-hidden'
               style={{
                 WebkitUserSelect: 'none',
                 userSelect: 'none',
                 WebkitTouchCallout: 'none',
+                maxWidth: 'min(280px, 85vw)', // 固定最大宽度
+                minWidth: '120px', // 最小宽度
+                height: '32px', // 稍微增加高度
               } as React.CSSProperties}
               onContextMenu={(e) => {
                 e.preventDefault();
                 return false;
               }}
             >
-              {actualTitle}
+              {actualTitle.length > 18 ? (
+                // 长标题：使用滚动效果
+                <div
+                  className='scroll-text-content px-3 py-2 whitespace-nowrap flex items-center h-full'
+                  style={{
+                    animation: 'scroll-text 12s linear infinite 1.5s', // 延迟1.5秒开始，给用户时间阅读
+                    animationFillMode: 'both',
+                  } as React.CSSProperties}
+                >
+                  {actualTitle}
+                  <span style={{ marginLeft: '80px' }}>{actualTitle}</span>
+                  <span style={{ marginLeft: '80px' }}>{actualTitle}</span>
+                </div>
+              ) : (
+                // 短标题：居中显示，不滚动
+                <div
+                  className='px-3 py-2 flex items-center justify-center h-full'
+                  style={{
+                    textAlign: 'center',
+                  } as React.CSSProperties}
+                >
+                  {actualTitle}
+                </div>
+              )}
+              
+              {/* 左右渐变遮罩，仅在长标题时显示 */}
+              {actualTitle.length > 18 && (
+                <>
+                  <div
+                    className='absolute top-0 left-0 w-6 h-full bg-gradient-to-r from-gray-800/95 via-gray-800/80 to-transparent pointer-events-none z-10'
+                    style={{
+                      WebkitUserSelect: 'none',
+                      userSelect: 'none',
+                      WebkitTouchCallout: 'none',
+                    } as React.CSSProperties}
+                  ></div>
+                  <div
+                    className='absolute top-0 right-0 w-6 h-full bg-gradient-to-l from-gray-800/95 via-gray-800/80 to-transparent pointer-events-none z-10'
+                    style={{
+                      WebkitUserSelect: 'none',
+                      userSelect: 'none',
+                      WebkitTouchCallout: 'none',
+                    } as React.CSSProperties}
+                  ></div>
+                </>
+              )}
+              
               <div
-                className='absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-800'
+                className='absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-800/95'
                 style={{
                   WebkitUserSelect: 'none',
                   userSelect: 'none',

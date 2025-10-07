@@ -131,9 +131,53 @@ export default function ShortDramaCard({
 
         {/* 信息区域 */}
         <div className="mt-2 space-y-1">
-          <h3 className="text-sm font-medium text-gray-900 dark:text-white line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-            {drama.name}
-          </h3>
+          <div className="relative">
+            <h3 className="text-sm font-medium text-gray-900 dark:text-white truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors peer">
+              {drama.name}
+            </h3>
+            {/* 滚动显示长标题的 tooltip */}
+            <div
+              className='scroll-text-container absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 bg-gray-800/95 backdrop-blur-sm text-white text-xs rounded-md shadow-xl border border-gray-600/30 opacity-0 invisible peer-hover:opacity-100 peer-hover:visible transition-all duration-200 ease-out delay-100 pointer-events-none z-50 overflow-hidden'
+              style={{
+                maxWidth: 'min(280px, 85vw)',
+                minWidth: '120px',
+                height: '32px',
+              }}
+            >
+              {drama.name.length > 18 ? (
+                // 长标题：使用滚动效果
+                <div
+                  className='scroll-text-content px-3 py-2 whitespace-nowrap flex items-center h-full'
+                  style={{
+                    animation: 'scroll-text 12s linear infinite 1.5s',
+                    animationFillMode: 'both',
+                  }}
+                >
+                  {drama.name}
+                  <span style={{ marginLeft: '80px' }}>{drama.name}</span>
+                  <span style={{ marginLeft: '80px' }}>{drama.name}</span>
+                </div>
+              ) : (
+                // 短标题：居中显示，不滚动
+                <div
+                  className='px-3 py-2 flex items-center justify-center h-full'
+                  style={{ textAlign: 'center' }}
+                >
+                  {drama.name}
+                </div>
+              )}
+
+              {/* 左右渐变遮罩，仅在长标题时显示 */}
+              {drama.name.length > 18 && (
+                <>
+                  <div className='absolute top-0 left-0 w-6 h-full bg-gradient-to-r from-gray-800/95 via-gray-800/80 to-transparent pointer-events-none z-10'></div>
+                  <div className='absolute top-0 right-0 w-6 h-full bg-gradient-to-l from-gray-800/95 via-gray-800/80 to-transparent pointer-events-none z-10'></div>
+                </>
+              )}
+
+              <div className='absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-800/95'></div>
+            </div>
+          </div>
 
           <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
             <span>更新: {formatUpdateTime(drama.update_time)}</span>
