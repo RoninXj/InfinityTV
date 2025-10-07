@@ -2,19 +2,25 @@
 @tailwind components;
 @tailwind utilities;
 
-/* 标题滚动动画 - 支持动画重置 */
-@keyframes scroll-text {
-  0% {
-    transform: translateX(0);
-  }
-  100% {
-    transform: translateX(-33.33%); /* 滚动1/3距离，因为有3个重复文本 */
-  }
-}
-
-/* 悬停时暂停滚动动画 */
-.scroll-text-container:hover .scroll-text-content {
-  animation-play-state: paused;
+/* 跟随鼠标的标题提示 */
+.mouse-tooltip {
+  position: fixed;
+  background: rgba(0, 0, 0, 0.9);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 10000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  max-width: 400px;
+  word-break: break-all;
 }
 
 @layer utilities {

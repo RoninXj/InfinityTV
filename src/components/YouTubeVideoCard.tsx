@@ -28,7 +28,8 @@ interface YouTubeVideoCardProps {
 const YouTubeVideoCard = ({ video }: YouTubeVideoCardProps) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [imageError, setImageError] = useState(false);
-  const [animationKey, setAnimationKey] = useState<number>(0); // 用于重置动画
+  const [showTooltip, setShowTooltip] = useState(false);
+  const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
 
   const handleEmbedPlay = () => {
     setIsPlaying(true);
@@ -117,56 +118,27 @@ const YouTubeVideoCard = ({ video }: YouTubeVideoCardProps) => {
 
       {/* 视频信息区域 */}
       <div className="p-4">
-        <div 
-          className="relative mb-2 group/title"
-          onMouseEnter={() => setAnimationKey(prev => prev + 1)} // 鼠标进入时重置动画
-        >
-          <h3 className="font-semibold text-gray-900 dark:text-white text-sm truncate">
-            {video.snippet.title}
-          </h3>
-          {/* 滚动显示长标题的 tooltip */}
-          <div
-            className='absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 bg-gray-800/95 backdrop-blur-sm text-white text-xs rounded-md shadow-xl border border-gray-600/30 opacity-0 invisible group-hover/title:opacity-100 group-hover/title:visible transition-all duration-200 ease-out delay-100 pointer-events-none z-[9999] overflow-hidden'
-            style={{
-              maxWidth: 'min(280px, 85vw)',
-              minWidth: '120px',
-              height: '32px',
+        <div className="relative mb-2">
+          <h3 
+            className="font-semibold text-gray-900 dark:text-white text-sm truncate cursor-pointer"
+            onMouseEnter={(e) => {
+              if (video.snippet.title.length > 15) {
+                setShowTooltip(true);
+                setTooltipPosition({ x: e.clientX + 10, y: e.clientY - 10 });
+              }
+            }}
+            onMouseMove={(e) => {
+              if (showTooltip) {
+                setTooltipPosition({ x: e.clientX + 10, y: e.clientY - 10 });
+              }
+            }}
+            onMouseLeave={() => {
+              setShowTooltip(false);
             }}
           >
-            {video.snippet.title.length > 12 ? (
-              // 长标题：使用滚动效果
-              <div
-                key={animationKey} // 使用key来强制重新渲染和重置动画
-                className='px-3 py-2 whitespace-nowrap flex items-center h-full'
-                style={{
-                  animation: 'scroll-text 10s linear infinite 1s',
-                  animationFillMode: 'both',
-                }}
-              >
-                {video.snippet.title}
-                <span style={{ marginLeft: '60px' }}>{video.snippet.title}</span>
-                <span style={{ marginLeft: '60px' }}>{video.snippet.title}</span>
-              </div>
-            ) : (
-              // 短标题：居中显示，不滚动
-              <div
-                className='px-3 py-2 flex items-center justify-center h-full'
-                style={{ textAlign: 'center' }}
-              >
-                {video.snippet.title}
-              </div>
-            )}
-            
-            {/* 左右渐变遮罩，仅在长标题时显示 */}
-            {video.snippet.title.length > 12 && (
-              <>
-                <div className='absolute top-0 left-0 w-6 h-full bg-gradient-to-r from-gray-800/95 via-gray-800/80 to-transparent pointer-events-none z-10'></div>
-                <div className='absolute top-0 right-0 w-6 h-full bg-gradient-to-l from-gray-800/95 via-gray-800/80 to-transparent pointer-events-none z-10'></div>
-              </>
-            )}
-            
-            <div className='absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-800/95'></div>
-          </div>
+            {video.snippet.title}
+          </h3>
+
         </div>
         
         <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mb-3">
@@ -196,6 +168,20 @@ const YouTubeVideoCard = ({ video }: YouTubeVideoCardProps) => {
           </button>
         </div>
       </div>
+      
+      {/* 跟随鼠标的标题提示 */}
+      {showTooltip && (
+        <div
+          className="mouse-tooltip"
+          style={{
+            left: tooltipPosition.x,
+            top: tooltipPosition.y,
+            opacity: 1,
+          }}
+        >
+          {video.snippet.title}
+        </div>
+      )}
     </div>
   );
 };

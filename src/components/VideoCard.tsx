@@ -91,7 +91,8 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
   const [hoverPosition, setHoverPosition] = useState<string>(''); // 鼠标悬停位置
   const [hoverDistance, setHoverDistance] = useState<string>(''); // 鼠标距离边缘的距离
   const [isHovered, setIsHovered] = useState<boolean>(false); // 鼠标是否悬停
-  const [animationKey, setAnimationKey] = useState<number>(0); // 用于重置动画
+  const [showTooltip, setShowTooltip] = useState<boolean>(false);
+  const [tooltipPosition, setTooltipPosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
 
   // 可外部修改的可控字段
   const [dynamicEpisodes, setDynamicEpisodes] = useState<number | undefined>(
@@ -233,7 +234,7 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
   const handleClick = useCallback(() => {
     // 构建豆瓣ID参数
     const doubanIdParam = actualDoubanId && actualDoubanId > 0 ? `&douban_id=${actualDoubanId}` : '';
-    
+
     if (origin === 'live' && actualSource && actualId) {
       // 直播内容跳转到直播页面
       const url = `/live?source=${actualSource.replace('live_', '')}&id=${actualId.replace('live_', '')}`;
@@ -268,7 +269,7 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
   const handlePlayInNewTab = useCallback(() => {
     // 构建豆瓣ID参数
     const doubanIdParam = actualDoubanId && actualDoubanId > 0 ? `&douban_id=${actualDoubanId}` : '';
-    
+
     if (origin === 'live' && actualSource && actualId) {
       // 直播内容跳转到直播页面
       const url = `/live?source=${actualSource.replace('live_', '')}&id=${actualId.replace('live_', '')}`;
@@ -1006,8 +1007,7 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
           }}
         >
           <div
-            className='relative group/title'
-            onMouseEnter={() => setAnimationKey(prev => prev + 1)} // 鼠标进入时重置动画
+            className='relative'
             style={{
               WebkitUserSelect: 'none',
               userSelect: 'none',
@@ -1015,12 +1015,26 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
             } as React.CSSProperties}
           >
             <span
-              className='block text-sm font-semibold truncate text-gray-900 dark:text-gray-100 transition-colors duration-300 ease-in-out group-hover:text-green-600 dark:group-hover:text-green-400'
+              className='block text-sm font-semibold truncate text-gray-900 dark:text-gray-100 transition-colors duration-300 ease-in-out group-hover:text-green-600 dark:group-hover:text-green-400 cursor-pointer'
               style={{
                 WebkitUserSelect: 'none',
                 userSelect: 'none',
                 WebkitTouchCallout: 'none',
               } as React.CSSProperties}
+              onMouseEnter={(e: MouseEvent) => {
+                if (actualTitle.length > 15) {
+                  setShowTooltip(true);
+                  setTooltipPosition({ x: e.clientX + 10, y: e.clientY - 10 });
+                }
+              }}
+              onMouseMove={(e: MouseEvent) => {
+                if (showTooltip) {
+                  setTooltipPosition({ x: e.clientX + 10, y: e.clientY - 10 });
+                }
+              }}
+              onMouseLeave={() => {
+                setShowTooltip(false);
+              }}
               onContextMenu={(e) => {
                 e.preventDefault();
                 return false;
@@ -1069,7 +1083,7 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
                   {actualTitle}
                 </div>
               )}
-              
+
               {/* 左右渐变遮罩，仅在长标题时显示 */}
               {actualTitle.length > 12 && (
                 <>
@@ -1091,7 +1105,7 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
                   ></div>
                 </>
               )}
-              
+
               <div
                 className='absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-800/95'
                 style={{
@@ -1138,6 +1152,20 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
       </div>
 
 
+
+      {/* 跟随鼠标的标题提示 */}
+      {showTooltip && (
+        <div
+          className="mouse-tooltip"
+          style={{
+            left: tooltipPosition.x,
+            top: tooltipPosition.y,
+            opacity: 1,
+          }}
+        >
+          {actualTitle}
+        </div>
+      )}
 
       {/* 操作菜单 - 支持右键和长按触发 */}
       <MobileActionSheet
