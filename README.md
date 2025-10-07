@@ -214,7 +214,8 @@
 
 点击下方按钮即可一键部署，自动配置 InfinityTV + Kvrocks 数据库：
 
-[![Deploy on Zeabur](https://zeabur.com/button.svg)](https://zeabur.com/templates/YQTXEL/deploy)
+[![Deploy on Zeabur](https://zeabur.com/button.svg)](https://www.404.com)
+(暂不开放，请移至下方手动部署）
 
 **优势**：
 - ✅ 无需配置，一键启动（自动部署完整环境）
