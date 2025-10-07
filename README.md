@@ -7,7 +7,7 @@
 
 ---
 
-# InfinityTV Enhanced Edition
+# InfinityTV
 
 <div align="center">
   <img src="public/logo.png" alt="InfinityTV Logo" width="120">
@@ -375,7 +375,7 @@ Zeabur 是一站式云端部署平台，使用预构建的 Docker 镜像可以�
    # 可选：站点配置
    SITE_BASE=https://your-domain.zeabur.app
    NEXT_PUBLIC_SITE_NAME=InfinityTV Enhanced
-   ANNOUNCEMENT=欢迎使用 InfinityTV Enhanced Edition
+   ANNOUNCEMENT=欢迎使用 InfinityTV
 
    # 可选：豆瓣代理配置（推荐）
    NEXT_PUBLIC_DOUBAN_PROXY_TYPE=cmliussss-cdn-tencent
@@ -482,8 +482,8 @@ Zeabur 是一站式云端部署平台，使用预构建的 Docker 镜像可以�
 
    # 可选：站点配置
    SITE_BASE=https://your-domain.vercel.app
-   NEXT_PUBLIC_SITE_NAME=InfinityTV Enhanced Edition
-   ANNOUNCEMENT=欢迎使用 InfinityTV Enhanced Edition
+   NEXT_PUBLIC_SITE_NAME=InfinityTV
+   ANNOUNCEMENT=欢迎使用 InfinityTV
 
    # 可选：豆瓣代理配置（推荐）
    NEXT_PUBLIC_DOUBAN_PROXY_TYPE=cmliussss-cdn-tencent
@@ -897,7 +897,7 @@ services:
 - ❌ 您不得将本项目用于商业目的
 - ⚠️ 若您修改、转换或以本项目为基础进行创作，您必须以相同的许可协议分发您的作品
 
-© 2025 InfinityTV Enhanced Edition & Contributors
+© 2025 InfinityTV & Contributors
 
 基于 [InfinityTV](https://github.com/roninxj/InfinityTV) 进行二次开发。
 
@@ -941,6 +941,6 @@ services:
 
 **如果这个项目对你有帮助，请给个 ⭐ Star 支持一下！**
 
-Made with ❤️ by InfinityTV Enhanced Edition Team
+Made with ❤️ by InfinityTV Team
 
 </div>
