@@ -214,7 +214,8 @@ This project is licensed under **CC BY-NC-SA 4.0**, with the following terms:
 
 Click the button below for one-click deployment, automatically configures InfinityTV + Kvrocks database:
 
-[![Deploy on Zeabur](https://zeabur.com/button.svg)](https://zeabur.com/templates/YQTXEL/deploy)
+[![Deploy on Zeabur](https://zeabur.com/button.svg)](https://www.404.com)
+(Not open yet, please move to manual deployment below)
 
 **Advantages**:
 - ✅ Zero configuration, instant startup (auto-deploy complete environment)
