@@ -2,6 +2,21 @@
 @tailwind components;
 @tailwind utilities;
 
+/* 标题滚动动画 - 支持动画重置 */
+@keyframes scroll-text {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-33.33%); /* 滚动1/3距离，因为有3个重复文本 */
+  }
+}
+
+/* 悬停时暂停滚动动画 */
+.scroll-text-container:hover .scroll-text-content {
+  animation-play-state: paused;
+}
+
 @layer utilities {
   .scrollbar-hide {
     -ms-overflow-style: none; /* IE and Edge */
@@ -779,4 +794,34 @@ div[data-media-provider] video {
   bottom: 0;
   pointer-events: none;
   z-index: 9999;
+}/* 标题滚
+动动画 - 支持动画重置 */
+@keyframes scroll-text {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-33.33%); /* 滚动1/3距离，因为有3个重复文本 */
+  }
+}
+
+/* 悬停时暂停滚动动画 */
+.scroll-text-container:hover .scroll-text-content {
+  animation-play-state: paused;
+}
+
+/* 动画重置辅助类 */
+.animation-reset {
+  animation: none !important;
+}
+
+.animation-start {
+  animation: scroll-text 10s linear infinite 1s !important;
+  animation-fill-mode: both !important;
+}
+
+/* 确保每次hover都重新开始动画 */
+.group\/title:hover .scroll-animation {
+  animation: scroll-text 10s linear infinite 1s;
+  animation-fill-mode: both;
 }

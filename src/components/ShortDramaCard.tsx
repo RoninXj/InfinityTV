@@ -26,6 +26,7 @@ export default function ShortDramaCard({
   className = '',
 }: ShortDramaCardProps) {
   const [realEpisodeCount, setRealEpisodeCount] = useState<number>(drama.episode_count);
+  const [animationKey, setAnimationKey] = useState<number>(0); // 用于重置动画
 
   // 获取真实集数（带统一缓存）
   useEffect(() => {
@@ -131,7 +132,10 @@ export default function ShortDramaCard({
 
         {/* 信息区域 */}
         <div className="mt-2 space-y-1">
-          <div className="relative group/title">
+          <div 
+            className="relative group/title"
+            onMouseEnter={() => setAnimationKey(prev => prev + 1)} // 鼠标进入时重置动画
+          >
             <h3 className="text-sm font-medium text-gray-900 dark:text-white truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
               {drama.name}
             </h3>
@@ -147,6 +151,7 @@ export default function ShortDramaCard({
               {drama.name.length > 12 ? (
                 // 长标题：使用滚动效果
                 <div
+                  key={animationKey} // 使用key来强制重新渲染和重置动画
                   className='px-3 py-2 whitespace-nowrap flex items-center h-full'
                   style={{
                     animation: 'scroll-text 10s linear infinite 1s',

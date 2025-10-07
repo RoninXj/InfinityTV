@@ -91,6 +91,7 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
   const [hoverPosition, setHoverPosition] = useState<string>(''); // 鼠标悬停位置
   const [hoverDistance, setHoverDistance] = useState<string>(''); // 鼠标距离边缘的距离
   const [isHovered, setIsHovered] = useState<boolean>(false); // 鼠标是否悬停
+  const [animationKey, setAnimationKey] = useState<number>(0); // 用于重置动画
 
   // 可外部修改的可控字段
   const [dynamicEpisodes, setDynamicEpisodes] = useState<number | undefined>(
@@ -1006,6 +1007,7 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
         >
           <div
             className='relative group/title'
+            onMouseEnter={() => setAnimationKey(prev => prev + 1)} // 鼠标进入时重置动画
             style={{
               WebkitUserSelect: 'none',
               userSelect: 'none',
@@ -1045,6 +1047,7 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
               {actualTitle.length > 12 ? (
                 // 长标题：使用滚动效果
                 <div
+                  key={animationKey} // 使用key来强制重新渲染和重置动画
                   className='px-3 py-2 whitespace-nowrap flex items-center h-full'
                   style={{
                     animation: 'scroll-text 10s linear infinite 1s', // 延迟1秒开始，给用户时间阅读

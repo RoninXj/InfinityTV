@@ -28,6 +28,7 @@ interface YouTubeVideoCardProps {
 const YouTubeVideoCard = ({ video }: YouTubeVideoCardProps) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [imageError, setImageError] = useState(false);
+  const [animationKey, setAnimationKey] = useState<number>(0); // 用于重置动画
 
   const handleEmbedPlay = () => {
     setIsPlaying(true);
@@ -116,7 +117,10 @@ const YouTubeVideoCard = ({ video }: YouTubeVideoCardProps) => {
 
       {/* 视频信息区域 */}
       <div className="p-4">
-        <div className="relative mb-2 group/title">
+        <div 
+          className="relative mb-2 group/title"
+          onMouseEnter={() => setAnimationKey(prev => prev + 1)} // 鼠标进入时重置动画
+        >
           <h3 className="font-semibold text-gray-900 dark:text-white text-sm truncate">
             {video.snippet.title}
           </h3>
@@ -132,6 +136,7 @@ const YouTubeVideoCard = ({ video }: YouTubeVideoCardProps) => {
             {video.snippet.title.length > 12 ? (
               // 长标题：使用滚动效果
               <div
+                key={animationKey} // 使用key来强制重新渲染和重置动画
                 className='px-3 py-2 whitespace-nowrap flex items-center h-full'
                 style={{
                   animation: 'scroll-text 10s linear infinite 1s',
