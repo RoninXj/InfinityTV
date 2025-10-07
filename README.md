@@ -374,12 +374,12 @@ Zeabur 是一站式云端部署平台，使用预构建的 Docker 镜像可以�
 
 #### 5. 设置访问域名（必须）
 
-   - 在 LunaTV 服务页面，点击 "Networking" 或 "网络" 标签
+   - 在 InfinityTV 服务页面，点击 "Networking" 或 "网络" 标签
    - 点击 "Generate Domain" 生成 Zeabur 提供的免费域名（如 `xxx.zeabur.app`）
    - 或者绑定自定义域名：
      * 点击 "Add Domain" 添加你的域名
      * 按照提示配置 DNS CNAME 记录指向 Zeabur 提供的目标地址
-   - 设置完域名后即可通过域名访问 LunaTV
+   - 设置完域名后即可通过域名访问 InfinityTV
 
 6. **绑定自定义域名（可选）**
    - 在服务设置中点击 "Domains"
