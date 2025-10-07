@@ -87,7 +87,10 @@ This project is a deeply customized version based on **MoonTV**, continuously de
 ### 📦 Project Status
 
 - **Notice**: After deployment, this is an **empty shell project** with **no built-in video sources or live streaming sources**. You need to collect and configure them yourself.
-- **Demo Site**: [https://movie.roninxj.qzz.io](https://movie.roninxj.qzz.io) for short-term testing. Database is cleaned regularly.
+- **Demo Sites**:
+  - Zeabur Deployment: [https://roninxj.zeabur.app](https://roninxj.zeabur.app)
+  - Vercel Deployment: [https://movie.roninxj.qzz.io](https://movie.roninxj.qzz.io)
+  - For short-term testing. Database is cleaned regularly.
 
 ### 🚫 Distribution Restrictions
 
@@ -314,28 +317,30 @@ services:
 
 ### ☁️ Zeabur Deployment (Recommended)
 
-Zeabur is a one-stop cloud deployment platform that supports automatic Dockerfile detection and deployment, ideal for users seeking simple deployment workflows.
-
-#### Option 1: Automatic Dockerfile Deployment
-
-Zeabur automatically detects the Dockerfile in your project and completes the deployment.
+Zeabur is a one-stop cloud deployment platform. Using pre-built Docker images allows for quick deployment without waiting for builds.
 
 **Deployment Steps:**
 
-1. **Fork This Project**
-   - Fork this repository to your GitHub account
+1. **Add KVRocks Service** (Add database first)
+   - Click "Add Service" > "Docker Images"
+   - Enter image name: `apache/kvrocks`
+   - Configure port: `6666` (TCP)
+   - **Remember the service name** (usually `apachekvrocks`)
+   - **Configure Persistent Volume (Important)**:
+     * Find "Volumes" section in service settings
+     * Click "Add Volume" to add new volume
+     * Volume ID: `kvrocks-data` (customizable, only letters, numbers, and hyphens)
+     * Path: `/var/lib/kvrocks/db`
+     * Save configuration
 
-2. **Connect to Zeabur**
-   - Visit [zeabur.com](https://zeabur.com/)
-   - Login and create a new project
-   - Click "Add Service" > "Git" to import your repository
+   > 💡 **Important**: Persistent volume path must be set to `/var/lib/kvrocks/db` (KVRocks data directory). This keeps config files in the container while persisting database files, preventing data loss on restart!
 
-3. **Add Redis Database**
-   - In the same project, click "Add Service" > "Prebuilt Services"
-   - Search and add "Redis" (or manually add Docker image)
-   - Zeabur will automatically create the Redis service
+2. **Add InfinityTV Service**
+   - Click "Add Service" > "Docker Images"
+   - Enter image name: `ghcr.io/roninxj/infinitytv:latest`
+   - Configure port: `3000` (HTTP)
 
-4. **Configure Environment Variables**
+3. **Configure Environment Variables**
 
    Add the following environment variables to your InfinityTV service:
 
@@ -345,8 +350,8 @@ Zeabur automatically detects the Dockerfile in your project and completes the de
    PASSWORD=your_secure_password
 
    # Required: Storage Configuration
-   NEXT_PUBLIC_STORAGE_TYPE=redis
-   REDIS_URL=redis://${REDIS_HOST}:${REDIS_PORT}
+   NEXT_PUBLIC_STORAGE_TYPE=kvrocks
+   KVROCKS_URL=redis://apachekvrocks:6666
 
    # Optional: Site Configuration
    SITE_BASE=https://your-domain.zeabur.app
@@ -358,47 +363,43 @@ Zeabur automatically detects the Dockerfile in your project and completes the de
    NEXT_PUBLIC_DOUBAN_IMAGE_PROXY_TYPE=cmliussss-cdn-tencent
    ```
 
-   **Note**: `${KVROCKS_HOST}` and `${KVROCKS_PORT}` will be automatically injected by Zeabur, or you can manually enter the internal connection address of the KVRocks service.
-
-5. **Deploy Project**
-   - After environment variable configuration, Zeabur will automatically start building and deploying
-   - Wait for build to complete (approximately 3-8 minutes)
-   - Access the domain provided by Zeabur
-
-6. **Bind Custom Domain (Optional)**
-   - Click "Domains" in service settings
-   - Add your custom domain
-   - Configure DNS CNAME record to point to the Zeabur-provided domain
-
-#### Option 2: Manual Docker Image Configuration
-
-If you need to use pre-built images, you can deploy directly using prebuilt images.
-
-**Deployment Steps:**
-
-1. **Add LunaTV Service**
-   - Click "Add Service" > "Docker Images"
-   - Enter image name: `ghcr.io/roninxj/infinitytv:latest`
-   - Configure port: `3000` (HTTP)
-
-2. **Add KVRocks Service**
-   - Click "Add Service" > "Docker Images"
-   - Enter image name: `apache/kvrocks`
-   - Configure port: `6666` (TCP)
-   - Add persistent volume: Mount path `/var/lib/kvrocks`
-
-3. **Configure Environment Variables** (Same as Option 1)
+   **Note**:
+   - Use service name as hostname: `redis://apachekvrocks:6666`
+   - Replace with actual service name if different
+   - Both services must be in the same Project
 
 4. **Deployment Complete**
    - Zeabur will automatically pull images and start services
    - Access the service once it's ready
+
+5. **Bind Custom Domain (Optional)**
+   - Click "Domains" in service settings
+   - Add your custom domain
+   - Configure DNS CNAME record to point to the Zeabur-provided domain
+
+#### 🔄 Updating Docker Images
+
+When a new Docker image version is released, Zeabur won't automatically update. Manual trigger is required.
+
+**Update Steps:**
+
+1. **Enter Service Page**
+   - Click on the service you want to update (InfinityTV or KVRocks)
+
+2. **Restart Service**
+   - Click the **"Restart"** button in the top right corner
+   - Zeabur will automatically pull the latest `latest` image and redeploy
+
+> 💡 **Tips**:
+> - When using `latest` tag, Restart will automatically pull the latest image
+> - For production environments, it's recommended to use fixed version tags (e.g., `v5.5.5`) to avoid unexpected updates
 
 #### ✨ Zeabur Deployment Advantages
 
 - ✅ **Automatic HTTPS**: Free SSL certificate auto-configured
 - ✅ **Global CDN**: Built-in worldwide acceleration
 - ✅ **Zero-Config Deployment**: Automatic Dockerfile detection
-- ✅ **Service Discovery**: Automatic container interconnection
+- ✅ **Service Discovery**: Containers communicate via service names automatically
 - ✅ **Persistent Storage**: Volume mounting support
 - ✅ **CI/CD Integration**: Auto-deployment on Git push
 - ✅ **Real-time Logs**: Web interface for runtime logs
@@ -407,7 +408,8 @@ If you need to use pre-built images, you can deploy directly using prebuilt imag
 
 - **Pricing Model**: Pay-as-you-go based on actual resource usage, free tier sufficient for small projects
 - **Region Selection**: Recommend choosing the region closest to your users
-- **Environment Variable References**: Use `${VARIABLE_NAME}` syntax to reference other service variables
+- **Service Networking**: Services in the same Project communicate via service names (e.g., `apachekvrocks:6666`)
+- **Persistent Storage**: KVRocks must configure persistent volume to `/data` directory, otherwise data will be lost on restart
 
 ---
 
