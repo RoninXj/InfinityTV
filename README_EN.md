@@ -376,12 +376,12 @@ Zeabur is a one-stop cloud deployment platform. Using pre-built Docker images al
 
 #### 5. Set Up Access Domain (Required)
 
-   - In the LunaTV service page, click the "Networking" or "Network" tab
+   - In the InfinityTV service page, click the "Networking" or "Network" tab
    - Click "Generate Domain" to create a free Zeabur domain (e.g., `xxx.zeabur.app`)
    - Or bind a custom domain:
      * Click "Add Domain" to add your domain
      * Follow the prompts to configure DNS CNAME record pointing to the Zeabur-provided target
-   - Once the domain is set up, you can access LunaTV through the domain
+   - Once the domain is set up, you can access InfinityTV through the domain
 
 6. **Bind Custom Domain (Optional)**
    - In service settings, click "Domains"
