@@ -754,3 +754,29 @@ div[data-media-provider] video {
     50% { opacity: 0.9; transform: scaleY(1); }
   }
 }
+
+/* 标题滚动动画 - 平滑无缝滚动 */
+@keyframes scroll-text {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-33.33%); /* 滚动1/3距离，因为有3个重复文本 */
+  }
+}
+
+/* 悬停时暂停滚动动画 */
+.scroll-text-container:hover .scroll-text-content {
+  animation-play-state: paused;
+}
+
+/* 确保tooltip在最高层级显示 */
+.tooltip-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 9999;
+}

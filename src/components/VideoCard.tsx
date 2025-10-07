@@ -1042,18 +1042,18 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
                 return false;
               }}
             >
-              {actualTitle.length > 18 ? (
+              {actualTitle.length > 12 ? (
                 // 长标题：使用滚动效果
                 <div
                   className='px-3 py-2 whitespace-nowrap flex items-center h-full'
                   style={{
-                    animation: 'scroll-text 12s linear infinite 1.5s', // 延迟1.5秒开始，给用户时间阅读
+                    animation: 'scroll-text 10s linear infinite 1s', // 延迟1秒开始，给用户时间阅读
                     animationFillMode: 'both',
                   } as React.CSSProperties}
                 >
                   {actualTitle}
-                  <span style={{ marginLeft: '80px' }}>{actualTitle}</span>
-                  <span style={{ marginLeft: '80px' }}>{actualTitle}</span>
+                  <span style={{ marginLeft: '60px' }}>{actualTitle}</span>
+                  <span style={{ marginLeft: '60px' }}>{actualTitle}</span>
                 </div>
               ) : (
                 // 短标题：居中显示，不滚动
@@ -1068,7 +1068,7 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
               )}
               
               {/* 左右渐变遮罩，仅在长标题时显示 */}
-              {actualTitle.length > 18 && (
+              {actualTitle.length > 12 && (
                 <>
                   <div
                     className='absolute top-0 left-0 w-6 h-full bg-gradient-to-r from-gray-800/95 via-gray-800/80 to-transparent pointer-events-none z-10'

@@ -129,18 +129,18 @@ const YouTubeVideoCard = ({ video }: YouTubeVideoCardProps) => {
               height: '32px',
             }}
           >
-            {video.snippet.title.length > 18 ? (
+            {video.snippet.title.length > 12 ? (
               // 长标题：使用滚动效果
               <div
                 className='px-3 py-2 whitespace-nowrap flex items-center h-full'
                 style={{
-                  animation: 'scroll-text 12s linear infinite 1.5s',
+                  animation: 'scroll-text 10s linear infinite 1s',
                   animationFillMode: 'both',
                 }}
               >
                 {video.snippet.title}
-                <span style={{ marginLeft: '80px' }}>{video.snippet.title}</span>
-                <span style={{ marginLeft: '80px' }}>{video.snippet.title}</span>
+                <span style={{ marginLeft: '60px' }}>{video.snippet.title}</span>
+                <span style={{ marginLeft: '60px' }}>{video.snippet.title}</span>
               </div>
             ) : (
               // 短标题：居中显示，不滚动
@@ -153,7 +153,7 @@ const YouTubeVideoCard = ({ video }: YouTubeVideoCardProps) => {
             )}
             
             {/* 左右渐变遮罩，仅在长标题时显示 */}
-            {video.snippet.title.length > 18 && (
+            {video.snippet.title.length > 12 && (
               <>
                 <div className='absolute top-0 left-0 w-6 h-full bg-gradient-to-r from-gray-800/95 via-gray-800/80 to-transparent pointer-events-none z-10'></div>
                 <div className='absolute top-0 right-0 w-6 h-full bg-gradient-to-l from-gray-800/95 via-gray-800/80 to-transparent pointer-events-none z-10'></div>
