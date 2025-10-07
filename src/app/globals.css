@@ -25,12 +25,15 @@
 
 @layer utilities {
   .scrollbar-hide {
-    -ms-overflow-style: none; /* IE and Edge */
-    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none;
+    /* IE and Edge */
+    scrollbar-width: none;
+    /* Firefox */
   }
 
   .scrollbar-hide::-webkit-scrollbar {
-    display: none; /* Chrome, Safari and Opera */
+    display: none;
+    /* Chrome, Safari and Opera */
   }
 }
 
@@ -51,15 +54,13 @@ body {
 }
 
 html:not(.dark) body {
-  background: linear-gradient(
-    180deg,
-    #e6f3fb 0%,
-    #eaf3f7 18%,
-    #f7f7f3 38%,
-    #e9ecef 60%,
-    #dbe3ea 80%,
-    #d3dde6 100%
-  );
+  background: linear-gradient(180deg,
+      #e6f3fb 0%,
+      #eaf3f7 18%,
+      #f7f7f3 38%,
+      #e9ecef 60%,
+      #dbe3ea 80%,
+      #d3dde6 100%);
   background-attachment: fixed;
 }
 
@@ -93,35 +94,40 @@ html:not(.dark) body {
 
 /* 渐变遮罩 */
 .gradient-overlay {
-  background: linear-gradient(
-    to bottom,
-    rgba(0, 0, 0, 0) 0%,
-    rgba(0, 0, 0, 0.8) 100%
-  );
+  background: linear-gradient(to bottom,
+      rgba(0, 0, 0, 0) 0%,
+      rgba(0, 0, 0, 0.8) 100%);
 }
 
 /* 隐藏移动端（<768px）垂直滚动条 */
 @media (max-width: 767px) {
+
   html,
   body {
-    -ms-overflow-style: none; /* IE & Edge */
-    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none;
+    /* IE & Edge */
+    scrollbar-width: none;
+    /* Firefox */
   }
 
   html::-webkit-scrollbar,
   body::-webkit-scrollbar {
-    display: none; /* Chrome Safari */
+    display: none;
+    /* Chrome Safari */
   }
 }
 
 /* 隐藏所有滚动条（兼容 WebKit、Firefox、IE/Edge）- 排除ArtPlayer */
 *:not(.artplayer):not(.artplayer *) {
-  -ms-overflow-style: none; /* IE & Edge */
-  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none;
+  /* IE & Edge */
+  scrollbar-width: none;
+  /* Firefox */
 }
 
 *:not(.artplayer):not(.artplayer *)::webkit-scrollbar {
-  display: none; /* Chrome, Safari, Opera */
+  display: none;
+  /* Chrome, Safari, Opera */
 }
 
 /* View Transitions API 动画 */
@@ -129,6 +135,7 @@ html:not(.dark) body {
   from {
     clip-path: polygon(0 0, 100% 0, 100% 0, 0 0);
   }
+
   to {
     clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
   }
@@ -138,6 +145,7 @@ html:not(.dark) body {
   from {
     clip-path: polygon(0 100%, 100% 100%, 100% 100%, 0 100%);
   }
+
   to {
     clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
   }
@@ -175,10 +183,14 @@ div[data-media-provider] video {
 }
 
 .art-poster {
-  background-size: contain !important; /* 使图片完整展示 */
-  background-position: center center !important; /* 居中显示 */
-  background-repeat: no-repeat !important; /* 防止重复 */
-  background-color: #000 !important; /* 其余区域填充为黑色 */
+  background-size: contain !important;
+  /* 使图片完整展示 */
+  background-position: center center !important;
+  /* 居中显示 */
+  background-repeat: no-repeat !important;
+  /* 防止重复 */
+  background-color: #000 !important;
+  /* 其余区域填充为黑色 */
 }
 
 /* 隐藏移动端竖屏时的 pip 按钮 */
@@ -200,14 +212,16 @@ div[data-media-provider] video {
 @media (hover: hover) {
   .art-control-volume {
     position: relative !important;
-    padding: 3px; /* 和弹幕按钮一样的hover区域 */
+    padding: 3px;
+    /* 和弹幕按钮一样的hover区域 */
   }
 
   /* 缩小hover检测区域，只稍微扩展到面板方向 */
   .art-control-volume::before {
     content: '';
     position: absolute;
-    top: -20px; /* 只扩展20px，避免过早触发 */
+    top: -20px;
+    /* 只扩展20px，避免过早触发 */
     left: -5px;
     right: -5px;
     bottom: -3px;
@@ -221,21 +235,25 @@ div[data-media-provider] video {
     opacity: 1 !important;
     transform: translateY(0) !important;
     pointer-events: auto !important;
-    transition: opacity 0.15s ease 0.1s, transform 0.15s ease 0.1s !important; /* 0.1s显示延迟 */
+    transition: opacity 0.15s ease 0.1s, transform 0.15s ease 0.1s !important;
+    /* 0.1s显示延迟 */
   }
 
   /* 音量面板默认隐藏状态，和弹幕一样的延迟 */
   .art-volume-panel {
-    transition: opacity 0.15s ease 0.3s, transform 0.15s ease 0.3s !important; /* 0.3s隐藏延迟 */
+    transition: opacity 0.15s ease 0.3s, transform 0.15s ease 0.3s !important;
+    /* 0.3s隐藏延迟 */
   }
 }
 
 /* 修复移动端弹幕面板定位问题 - 根据不同挂载位置处理 */
 @media (max-width: 768px) {
+
   /* 当弹幕插件挂载到控制栏中心时（横屏，宽度>=512px） */
   .art-controls-center .artplayer-plugin-danmuku .apd-config-panel,
   .art-controls-center .artplayer-plugin-danmuku .apd-style-panel {
-    position: absolute !important; /* 加上这个关键属性！ */
+    position: absolute !important;
+    /* 加上这个关键属性！ */
     left: 10% !important;
     transform: translateX(-50%) !important;
     right: auto !important;
@@ -246,7 +264,8 @@ div[data-media-provider] video {
   .art-video-player .artplayer-plugin-danmuku .apd-config-panel,
   .art-video-player .artplayer-plugin-danmuku .apd-style-panel {
     position: absolute !important;
-    left: 50% !important; /* 竖屏时居中 */
+    left: 50% !important;
+    /* 竖屏时居中 */
     transform: translateX(-50%) !important;
     right: auto !important;
     max-width: calc(100vw - 40px) !important;
@@ -256,19 +275,21 @@ div[data-media-provider] video {
 /* 未来感发光边框动画 */
 @keyframes neon-glow {
   0% {
-    box-shadow: 
+    box-shadow:
       0 0 5px rgba(0, 255, 255, 0.5),
       0 0 10px rgba(0, 255, 255, 0.3),
       0 0 15px rgba(0, 255, 255, 0.2);
   }
+
   50% {
-    box-shadow: 
+    box-shadow:
       0 0 10px rgba(0, 255, 255, 0.8),
       0 0 20px rgba(0, 255, 255, 0.5),
       0 0 30px rgba(0, 255, 255, 0.3);
   }
+
   100% {
-    box-shadow: 
+    box-shadow:
       0 0 5px rgba(0, 255, 255, 0.5),
       0 0 10px rgba(0, 255, 255, 0.3),
       0 0 15px rgba(0, 255, 255, 0.2);
@@ -279,9 +300,11 @@ div[data-media-provider] video {
   0% {
     border-color: rgba(0, 255, 255, 0.3);
   }
+
   50% {
     border-color: rgba(0, 255, 255, 0.8);
   }
+
   100% {
     border-color: rgba(0, 255, 255, 0.3);
   }
@@ -304,14 +327,12 @@ div[data-media-provider] video {
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.3s ease;
-  background: conic-gradient(
-    from 0deg at 50% 50%,
-    rgba(0, 255, 255, 0) 0%,
-    rgba(0, 255, 255, 0.1) 25%,
-    rgba(0, 255, 255, 0.3) 50%,
-    rgba(0, 255, 255, 0.1) 75%,
-    rgba(0, 255, 255, 0) 100%
-  );
+  background: conic-gradient(from 0deg at 50% 50%,
+      rgba(0, 255, 255, 0) 0%,
+      rgba(0, 255, 255, 0.1) 25%,
+      rgba(0, 255, 255, 0.3) 50%,
+      rgba(0, 255, 255, 0.1) 75%,
+      rgba(0, 255, 255, 0) 100%);
   filter: blur(8px);
   transform: scale(1.1);
 }
@@ -323,12 +344,10 @@ div[data-media-provider] video {
   border-radius: 12px;
   opacity: 0;
   transition: all 0.3s ease;
-  background: linear-gradient(
-    90deg,
-    rgba(0, 255, 255, 0) 0%,
-    rgba(0, 255, 255, 0.8) 50%,
-    rgba(0, 255, 255, 0) 100%
-  );
+  background: linear-gradient(90deg,
+      rgba(0, 255, 255, 0) 0%,
+      rgba(0, 255, 255, 0.8) 50%,
+      rgba(0, 255, 255, 0) 100%);
   filter: blur(12px);
 }
 
@@ -411,7 +430,7 @@ div[data-media-provider] video {
   transform: translateY(-4px) scale(1.02);
   border-color: rgba(0, 255, 255, 0.5);
   animation: border-glow 2s ease-in-out infinite;
-  box-shadow: 
+  box-shadow:
     0 10px 30px rgba(0, 255, 255, 0.2),
     0 4px 15px rgba(0, 255, 255, 0.1);
 }
@@ -471,6 +490,7 @@ div[data-media-provider] video {
     opacity: 0;
     transform: translateY(8px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -486,38 +506,11 @@ div[data-media-provider] video {
   transition: all 0.3s ease-in-out;
 }
 
-/* 标题滚动动画 - 平滑无缝滚动 */
-@keyframes scroll-text {
-  0% {
-    transform: translateX(0);
-  }
-  100% {
-    transform: translateX(-33.33%); /* 滚动1/3距离，因为有3个重复文本 */
-  }
-}
 
-/* 悬停时暂停滚动动画 */
-.scroll-text-container:hover .scroll-text-content {
-  animation-play-state: paused;
-}
-
-/* 标题滚动动画 - 平滑无缝滚动 */
-@keyframes scroll-text {
-  0% {
-    transform: translateX(0);
-  }
-  100% {
-    transform: translateX(-33.33%); /* 滚动1/3距离，因为有3个重复文本 */
-  }
-}
-
-/* 悬停时暂停滚动动画 */
-.scroll-text-container:hover .scroll-text-content {
-  animation-play-state: paused;
-}
 
 /* 移动端隐藏弹幕配置按钮 */
-@media (max-width: 1080px), (hover: none) {
+@media (max-width: 1080px),
+(hover: none) {
   .artplayer-plugin-danmuku .apd-config {
     display: none !important;
   }
@@ -525,10 +518,12 @@ div[data-media-provider] video {
 
 /* 修复桌面端弹幕配置弹窗hover不稳定问题 */
 @media (min-width: 1081px) and (hover: hover) {
+
   /* 扩大按钮的实际hover区域，但不影响视觉 */
   .artplayer-plugin-danmuku .apd-config {
     position: relative;
-    padding: 3px; /* 增加一点内边距扩大hover区域 */
+    padding: 3px;
+    /* 增加一点内边距扩大hover区域 */
   }
 
   /* 按钮或面板hover时都显示面板 */
@@ -537,7 +532,8 @@ div[data-media-provider] video {
     opacity: 1 !important;
     pointer-events: auto !important;
     visibility: visible !important;
-    transition: opacity 0.15s ease 0.1s !important; /* 添加0.1s显示延迟 */
+    transition: opacity 0.15s ease 0.1s !important;
+    /* 添加0.1s显示延迟 */
   }
 
   /* 确保面板默认状态是隐藏的，隐藏时有延迟 */
@@ -545,7 +541,8 @@ div[data-media-provider] video {
     opacity: 0;
     pointer-events: none;
     visibility: hidden;
-    transition: opacity 0.15s ease 0.3s, visibility 0s ease 0.45s; /* 0.3s隐藏延迟 */
+    transition: opacity 0.15s ease 0.3s, visibility 0s ease 0.45s;
+    /* 0.3s隐藏延迟 */
   }
 
   /* 面板内部元素在显示时可交互 */
@@ -586,18 +583,22 @@ div[data-media-provider] video {
       opacity: 0.2;
       box-shadow: 0 0 5px rgba(0, 255, 150, 0.4);
     }
+
     25% {
       opacity: 0.8;
       box-shadow: 0 0 12px rgba(0, 255, 150, 0.8), 0 0 18px rgba(0, 255, 150, 0.6);
     }
+
     50% {
       opacity: 1;
       box-shadow: 0 0 15px rgba(0, 255, 150, 1), 0 0 25px rgba(0, 255, 150, 0.8);
     }
+
     75% {
       opacity: 0.8;
       box-shadow: 0 0 12px rgba(0, 255, 150, 0.8), 0 0 18px rgba(0, 255, 150, 0.6);
     }
+
     100% {
       opacity: 0.2;
       box-shadow: 0 0 5px rgba(0, 255, 150, 0.4);
@@ -614,18 +615,22 @@ div[data-media-provider] video {
       opacity: 0.2;
       filter: brightness(0.6);
     }
+
     25% {
       opacity: 0.7;
       filter: brightness(1.2);
     }
+
     50% {
       opacity: 1;
       filter: brightness(1.5);
     }
+
     75% {
       opacity: 0.7;
       filter: brightness(1.2);
     }
+
     100% {
       opacity: 0.2;
       filter: brightness(0.6);
@@ -652,31 +657,35 @@ div[data-media-provider] video {
   @keyframes border-glow-fade {
     0% {
       opacity: 0.2;
-      box-shadow: 
+      box-shadow:
         inset 0 0 5px rgba(0, 255, 150, 0.3),
         0 0 5px rgba(0, 255, 150, 0.3);
     }
+
     25% {
       opacity: 0.6;
-      box-shadow: 
+      box-shadow:
         inset 0 0 10px rgba(0, 255, 150, 0.6),
         0 0 10px rgba(0, 255, 150, 0.6);
     }
+
     50% {
       opacity: 0.9;
-      box-shadow: 
+      box-shadow:
         inset 0 0 15px rgba(0, 255, 150, 0.9),
         0 0 15px rgba(0, 255, 150, 0.9);
     }
+
     75% {
       opacity: 0.6;
-      box-shadow: 
+      box-shadow:
         inset 0 0 10px rgba(0, 255, 150, 0.6),
         0 0 10px rgba(0, 255, 150, 0.6);
     }
+
     100% {
       opacity: 0.2;
-      box-shadow: 
+      box-shadow:
         inset 0 0 5px rgba(0, 255, 150, 0.3),
         0 0 5px rgba(0, 255, 150, 0.3);
     }
@@ -693,11 +702,10 @@ div[data-media-provider] video {
     pointer-events: none;
     z-index: 10;
     opacity: 0;
-    background: linear-gradient(90deg, 
-      transparent 0%,
-      rgba(0, 255, 150, 0.8) 50%,
-      transparent 100%
-    );
+    background: linear-gradient(90deg,
+        transparent 0%,
+        rgba(0, 255, 150, 0.8) 50%,
+        transparent 100%);
     animation: border-top-glow 3s ease-in-out infinite;
   }
 
@@ -711,11 +719,10 @@ div[data-media-provider] video {
     pointer-events: none;
     z-index: 10;
     opacity: 0;
-    background: linear-gradient(180deg, 
-      transparent 0%,
-      rgba(0, 255, 150, 0.8) 50%,
-      transparent 100%
-    );
+    background: linear-gradient(180deg,
+        transparent 0%,
+        rgba(0, 255, 150, 0.8) 50%,
+        transparent 100%);
     animation: border-right-glow 3s ease-in-out infinite;
   }
 
@@ -729,11 +736,10 @@ div[data-media-provider] video {
     pointer-events: none;
     z-index: 10;
     opacity: 0;
-    background: linear-gradient(90deg, 
-      transparent 0%,
-      rgba(0, 255, 150, 0.8) 50%,
-      transparent 100%
-    );
+    background: linear-gradient(90deg,
+        transparent 0%,
+        rgba(0, 255, 150, 0.8) 50%,
+        transparent 100%);
     animation: border-bottom-glow 3s ease-in-out infinite;
   }
 
@@ -747,87 +753,66 @@ div[data-media-provider] video {
     pointer-events: none;
     z-index: 10;
     opacity: 0;
-    background: linear-gradient(180deg, 
-      transparent 0%,
-      rgba(0, 255, 150, 0.8) 50%,
-      transparent 100%
-    );
+    background: linear-gradient(180deg,
+        transparent 0%,
+        rgba(0, 255, 150, 0.8) 50%,
+        transparent 100%);
     animation: border-left-glow 3s ease-in-out infinite;
   }
 
   @keyframes border-top-glow {
-    0%, 100% { opacity: 0.2; transform: scaleX(0.8); }
-    50% { opacity: 0.9; transform: scaleX(1); }
+
+    0%,
+    100% {
+      opacity: 0.2;
+      transform: scaleX(0.8);
+    }
+
+    50% {
+      opacity: 0.9;
+      transform: scaleX(1);
+    }
   }
 
   @keyframes border-right-glow {
-    0%, 100% { opacity: 0.2; transform: scaleY(0.8); }
-    50% { opacity: 0.9; transform: scaleY(1); }
+
+    0%,
+    100% {
+      opacity: 0.2;
+      transform: scaleY(0.8);
+    }
+
+    50% {
+      opacity: 0.9;
+      transform: scaleY(1);
+    }
   }
 
   @keyframes border-bottom-glow {
-    0%, 100% { opacity: 0.2; transform: scaleX(0.8); }
-    50% { opacity: 0.9; transform: scaleX(1); }
+
+    0%,
+    100% {
+      opacity: 0.2;
+      transform: scaleX(0.8);
+    }
+
+    50% {
+      opacity: 0.9;
+      transform: scaleX(1);
+    }
   }
 
   @keyframes border-left-glow {
-    0%, 100% { opacity: 0.2; transform: scaleY(0.8); }
-    50% { opacity: 0.9; transform: scaleY(1); }
+
+    0%,
+    100% {
+      opacity: 0.2;
+      transform: scaleY(0.8);
+    }
+
+    50% {
+      opacity: 0.9;
+      transform: scaleY(1);
+    }
   }
-}
-
-/* 标题滚动动画 - 平滑无缝滚动 */
-@keyframes scroll-text {
-  0% {
-    transform: translateX(0);
-  }
-  100% {
-    transform: translateX(-33.33%); /* 滚动1/3距离，因为有3个重复文本 */
-  }
-}
-
-/* 悬停时暂停滚动动画 */
-.scroll-text-container:hover .scroll-text-content {
-  animation-play-state: paused;
-}
-
-/* 确保tooltip在最高层级显示 */
-.tooltip-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  pointer-events: none;
-  z-index: 9999;
-}/* 标题滚
-动动画 - 支持动画重置 */
-@keyframes scroll-text {
-  0% {
-    transform: translateX(0);
-  }
-  100% {
-    transform: translateX(-33.33%); /* 滚动1/3距离，因为有3个重复文本 */
-  }
-}
-
-/* 悬停时暂停滚动动画 */
-.scroll-text-container:hover .scroll-text-content {
-  animation-play-state: paused;
-}
-
-/* 动画重置辅助类 */
-.animation-reset {
-  animation: none !important;
-}
-
-.animation-start {
-  animation: scroll-text 10s linear infinite 1s !important;
-  animation-fill-mode: both !important;
-}
-
-/* 确保每次hover都重新开始动画 */
-.group\/title:hover .scroll-animation {
-  animation: scroll-text 10s linear infinite 1s;
-  animation-fill-mode: both;
 }
