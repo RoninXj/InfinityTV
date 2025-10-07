@@ -28,6 +28,10 @@ export default function ShortDramaCard({
   const [realEpisodeCount, setRealEpisodeCount] = useState<number>(drama.episode_count);
   const [showTooltip, setShowTooltip] = useState(false);
   const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
+  const [tooltipWidth, setTooltipWidth] = useState<number | undefined>(undefined);
+  const [showMobileTooltip, setShowMobileTooltip] = useState(false);
+  const [mobileTooltipPosition, setMobileTooltipPosition] = useState({ x: 0, y: 0 });
+  const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(null);
 
   // 获取真实集数（带统一缓存）
   useEffect(() => {
@@ -92,6 +96,97 @@ export default function ShortDramaCard({
     }
   };
 
+  // 检测是否为移动设备
+  const isMobile = () => {
+    if (typeof window === 'undefined') return false;
+    return window.innerWidth <= 768 || ('ontouchstart' in window && window.innerWidth <= 1024);
+  };
+
+  // 检查标题是否需要显示工具提示
+  const shouldShowTooltip = (title: string) => {
+    // 对于中文字符，长度超过8个字符就显示工具提示
+    // 对于英文字符，长度超过15个字符就显示工具提示
+    const chineseCharCount = (title.match(/[\u4e00-\u9fa5]/g) || []).length;
+    const totalLength = title.length;
+    
+    if (chineseCharCount > 8) return true;
+    if (totalLength > 15) return true;
+    
+    return false;
+  };
+
+  // 移动设备点击标题显示完整内容
+  const handleMobileTitleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (!isMobile() || !shouldShowTooltip(drama.name)) return;
+    
+    const rect = (e.target as HTMLElement).getBoundingClientRect();
+    const screenWidth = window.innerWidth;
+    const screenHeight = window.innerHeight;
+    
+    // 计算最佳显示位置
+    let tooltipX = rect.left + rect.width / 2;
+    let tooltipY = rect.bottom + 10;
+    
+    // 如果下方空间不够，显示在上方
+    if (tooltipY + 100 > screenHeight) {
+      tooltipY = rect.top - 10;
+    }
+    
+    // 水平居中，但确保不超出屏幕
+    tooltipX = Math.max(20, Math.min(tooltipX, screenWidth - 20));
+    
+    setMobileTooltipPosition({ x: tooltipX, y: tooltipY });
+    setShowMobileTooltip(true);
+    
+    // 3秒后自动隐藏
+    setTimeout(() => {
+      setShowMobileTooltip(false);
+    }, 3000);
+  };
+
+  // 移动设备长按处理
+  const handleMobileTouchStart = (e: React.TouchEvent) => {
+    if (!isMobile() || !shouldShowTooltip(drama.name)) return;
+    
+    const timer = setTimeout(() => {
+      const touch = e.touches[0];
+      const screenWidth = window.innerWidth;
+      const screenHeight = window.innerHeight;
+      
+      let tooltipX = touch.clientX;
+      let tooltipY = touch.clientY - 60;
+      
+      // 确保工具提示在屏幕范围内
+      tooltipX = Math.max(20, Math.min(tooltipX, screenWidth - 20));
+      tooltipY = Math.max(20, Math.min(tooltipY, screenHeight - 100));
+      
+      setMobileTooltipPosition({ x: tooltipX, y: tooltipY });
+      setShowMobileTooltip(true);
+      
+      // 添加触觉反馈（如果支持）
+      if (navigator.vibrate) {
+        navigator.vibrate(50);
+      }
+      
+      // 2秒后自动隐藏
+      setTimeout(() => {
+        setShowMobileTooltip(false);
+      }, 2000);
+    }, 500); // 500ms长按触发
+    
+    setLongPressTimer(timer);
+  };
+
+  const handleMobileTouchEnd = () => {
+    if (longPressTimer) {
+      clearTimeout(longPressTimer);
+      setLongPressTimer(null);
+    }
+  };
+
   return (
     <div className={`group relative ${className}`}>
       <Link
@@ -135,20 +230,91 @@ export default function ShortDramaCard({
         <div className="mt-2 space-y-1">
           <div className="relative">
             <h3 
-              className="text-sm font-medium text-gray-900 dark:text-white truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors cursor-pointer"
+              className={`text-sm font-medium text-gray-900 dark:text-white truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors cursor-pointer ${
+                shouldShowTooltip(drama.name) ? 'mobile-title-clickable mobile-longpress-feedback' : ''
+              }`}
+              onClick={handleMobileTitleClick}
+              onTouchStart={handleMobileTouchStart}
+              onTouchEnd={handleMobileTouchEnd}
               onMouseEnter={(e) => {
-                if (drama.name.length > 15) { // 只对长标题显示提示
+                if (isMobile()) return; // 移动设备跳过鼠标事件
+                
+                if (shouldShowTooltip(drama.name)) { // 使用新的判断逻辑
+                  // 创建临时元素测量文本宽度
+                  const tempElement = document.createElement('span');
+                  tempElement.style.visibility = 'hidden';
+                  tempElement.style.position = 'absolute';
+                  tempElement.style.fontSize = '14px';
+                  tempElement.style.fontWeight = '500';
+                  tempElement.style.whiteSpace = 'nowrap';
+                  tempElement.style.padding = '8px 12px';
+                  tempElement.textContent = drama.name;
+                  document.body.appendChild(tempElement);
+                  
+                  const textWidth = tempElement.offsetWidth;
+                  document.body.removeChild(tempElement);
+                  
+                  const finalWidth = Math.min(textWidth, window.innerWidth * 0.8);
+                  setTooltipWidth(finalWidth);
+                  
+                  // 智能计算工具提示位置
+                  const mouseX = e.clientX;
+                  const mouseY = e.clientY;
+                  const screenWidth = window.innerWidth;
+                  const screenHeight = window.innerHeight;
+                  
+                  let tooltipX = mouseX + 10; // 默认显示在右边
+                  let tooltipY = mouseY - 10; // 默认显示在上方
+                  
+                  // 如果右边空间不够，显示在左边
+                  if (mouseX + finalWidth + 20 > screenWidth) {
+                    tooltipX = mouseX - finalWidth - 10;
+                  }
+                  
+                  // 如果上方空间不够，显示在下方
+                  if (mouseY - 40 < 0) {
+                    tooltipY = mouseY + 20;
+                  }
+                  
+                  // 确保不超出屏幕边界
+                  tooltipX = Math.max(10, Math.min(tooltipX, screenWidth - finalWidth - 10));
+                  tooltipY = Math.max(10, Math.min(tooltipY, screenHeight - 50));
+                  
                   setShowTooltip(true);
-                  setTooltipPosition({ x: e.clientX + 10, y: e.clientY - 10 });
+                  setTooltipPosition({ x: tooltipX, y: tooltipY });
                 }
               }}
               onMouseMove={(e) => {
-                if (showTooltip) {
-                  setTooltipPosition({ x: e.clientX + 10, y: e.clientY - 10 });
+                if (isMobile()) return; // 移动设备跳过鼠标事件
+                
+                if (showTooltip && tooltipWidth) {
+                  // 鼠标移动时也要重新计算位置
+                  const mouseX = e.clientX;
+                  const mouseY = e.clientY;
+                  const screenWidth = window.innerWidth;
+                  const screenHeight = window.innerHeight;
+                  
+                  let tooltipX = mouseX + 10;
+                  let tooltipY = mouseY - 10;
+                  
+                  if (mouseX + tooltipWidth + 20 > screenWidth) {
+                    tooltipX = mouseX - tooltipWidth - 10;
+                  }
+                  
+                  if (mouseY - 40 < 0) {
+                    tooltipY = mouseY + 20;
+                  }
+                  
+                  tooltipX = Math.max(10, Math.min(tooltipX, screenWidth - tooltipWidth - 10));
+                  tooltipY = Math.max(10, Math.min(tooltipY, screenHeight - 50));
+                  
+                  setTooltipPosition({ x: tooltipX, y: tooltipY });
                 }
               }}
               onMouseLeave={() => {
+                if (isMobile()) return; // 移动设备跳过鼠标事件
                 setShowTooltip(false);
+                setTooltipWidth(undefined);
               }}
             >
               {drama.name}
@@ -177,7 +343,23 @@ export default function ShortDramaCard({
             left: tooltipPosition.x,
             top: tooltipPosition.y,
             opacity: 1,
+            width: tooltipWidth ? `${tooltipWidth}px` : 'fit-content',
           }}
+        >
+          {drama.name}
+        </div>
+      )}
+
+      {/* 移动设备标题提示 */}
+      {showMobileTooltip && (
+        <div
+          className={`mobile-title-tooltip ${showMobileTooltip ? 'show' : ''}`}
+          style={{
+            left: mobileTooltipPosition.x,
+            top: mobileTooltipPosition.y,
+            transform: `translateX(-50%) ${showMobileTooltip ? 'scale(1) translateY(0)' : 'scale(0.9) translateY(10px)'}`,
+          }}
+          onClick={() => setShowMobileTooltip(false)}
         >
           {drama.name}
         </div>

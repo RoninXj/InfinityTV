@@ -19,8 +19,97 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
   opacity: 0;
   transition: opacity 0.2s ease;
-  max-width: 400px;
-  word-break: break-all;
+  /* 移除固定宽度限制，让背景自适应内容 */
+  width: fit-content;
+  min-width: 60px;
+  max-width: 80vw;
+  /* 最大不超过屏幕宽度的80% */
+}
+
+/* 移动设备长标题显示方案 */
+.mobile-title-tooltip {
+  position: fixed;
+  background: rgba(0, 0, 0, 0.95);
+  color: white;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  white-space: pre-wrap;
+  word-break: break-word;
+  pointer-events: none;
+  z-index: 10000;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  opacity: 0;
+  transform: scale(0.9) translateY(10px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  max-width: 90vw;
+  max-height: 60vh;
+  overflow-y: auto;
+  line-height: 1.4;
+}
+
+.mobile-title-tooltip.show {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+}
+
+/* 移动设备标题点击效果 */
+.mobile-title-clickable {
+  position: relative;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.mobile-title-clickable:active {
+  transform: scale(0.98);
+  opacity: 0.8;
+}
+
+/* 移动设备长按反馈效果 */
+.mobile-longpress-feedback {
+  position: relative;
+  overflow: hidden;
+}
+
+.mobile-longpress-feedback::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.mobile-longpress-feedback.longpress-active::before {
+  left: 100%;
+}
+
+/* 响应式设计 - 移动设备优化 */
+@media (max-width: 768px) {
+  .mouse-tooltip {
+    display: none;
+    /* 移动设备隐藏鼠标工具提示 */
+  }
+
+  .mobile-title-tooltip {
+    padding: 16px 20px;
+    font-size: 16px;
+    border-radius: 12px;
+    max-width: 95vw;
+  }
+}
+
+/* 平板设备优化 */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .mobile-title-tooltip {
+    max-width: 85vw;
+    font-size: 15px;
+  }
 }
 
 @layer utilities {
