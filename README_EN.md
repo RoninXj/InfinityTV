@@ -376,8 +376,8 @@ Zeabur is a one-stop cloud deployment platform. Using pre-built Docker images al
 
    # Optional: Site Configuration
    SITE_BASE=https://your-domain.zeabur.app
-   NEXT_PUBLIC_SITE_NAME=InfinityTV Enhanced
-   ANNOUNCEMENT=Welcome to InfinityTV Enhanced Edition
+   NEXT_PUBLIC_SITE_NAME=InfinityTV
+   ANNOUNCEMENT=Welcome to InfinityTV
 
    # Optional: Douban Proxy (Recommended)
    NEXT_PUBLIC_DOUBAN_PROXY_TYPE=cmliussss-cdn-tencent
@@ -484,8 +484,8 @@ Perfect for users without servers. Completely free deployment (Vercel Free Tier 
 
    # Optional: Site Configuration
    SITE_BASE=https://your-domain.vercel.app
-   NEXT_PUBLIC_SITE_NAME=InfinityTV Enhanced Edition
-   ANNOUNCEMENT=Welcome to InfinityTV Enhanced Edition
+   NEXT_PUBLIC_SITE_NAME=InfinityTV
+   ANNOUNCEMENT=Welcome to InfinityTV
 
    # Optional: Douban Proxy (Recommended)
    NEXT_PUBLIC_DOUBAN_PROXY_TYPE=cmliussss-cdn-tencent
@@ -899,7 +899,7 @@ This project is licensed under [CC BY-NC-SA 4.0](https://creativecommons.org/lic
 - ❌ You may not use this project for commercial purposes
 - ⚠️ If you remix, transform, or build upon the material, you must distribute your contributions under the same license
 
-© 2025 InfinityTV Enhanced Edition & Contributors
+© 2025 InfinityTV & Contributors
 
 Based on [InfinityTV](https://github.com/roninxj/InfinityTV) with extensive customization.
 
@@ -943,6 +943,6 @@ Based on [InfinityTV](https://github.com/roninxj/InfinityTV) with extensive cust
 
 **If this project helps you, please give it a ⭐ Star!**
 
-Made with ❤️ by InfinityTV Enhanced Edition Team
+Made with ❤️ by InfinityTV Team
 
 </div>
