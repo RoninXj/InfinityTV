@@ -116,13 +116,13 @@ const YouTubeVideoCard = ({ video }: YouTubeVideoCardProps) => {
 
       {/* 视频信息区域 */}
       <div className="p-4">
-        <div className="relative mb-2">
-          <h3 className="font-semibold text-gray-900 dark:text-white text-sm truncate peer">
+        <div className="relative mb-2 group/title">
+          <h3 className="font-semibold text-gray-900 dark:text-white text-sm truncate">
             {video.snippet.title}
           </h3>
           {/* 滚动显示长标题的 tooltip */}
           <div
-            className='scroll-text-container absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 bg-gray-800/95 backdrop-blur-sm text-white text-xs rounded-md shadow-xl border border-gray-600/30 opacity-0 invisible peer-hover:opacity-100 peer-hover:visible transition-all duration-200 ease-out delay-100 pointer-events-none z-50 overflow-hidden'
+            className='absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 bg-gray-800/95 backdrop-blur-sm text-white text-xs rounded-md shadow-xl border border-gray-600/30 opacity-0 invisible group-hover/title:opacity-100 group-hover/title:visible transition-all duration-200 ease-out delay-100 pointer-events-none z-[9999] overflow-hidden'
             style={{
               maxWidth: 'min(280px, 85vw)',
               minWidth: '120px',
@@ -132,7 +132,7 @@ const YouTubeVideoCard = ({ video }: YouTubeVideoCardProps) => {
             {video.snippet.title.length > 18 ? (
               // 长标题：使用滚动效果
               <div
-                className='scroll-text-content px-3 py-2 whitespace-nowrap flex items-center h-full'
+                className='px-3 py-2 whitespace-nowrap flex items-center h-full'
                 style={{
                   animation: 'scroll-text 12s linear infinite 1.5s',
                   animationFillMode: 'both',

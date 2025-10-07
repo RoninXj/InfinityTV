@@ -1005,7 +1005,7 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
           }}
         >
           <div
-            className='relative'
+            className='relative group/title'
             style={{
               WebkitUserSelect: 'none',
               userSelect: 'none',
@@ -1013,7 +1013,7 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
             } as React.CSSProperties}
           >
             <span
-              className='block text-sm font-semibold truncate text-gray-900 dark:text-gray-100 transition-colors duration-300 ease-in-out group-hover:text-green-600 dark:group-hover:text-green-400 peer'
+              className='block text-sm font-semibold truncate text-gray-900 dark:text-gray-100 transition-colors duration-300 ease-in-out group-hover:text-green-600 dark:group-hover:text-green-400'
               style={{
                 WebkitUserSelect: 'none',
                 userSelect: 'none',
@@ -1028,7 +1028,7 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
             </span>
             {/* 滚动显示长标题的 tooltip */}
             <div
-              className='scroll-text-container absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 bg-gray-800/95 backdrop-blur-sm text-white text-xs rounded-md shadow-xl border border-gray-600/30 opacity-0 invisible peer-hover:opacity-100 peer-hover:visible transition-all duration-200 ease-out delay-100 pointer-events-none z-50 overflow-hidden'
+              className='absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 bg-gray-800/95 backdrop-blur-sm text-white text-xs rounded-md shadow-xl border border-gray-600/30 opacity-0 invisible group-hover/title:opacity-100 group-hover/title:visible transition-all duration-200 ease-out delay-100 pointer-events-none z-[9999] overflow-hidden'
               style={{
                 WebkitUserSelect: 'none',
                 userSelect: 'none',
@@ -1045,7 +1045,7 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
               {actualTitle.length > 18 ? (
                 // 长标题：使用滚动效果
                 <div
-                  className='scroll-text-content px-3 py-2 whitespace-nowrap flex items-center h-full'
+                  className='px-3 py-2 whitespace-nowrap flex items-center h-full'
                   style={{
                     animation: 'scroll-text 12s linear infinite 1.5s', // 延迟1.5秒开始，给用户时间阅读
                     animationFillMode: 'both',

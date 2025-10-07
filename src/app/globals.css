@@ -480,6 +480,21 @@ div[data-media-provider] video {
   animation-play-state: paused;
 }
 
+/* 标题滚动动画 - 平滑无缝滚动 */
+@keyframes scroll-text {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-33.33%); /* 滚动1/3距离，因为有3个重复文本 */
+  }
+}
+
+/* 悬停时暂停滚动动画 */
+.scroll-text-container:hover .scroll-text-content {
+  animation-play-state: paused;
+}
+
 /* 移动端隐藏弹幕配置按钮 */
 @media (max-width: 1080px), (hover: none) {
   .artplayer-plugin-danmuku .apd-config {
