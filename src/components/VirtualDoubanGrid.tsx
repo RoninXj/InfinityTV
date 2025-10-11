@@ -285,12 +285,11 @@ export const VirtualDoubanGrid: React.FC<VirtualDoubanGridProps> = ({
             {/* 动画背景 */}
             <div className='absolute inset-0 bg-gradient-to-r from-green-400/10 via-emerald-400/10 to-teal-400/10 animate-pulse'></div>
             {/* 内容 */}
-            <div className='relative flex flex-col items-center gap-2 text-center'>
-              {/* 跳动条形指示 */}
-              <div className='flex items-end gap-1 text-green-500 dark:text-green-400'>
-                <span className='h-2 w-2 rounded-full bg-current animate-bounce' style={{ animationDelay: '0ms' }}></span>
-                <span className='h-3 w-2 rounded-full bg-current animate-bounce' style={{ animationDelay: '120ms' }}></span>
-                <span className='h-4 w-2 rounded-full bg-current animate-bounce' style={{ animationDelay: '240ms' }}></span>
+            <div className='relative flex items-center gap-3'>
+              {/* 旋转圈 */}
+              <div className='relative'>
+                <div className='animate-spin rounded-full h-8 w-8 border-[3px] border-green-200 dark:border-green-800'></div>
+                <div className='absolute inset-0 animate-spin rounded-full h-8 w-8 border-[3px] border-transparent border-t-green-500 dark:border-t-green-400'></div>
               </div>
               {/* 文案 */}
               <div className='flex items-center gap-1'>
