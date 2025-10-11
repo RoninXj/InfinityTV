@@ -26,12 +26,7 @@ export default function ShortDramaCard({
   className = '',
 }: ShortDramaCardProps) {
   const [realEpisodeCount, setRealEpisodeCount] = useState<number>(drama.episode_count);
-  const [showTooltip, setShowTooltip] = useState(false);
-  const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
-  const [tooltipWidth, setTooltipWidth] = useState<number | undefined>(undefined);
-  const [showMobileTooltip, setShowMobileTooltip] = useState(false);
-  const [mobileTooltipPosition, setMobileTooltipPosition] = useState({ x: 0, y: 0 });
-  const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(null);
+  const [imageLoaded, setImageLoaded] = useState(false); // 图片加载状态
 
   // 获取真实集数（带统一缓存）
   useEffect(() => {
@@ -188,33 +183,50 @@ export default function ShortDramaCard({
   };
 
   return (
-    <div className={`group relative ${className}`}>
+    <div className={`group relative ${className} transition-all duration-300 ease-in-out hover:scale-[1.05] hover:z-[500] hover:drop-shadow-2xl`}>
       <Link
         href={`/play?source=shortdrama&id=${drama.id}&title=${encodeURIComponent(drama.name)}`}
         className="block"
       >
         {/* 封面图片 */}
         <div className="relative aspect-[2/3] w-full overflow-hidden rounded-lg bg-gray-200 dark:bg-gray-800">
-          <img
-            src={drama.cover}
-            alt={drama.name}
-            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-            loading="lazy"
-            onError={(e) => {
-              (e.target as HTMLImageElement).src = '/placeholder-cover.jpg';
+          {/* 渐变光泽动画层 */}
+          <div
+            className='absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none z-10'
+            style={{
+              background: 'linear-gradient(110deg, transparent 30%, rgba(255,255,255,0.15) 45%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0.15) 55%, transparent 70%)',
+              backgroundSize: '200% 100%',
+              animation: 'card-shimmer 2.5s ease-in-out infinite',
             }}
           />
 
-          {/* 悬浮播放按钮 */}
-          <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/90 text-black shadow-lg">
+          <img
+            src={drama.cover}
+            alt={drama.name}
+            className={`h-full w-full object-cover transition-all duration-700 ease-out ${
+              imageLoaded ? 'opacity-100 blur-0 scale-100 group-hover:scale-105' : 'opacity-0 blur-md scale-105'
+            }`}
+            loading="lazy"
+            onLoad={() => setImageLoaded(true)}
+            onError={(e) => {
+              (e.target as HTMLImageElement).src = '/placeholder-cover.jpg';
+              setImageLoaded(true);
+            }}
+          />
+
+          {/* 悬浮播放按钮 - 玻璃态效果 */}
+          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-t from-black/80 via-black/20 to-transparent backdrop-blur-[2px] opacity-0 transition-all duration-300 group-hover:opacity-100">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/90 text-black shadow-lg transition-transform group-hover:scale-110">
               <Play className="h-5 w-5 ml-0.5" fill="currentColor" />
             </div>
           </div>
 
-          {/* 集数标识 */}
-          <div className="absolute top-2 left-2 rounded bg-black/70 px-2 py-1 text-xs text-white">
-            {realEpisodeCount}集
+          {/* 集数标识 - 玻璃态美化 */}
+          <div className="absolute top-2 left-2 rounded-full bg-gradient-to-br from-purple-500/90 via-pink-500/90 to-rose-500/90 backdrop-blur-md px-3 py-1.5 text-xs font-bold text-white shadow-lg ring-2 ring-white/30 transition-all duration-300 group-hover:scale-110 group-hover:shadow-purple-500/50">
+            <span className="flex items-center gap-1">
+              <Play size={10} className="fill-current" />
+              {realEpisodeCount}集
+            </span>
           </div>
 
           {/* 评分 */}
@@ -227,103 +239,18 @@ export default function ShortDramaCard({
         </div>
 
         {/* 信息区域 */}
-        <div className="mt-2 space-y-1">
-          <div className="relative">
-            <h3 
-              className={`text-sm font-medium text-gray-900 dark:text-white truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors cursor-pointer ${
-                shouldShowTooltip(drama.name) ? 'mobile-title-clickable mobile-longpress-feedback' : ''
-              }`}
-              onClick={handleMobileTitleClick}
-              onTouchStart={handleMobileTouchStart}
-              onTouchEnd={handleMobileTouchEnd}
-              onMouseEnter={(e) => {
-                if (isMobile()) return; // 移动设备跳过鼠标事件
-                
-                if (shouldShowTooltip(drama.name)) { // 使用新的判断逻辑
-                  // 创建临时元素测量文本宽度
-                  const tempElement = document.createElement('span');
-                  tempElement.style.visibility = 'hidden';
-                  tempElement.style.position = 'absolute';
-                  tempElement.style.fontSize = '14px';
-                  tempElement.style.fontWeight = '500';
-                  tempElement.style.whiteSpace = 'nowrap';
-                  tempElement.style.padding = '8px 12px';
-                  tempElement.textContent = drama.name;
-                  document.body.appendChild(tempElement);
-                  
-                  const textWidth = tempElement.offsetWidth;
-                  document.body.removeChild(tempElement);
-                  
-                  const finalWidth = Math.min(textWidth, window.innerWidth * 0.8);
-                  setTooltipWidth(finalWidth);
-                  
-                  // 智能计算工具提示位置
-                  const mouseX = e.clientX;
-                  const mouseY = e.clientY;
-                  const screenWidth = window.innerWidth;
-                  const screenHeight = window.innerHeight;
-                  
-                  let tooltipX = mouseX + 10; // 默认显示在右边
-                  let tooltipY = mouseY - 10; // 默认显示在上方
-                  
-                  // 如果右边空间不够，显示在左边
-                  if (mouseX + finalWidth + 20 > screenWidth) {
-                    tooltipX = mouseX - finalWidth - 10;
-                  }
-                  
-                  // 如果上方空间不够，显示在下方
-                  if (mouseY - 40 < 0) {
-                    tooltipY = mouseY + 20;
-                  }
-                  
-                  // 确保不超出屏幕边界
-                  tooltipX = Math.max(10, Math.min(tooltipX, screenWidth - finalWidth - 10));
-                  tooltipY = Math.max(10, Math.min(tooltipY, screenHeight - 50));
-                  
-                  setShowTooltip(true);
-                  setTooltipPosition({ x: tooltipX, y: tooltipY });
-                }
-              }}
-              onMouseMove={(e) => {
-                if (isMobile()) return; // 移动设备跳过鼠标事件
-                
-                if (showTooltip && tooltipWidth) {
-                  // 鼠标移动时也要重新计算位置
-                  const mouseX = e.clientX;
-                  const mouseY = e.clientY;
-                  const screenWidth = window.innerWidth;
-                  const screenHeight = window.innerHeight;
-                  
-                  let tooltipX = mouseX + 10;
-                  let tooltipY = mouseY - 10;
-                  
-                  if (mouseX + tooltipWidth + 20 > screenWidth) {
-                    tooltipX = mouseX - tooltipWidth - 10;
-                  }
-                  
-                  if (mouseY - 40 < 0) {
-                    tooltipY = mouseY + 20;
-                  }
-                  
-                  tooltipX = Math.max(10, Math.min(tooltipX, screenWidth - tooltipWidth - 10));
-                  tooltipY = Math.max(10, Math.min(tooltipY, screenHeight - 50));
-                  
-                  setTooltipPosition({ x: tooltipX, y: tooltipY });
-                }
-              }}
-              onMouseLeave={() => {
-                if (isMobile()) return; // 移动设备跳过鼠标事件
-                setShowTooltip(false);
-                setTooltipWidth(undefined);
-              }}
-            >
-              {drama.name}
-            </h3>
+        <div className="mt-2 space-y-1.5">
+          <h3 className="text-sm font-semibold text-gray-900 dark:text-white line-clamp-2 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-blue-600 group-hover:to-purple-600 dark:group-hover:from-blue-400 dark:group-hover:to-purple-400 transition-all duration-300">
+            {drama.name}
+          </h3>
 
-          </div>
-
-          <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
-            <span>更新: {formatUpdateTime(drama.update_time)}</span>
+          <div className="flex items-center gap-1.5 text-xs">
+            <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-green-200/50 dark:border-green-700/50">
+              <svg className="w-3 h-3 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              <span className="text-green-700 dark:text-green-300 font-medium">{formatUpdateTime(drama.update_time)}</span>
+            </div>
           </div>
 
           {/* 描述信息（可选） */}
