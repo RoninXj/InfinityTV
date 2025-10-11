@@ -4,7 +4,7 @@
 
 import { Play, Star } from 'lucide-react';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { ShortDramaItem } from '@/lib/types';
 import {
@@ -33,14 +33,7 @@ export default function ShortDramaCard({
   const [showMobileTooltip, setShowMobileTooltip] = useState(false);
   const [mobileTooltipPosition, setMobileTooltipPosition] = useState({ x: 0, y: 0 });
   const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(null);
-
-  useEffect(() => {
-    return () => {
-      if (longPressTimer) {
-        clearTimeout(longPressTimer);
-      }
-    };
-  }, [longPressTimer]);
+  const titleRef = useRef<HTMLHeadingElement | null>(null);
 
   // 获取真实集数（带统一缓存）
   useEffect(() => {
@@ -125,6 +118,14 @@ export default function ShortDramaCard({
   };
 
   // 移动设备点击标题显示完整内容
+  useEffect(() => {
+    return () => {
+      if (longPressTimer) {
+        clearTimeout(longPressTimer);
+      }
+    };
+  }, [longPressTimer]);
+
   const handleMobileTitleClick = (e: React.MouseEvent) => {
     if (!isMobile() || !shouldShowTooltip(drama.name)) return;
 
@@ -196,21 +197,41 @@ export default function ShortDramaCard({
     }
   };
 
-  const handleTitleMouseEnter = (e: React.MouseEvent<HTMLElement>) => {
-    if (isMobile() || !shouldShowTooltip(drama.name)) return;
+  const measureTitleWidth = () => {
+    if (!titleRef.current) return undefined;
+
+    const titleElement = titleRef.current;
+    const computedStyle = window.getComputedStyle(titleElement);
 
     const tempElement = document.createElement('span');
     tempElement.style.visibility = 'hidden';
     tempElement.style.position = 'absolute';
-    tempElement.style.fontSize = '14px';
-    tempElement.style.fontWeight = '600';
+    tempElement.style.top = '-9999px';
+    tempElement.style.left = '-9999px';
+    tempElement.style.fontSize = computedStyle.fontSize;
+    tempElement.style.fontWeight = computedStyle.fontWeight;
+    tempElement.style.fontFamily = computedStyle.fontFamily;
+    tempElement.style.letterSpacing = computedStyle.letterSpacing;
     tempElement.style.whiteSpace = 'nowrap';
-    tempElement.style.padding = '8px 12px';
     tempElement.textContent = drama.name;
-    document.body.appendChild(tempElement);
 
+    document.body.appendChild(tempElement);
     const textWidth = tempElement.offsetWidth;
     document.body.removeChild(tempElement);
+
+    return textWidth;
+  };
+
+  const handleTitleMouseEnter = (e: React.MouseEvent<HTMLElement>) => {
+    if (isMobile() || !titleRef.current) return;
+
+    const titleElement = titleRef.current;
+    const isTruncated = titleElement.scrollHeight > titleElement.clientHeight + 1;
+
+    if (!isTruncated) return;
+
+    const textWidth = measureTitleWidth();
+    if (!textWidth) return;
 
     const finalWidth = Math.min(textWidth, window.innerWidth * 0.8);
     setTooltipWidth(finalWidth);
@@ -239,7 +260,15 @@ export default function ShortDramaCard({
   };
 
   const handleTitleMouseMove = (e: React.MouseEvent<HTMLElement>) => {
-    if (isMobile() || !showTooltip || !tooltipWidth) return;
+    if (isMobile() || !showTooltip) return;
+
+    let currentWidth = tooltipWidth;
+    if (!currentWidth) {
+      const measuredWidth = measureTitleWidth();
+      if (!measuredWidth) return;
+      currentWidth = Math.min(measuredWidth, window.innerWidth * 0.8);
+      setTooltipWidth(currentWidth);
+    }
 
     const mouseX = e.clientX;
     const mouseY = e.clientY;
@@ -249,15 +278,15 @@ export default function ShortDramaCard({
     let tooltipX = mouseX + 10;
     let tooltipY = mouseY - 10;
 
-    if (mouseX + tooltipWidth + 20 > screenWidth) {
-      tooltipX = mouseX - tooltipWidth - 10;
+    if (mouseX + currentWidth + 20 > screenWidth) {
+      tooltipX = mouseX - currentWidth - 10;
     }
 
     if (mouseY - 40 < 0) {
       tooltipY = mouseY + 20;
     }
 
-    tooltipX = Math.max(10, Math.min(tooltipX, screenWidth - tooltipWidth - 10));
+    tooltipX = Math.max(10, Math.min(tooltipX, screenWidth - currentWidth - 10));
     tooltipY = Math.max(10, Math.min(tooltipY, screenHeight - 50));
 
     setTooltipPosition({ x: tooltipX, y: tooltipY });
@@ -328,6 +357,7 @@ export default function ShortDramaCard({
         <div className="mt-2 space-y-1.5">
           <h3
             className="text-sm font-semibold text-gray-900 dark:text-white line-clamp-2 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-blue-600 group-hover:to-purple-600 dark:group-hover:from-blue-400 dark:group-hover:to-purple-400 transition-all duration-300"
+            ref={titleRef}
             onClick={handleMobileTitleClick}
             onTouchStart={handleMobileTouchStart}
             onTouchEnd={handleMobileTouchEnd}
