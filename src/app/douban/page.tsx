@@ -95,7 +95,7 @@ function DoubanPageClient() {
     if (typeof window !== 'undefined') {
       localStorage.setItem('useDoubanVirtualization', JSON.stringify(newValue));
     }
-    
+
     // 切换虚拟化模式时，立即同步参数引用，避免一致性检查失败
     currentParamsRef.current = {
       type,
@@ -898,22 +898,21 @@ function DoubanPageClient() {
                   className='flex justify-center mt-12 py-8'
                 >
                   {isLoadingMore && (
-                    <div className='relative px-8 py-4 rounded-2xl bg-gradient-to-r from-green-50 via-emerald-50 to-teal-50 dark:from-green-900/20 dark:via-emerald-900/20 dark:to-teal-900/20 border border-green-200/50 dark:border-green-700/50 shadow-lg backdrop-blur-sm overflow-hidden'>
+                    <div className='relative px-8 py-4 rounded-2xl bg-gradient-to-r from-green-50 via-emerald-50 to-teal-50 dark:from-green-900/20 dark:via-emerald-900/20 dark:to-teal-900/20 border border-green-200/50 dark:border-green-700/50 shadow-lg backdrop-blur-sm overflow-hidden text-center'>
                       {/* 动画背景 */}
                       <div className='absolute inset-0 bg-gradient-to-r from-green-400/10 via-emerald-400/10 to-teal-400/10 animate-pulse'></div>
-
                       {/* 内容 */}
-                      <div className='relative flex items-center gap-3'>
-                        {/* 旋转圈 */}
-                        <div className='relative'>
-                          <div className='animate-spin rounded-full h-8 w-8 border-3 border-green-200 dark:border-green-800'></div>
-                          <div className='absolute inset-0 animate-spin rounded-full h-8 w-8 border-3 border-transparent border-t-green-500 dark:border-t-green-400'></div>
+                      <div className='relative flex flex-col items-center gap-2'>
+                        {/* 跳动条形指示 */}
+                        <div className='flex items-end gap-1 text-green-500 dark:text-green-400'>
+                          <span className='h-2 w-2 rounded-full bg-current animate-bounce' style={{ animationDelay: '0ms' }}></span>
+                          <span className='h-3 w-2 rounded-full bg-current animate-bounce' style={{ animationDelay: '120ms' }}></span>
+                          <span className='h-4 w-2 rounded-full bg-current animate-bounce' style={{ animationDelay: '240ms' }}></span>
                         </div>
-
-                        {/* 文字和点动画 */}
-                        <div className='flex items-center gap-1'>
-                          <span className='text-sm font-medium text-gray-700 dark:text-gray-300'>加载中</span>
-                          <span className='flex gap-0.5'>
+                        {/* 文案 */}
+                        <div className='flex items-center gap-1 text-gray-700 dark:text-gray-300'>
+                          <span className='text-sm font-medium'>加载中</span>
+                          <span className='flex gap-0.5 text-gray-500 dark:text-gray-400'>
                             <span className='animate-bounce' style={{ animationDelay: '0ms' }}>.</span>
                             <span className='animate-bounce' style={{ animationDelay: '150ms' }}>.</span>
                             <span className='animate-bounce' style={{ animationDelay: '300ms' }}>.</span>

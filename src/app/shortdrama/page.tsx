@@ -162,11 +162,10 @@ export default function ShortDramaPage() {
                   <button
                     key={category.type_id}
                     onClick={() => setSelectedCategory(category.type_id)}
-                    className={`relative rounded-full px-5 py-2.5 text-sm font-medium transition-all duration-300 ${
-                      selectedCategory === category.type_id
-                        ? 'bg-gradient-to-r from-purple-500 via-pink-500 to-rose-500 text-white shadow-lg shadow-purple-500/50 scale-105'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 hover:text-purple-700 hover:shadow-md dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-purple-300'
-                    }`}
+                    className={`relative rounded-full px-5 py-2.5 text-sm font-medium transition-all duration-300 ${selectedCategory === category.type_id
+                      ? 'bg-gradient-to-r from-purple-500 via-pink-500 to-rose-500 text-white shadow-lg shadow-purple-500/50 scale-105'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 hover:text-purple-700 hover:shadow-md dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-purple-300'
+                      }`}
                   >
                     {selectedCategory === category.type_id && (
                       <div className="absolute inset-0 rounded-full bg-white/20 animate-ping"></div>
@@ -194,9 +193,27 @@ export default function ShortDramaPage() {
           {loading && (
             <div className="mt-8">
               <div className="flex justify-center mb-6">
-                <div className='flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-xl border border-purple-200/50 dark:border-purple-700/50 shadow-md'>
-                  <div className='animate-spin rounded-full h-5 w-5 border-2 border-purple-300 border-t-purple-600 dark:border-purple-700 dark:border-t-purple-400'></div>
-                  <span className='text-sm font-medium text-gray-700 dark:text-gray-300'>加载更多短剧...</span>
+                <div className='relative px-6 py-3 rounded-xl bg-gradient-to-r from-purple-50 via-pink-50 to-rose-50 dark:from-purple-900/20 dark:via-pink-900/20 dark:to-rose-900/20 border border-purple-200/50 dark:border-purple-700/50 shadow-md backdrop-blur-sm overflow-hidden text-center'>
+                  {/* 动画背景 */}
+                  <div className='absolute inset-0 bg-gradient-to-r from-purple-400/10 via-pink-400/10 to-rose-400/10 animate-pulse'></div>
+                  {/* 内容 */}
+                  <div className='relative flex flex-col items-center gap-2'>
+                    {/* 跳动条形指示 */}
+                    <div className='flex items-end gap-1 text-purple-500 dark:text-purple-300'>
+                      <span className='h-2 w-2 rounded-full bg-current animate-bounce' style={{ animationDelay: '0ms' }}></span>
+                      <span className='h-3 w-2 rounded-full bg-current animate-bounce' style={{ animationDelay: '120ms' }}></span>
+                      <span className='h-4 w-2 rounded-full bg-current animate-bounce' style={{ animationDelay: '240ms' }}></span>
+                    </div>
+                    {/* 文案 */}
+                    <div className='flex items-center gap-1 text-gray-700 dark:text-gray-300'>
+                      <span className='text-sm font-medium'>加载短剧中</span>
+                      <span className='flex gap-0.5 text-gray-500 dark:text-gray-400'>
+                        <span className='animate-bounce' style={{ animationDelay: '0ms' }}>.</span>
+                        <span className='animate-bounce' style={{ animationDelay: '150ms' }}>.</span>
+                        <span className='animate-bounce' style={{ animationDelay: '300ms' }}>.</span>
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">

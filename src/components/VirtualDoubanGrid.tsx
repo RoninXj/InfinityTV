@@ -6,7 +6,7 @@ import dynamic from 'next/dynamic';
 
 const Grid = dynamic(
   () => import('react-window').then(mod => ({ default: mod.Grid })),
-  { 
+  {
     ssr: false,
     loading: () => <div className="animate-pulse h-96 bg-gray-200 dark:bg-gray-800 rounded-lg" />
   }
@@ -20,17 +20,17 @@ import DoubanCardSkeleton from '@/components/DoubanCardSkeleton';
 interface VirtualDoubanGridProps {
   // 豆瓣数据
   doubanData: DoubanItem[];
-  
+
   // 分页相关
   hasMore: boolean;
   isLoadingMore: boolean;
   onLoadMore: () => void;
-  
+
   // 类型和状态
   type: string;
   loading: boolean;
   primarySelection?: string;
-  
+
   // 是否来自番组计划
   isBangumi?: boolean;
 }
@@ -52,14 +52,14 @@ export const VirtualDoubanGrid: React.FC<VirtualDoubanGridProps> = ({
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const { columnCount, itemWidth, itemHeight, containerWidth } = useResponsiveGrid(containerRef);
-  
+
   // 渐进式加载状态
   const [visibleItemCount, setVisibleItemCount] = useState(INITIAL_BATCH_SIZE);
   const [isVirtualLoadingMore, setIsVirtualLoadingMore] = useState(false);
 
   // 总数据数量
   const totalItemCount = doubanData.length;
-  
+
   // 实际显示的项目数量（考虑渐进式加载）
   const displayItemCount = Math.min(visibleItemCount, totalItemCount);
   const displayData = doubanData.slice(0, displayItemCount);
@@ -75,7 +75,7 @@ export const VirtualDoubanGrid: React.FC<VirtualDoubanGridProps> = ({
     const checkContainer = () => {
       const element = containerRef.current;
       const actualWidth = element?.offsetWidth || 0;
-      
+
       console.log('VirtualDoubanGrid container debug:', {
         actualWidth,
         containerWidth,
@@ -85,13 +85,13 @@ export const VirtualDoubanGrid: React.FC<VirtualDoubanGridProps> = ({
         element: !!element
       });
     };
-    
+
     checkContainer();
   }, [containerWidth]);
 
   // 检查是否还有更多项目可以加载（虚拟层面）
   const hasNextVirtualPage = displayItemCount < totalItemCount;
-  
+
   // 检查是否需要从服务器加载更多数据
   const needsServerData = displayItemCount >= totalItemCount * 0.8 && hasMore && !isLoadingMore;
 
@@ -101,19 +101,19 @@ export const VirtualDoubanGrid: React.FC<VirtualDoubanGridProps> = ({
   // 加载更多项目（虚拟层面）
   const loadMoreVirtualItems = useCallback(() => {
     if (isVirtualLoadingMore) return;
-    
+
     setIsVirtualLoadingMore(true);
-    
+
     // 模拟异步加载
     setTimeout(() => {
       setVisibleItemCount(prev => {
         const newCount = Math.min(prev + LOAD_MORE_BATCH_SIZE, totalItemCount);
-        
+
         // 如果虚拟数据即将用完，触发服务器数据加载
         if (newCount >= totalItemCount * 0.8 && hasMore && !isLoadingMore) {
           onLoadMore();
         }
-        
+
         return newCount;
       });
       setIsVirtualLoadingMore(false);
@@ -127,10 +127,10 @@ export const VirtualDoubanGrid: React.FC<VirtualDoubanGridProps> = ({
   const isSingleRow = rowCount === 1;
 
   // 渲染单个网格项 - 支持react-window v2.1.0的ariaAttributes
-  const CellComponent = useCallback(({ 
+  const CellComponent = useCallback(({
     ariaAttributes,
-    columnIndex, 
-    rowIndex, 
+    columnIndex,
+    rowIndex,
     style,
     displayData: cellDisplayData,
     type: cellType,
@@ -140,7 +140,7 @@ export const VirtualDoubanGrid: React.FC<VirtualDoubanGridProps> = ({
     displayItemCount: cellDisplayItemCount,
   }: any) => {
     const index = rowIndex * cellColumnCount + columnIndex;
-    
+
     // 如果超出显示范围，返回隐藏的占位符
     if (index >= cellDisplayItemCount) {
       return <div style={{ ...style, visibility: 'hidden' }} />;
@@ -277,26 +277,25 @@ export const VirtualDoubanGrid: React.FC<VirtualDoubanGridProps> = ({
           }}
         />
       )}
-      
+
       {/* 加载更多指示器 */}
       {containerWidth > 100 && (isVirtualLoadingMore || isLoadingMore) && (
         <div className='flex justify-center mt-8 py-8'>
           <div className='relative px-8 py-4 rounded-2xl bg-gradient-to-r from-green-50 via-emerald-50 to-teal-50 dark:from-green-900/20 dark:via-emerald-900/20 dark:to-teal-900/20 border border-green-200/50 dark:border-green-700/50 shadow-lg backdrop-blur-sm overflow-hidden'>
             {/* 动画背景 */}
             <div className='absolute inset-0 bg-gradient-to-r from-green-400/10 via-emerald-400/10 to-teal-400/10 animate-pulse'></div>
-
             {/* 内容 */}
-            <div className='relative flex items-center gap-3'>
-              {/* 旋转圈 */}
-              <div className='relative'>
-                <div className='animate-spin rounded-full h-8 w-8 border-3 border-green-200 dark:border-green-800'></div>
-                <div className='absolute inset-0 animate-spin rounded-full h-8 w-8 border-3 border-transparent border-t-green-500 dark:border-t-green-400'></div>
+            <div className='relative flex flex-col items-center gap-2 text-center'>
+              {/* 跳动条形指示 */}
+              <div className='flex items-end gap-1 text-green-500 dark:text-green-400'>
+                <span className='h-2 w-2 rounded-full bg-current animate-bounce' style={{ animationDelay: '0ms' }}></span>
+                <span className='h-3 w-2 rounded-full bg-current animate-bounce' style={{ animationDelay: '120ms' }}></span>
+                <span className='h-4 w-2 rounded-full bg-current animate-bounce' style={{ animationDelay: '240ms' }}></span>
               </div>
-
-              {/* 文字和点动画 */}
+              {/* 文案 */}
               <div className='flex items-center gap-1'>
                 <span className='text-sm font-medium text-gray-700 dark:text-gray-300'>加载中</span>
-                <span className='flex gap-0.5'>
+                <span className='flex gap-0.5 text-gray-500 dark:text-gray-400'>
                   <span className='animate-bounce' style={{ animationDelay: '0ms' }}>.</span>
                   <span className='animate-bounce' style={{ animationDelay: '150ms' }}>.</span>
                   <span className='animate-bounce' style={{ animationDelay: '300ms' }}>.</span>
@@ -306,7 +305,7 @@ export const VirtualDoubanGrid: React.FC<VirtualDoubanGridProps> = ({
           </div>
         </div>
       )}
-      
+
       {/* 已加载完所有内容的提示 */}
       {containerWidth > 100 && !hasMore && !hasNextVirtualPage && displayItemCount > 0 && (
         <div className='flex justify-center mt-8 py-8'>

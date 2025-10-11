@@ -6,7 +6,7 @@ import dynamic from 'next/dynamic';
 
 const Grid = dynamic(
   () => import('react-window').then(mod => ({ default: mod.Grid })),
-  { 
+  {
     ssr: false,
     loading: () => <div className="animate-pulse h-96 bg-gray-200 dark:bg-gray-800 rounded-lg" />
   }
@@ -23,14 +23,14 @@ interface VirtualSearchGridProps {
   filteredResults: SearchResult[];
   aggregatedResults: [string, SearchResult[]][];
   filteredAggResults: [string, SearchResult[]][];
-  
+
   // 视图模式
   viewMode: 'agg' | 'all';
-  
+
   // 搜索相关
   searchQuery: string;
   isLoading: boolean;
-  
+
   // VideoCard相关props
   groupRefs: React.MutableRefObject<Map<string, React.RefObject<any>>>;
   groupStatsRef: React.MutableRefObject<Map<string, any>>;
@@ -58,7 +58,7 @@ export const VirtualSearchGrid: React.FC<VirtualSearchGridProps> = ({
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const { columnCount, itemWidth, itemHeight, containerWidth } = useResponsiveGrid(containerRef);
-  
+
   // 渐进式加载状态
   const [visibleItemCount, setVisibleItemCount] = useState(INITIAL_BATCH_SIZE);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -82,7 +82,7 @@ export const VirtualSearchGrid: React.FC<VirtualSearchGridProps> = ({
     const checkContainer = () => {
       const element = containerRef.current;
       const actualWidth = element?.offsetWidth || 0;
-      
+
       console.log('VirtualSearchGrid container debug:', {
         actualWidth,
         containerWidth,
@@ -92,7 +92,7 @@ export const VirtualSearchGrid: React.FC<VirtualSearchGridProps> = ({
         element: !!element
       });
     };
-    
+
     checkContainer();
   }, [containerWidth]);
 
@@ -102,9 +102,9 @@ export const VirtualSearchGrid: React.FC<VirtualSearchGridProps> = ({
   // 加载更多项目
   const loadMoreItems = useCallback(() => {
     if (isLoadingMore || !hasNextPage) return;
-    
+
     setIsLoadingMore(true);
-    
+
     // 模拟异步加载
     setTimeout(() => {
       setVisibleItemCount(prev => Math.min(prev + LOAD_MORE_BATCH_SIZE, totalItemCount));
@@ -119,10 +119,10 @@ export const VirtualSearchGrid: React.FC<VirtualSearchGridProps> = ({
   const isSingleRow = rowCount === 1;
 
   // 渲染单个网格项 - 支持react-window v2.1.0的ariaAttributes
-  const CellComponent = useCallback(({ 
+  const CellComponent = useCallback(({
     ariaAttributes,
-    columnIndex, 
-    rowIndex, 
+    columnIndex,
+    rowIndex,
     style,
     displayData: cellDisplayData,
     viewMode: cellViewMode,
@@ -134,7 +134,7 @@ export const VirtualSearchGrid: React.FC<VirtualSearchGridProps> = ({
     computeGroupStats: cellComputeGroupStats,
   }: any) => {
     const index = rowIndex * cellColumnCount + columnIndex;
-    
+
     // 如果超出显示范围，返回隐藏的占位符
     if (index >= cellDisplayItemCount) {
       return <div style={{ ...style, visibility: 'hidden' }} />;
@@ -269,17 +269,35 @@ export const VirtualSearchGrid: React.FC<VirtualSearchGridProps> = ({
           }}
         />
       )}
-      
+
       {/* 加载更多指示器 */}
       {containerWidth > 100 && isLoadingMore && (
-        <div className='flex justify-center items-center py-4'>
-          <div className='animate-spin rounded-full h-6 w-6 border-b-2 border-green-500'></div>
-          <span className='ml-2 text-sm text-gray-500 dark:text-gray-400'>
-            加载更多...
-          </span>
+        <div className='flex justify-center items-center py-6'>
+          <div className='relative px-6 py-3 rounded-xl bg-gradient-to-r from-green-50 via-emerald-50 to-teal-50 dark:from-green-900/20 dark:via-emerald-900/20 dark:to-teal-900/20 border border-green-200/50 dark:border-green-700/50 shadow-md backdrop-blur-sm overflow-hidden'>
+            {/* 动画背景 */}
+            <div className='absolute inset-0 bg-gradient-to-r from-green-400/10 via-emerald-400/10 to-teal-400/10 animate-pulse'></div>
+            {/* 内容 */}
+            <div className='relative flex flex-col items-center gap-1 text-center'>
+              {/* 跳动条形指示 */}
+              <div className='flex items-end gap-1 text-green-500 dark:text-green-400'>
+                <span className='h-2 w-2 rounded-full bg-current animate-bounce' style={{ animationDelay: '0ms' }}></span>
+                <span className='h-3 w-2 rounded-full bg-current animate-bounce' style={{ animationDelay: '120ms' }}></span>
+                <span className='h-4 w-2 rounded-full bg-current animate-bounce' style={{ animationDelay: '240ms' }}></span>
+              </div>
+              {/* 文案 */}
+              <div className='flex items-center gap-1 text-gray-700 dark:text-gray-300'>
+                <span className='text-sm font-medium'>加载中</span>
+                <span className='flex gap-0.5 text-gray-500 dark:text-gray-400'>
+                  <span className='animate-bounce' style={{ animationDelay: '0ms' }}>.</span>
+                  <span className='animate-bounce' style={{ animationDelay: '150ms' }}>.</span>
+                  <span className='animate-bounce' style={{ animationDelay: '300ms' }}>.</span>
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
       )}
-      
+
       {/* 已加载完所有内容的提示 */}
       {containerWidth > 100 && !hasNextPage && displayItemCount > INITIAL_BATCH_SIZE && (
         <div className='text-center py-4 text-sm text-gray-500 dark:text-gray-400'>
