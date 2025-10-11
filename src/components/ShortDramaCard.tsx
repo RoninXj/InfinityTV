@@ -27,6 +27,20 @@ export default function ShortDramaCard({
 }: ShortDramaCardProps) {
   const [realEpisodeCount, setRealEpisodeCount] = useState<number>(drama.episode_count);
   const [imageLoaded, setImageLoaded] = useState(false); // 图片加载状态
+  const [showTooltip, setShowTooltip] = useState(false);
+  const [tooltipPosition, setTooltipPosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [tooltipWidth, setTooltipWidth] = useState<number | undefined>(undefined);
+  const [showMobileTooltip, setShowMobileTooltip] = useState(false);
+  const [mobileTooltipPosition, setMobileTooltipPosition] = useState({ x: 0, y: 0 });
+  const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (longPressTimer) {
+        clearTimeout(longPressTimer);
+      }
+    };
+  }, [longPressTimer]);
 
   // 获取真实集数（带统一缓存）
   useEffect(() => {
@@ -103,39 +117,39 @@ export default function ShortDramaCard({
     // 对于英文字符，长度超过15个字符就显示工具提示
     const chineseCharCount = (title.match(/[\u4e00-\u9fa5]/g) || []).length;
     const totalLength = title.length;
-    
+
     if (chineseCharCount > 8) return true;
     if (totalLength > 15) return true;
-    
+
     return false;
   };
 
   // 移动设备点击标题显示完整内容
   const handleMobileTitleClick = (e: React.MouseEvent) => {
+    if (!isMobile() || !shouldShowTooltip(drama.name)) return;
+
     e.preventDefault();
     e.stopPropagation();
-    
-    if (!isMobile() || !shouldShowTooltip(drama.name)) return;
-    
+
     const rect = (e.target as HTMLElement).getBoundingClientRect();
     const screenWidth = window.innerWidth;
     const screenHeight = window.innerHeight;
-    
+
     // 计算最佳显示位置
     let tooltipX = rect.left + rect.width / 2;
     let tooltipY = rect.bottom + 10;
-    
+
     // 如果下方空间不够，显示在上方
     if (tooltipY + 100 > screenHeight) {
       tooltipY = rect.top - 10;
     }
-    
+
     // 水平居中，但确保不超出屏幕
     tooltipX = Math.max(20, Math.min(tooltipX, screenWidth - 20));
-    
+
     setMobileTooltipPosition({ x: tooltipX, y: tooltipY });
     setShowMobileTooltip(true);
-    
+
     // 3秒后自动隐藏
     setTimeout(() => {
       setShowMobileTooltip(false);
@@ -145,33 +159,33 @@ export default function ShortDramaCard({
   // 移动设备长按处理
   const handleMobileTouchStart = (e: React.TouchEvent) => {
     if (!isMobile() || !shouldShowTooltip(drama.name)) return;
-    
+
     const timer = setTimeout(() => {
       const touch = e.touches[0];
       const screenWidth = window.innerWidth;
       const screenHeight = window.innerHeight;
-      
+
       let tooltipX = touch.clientX;
       let tooltipY = touch.clientY - 60;
-      
+
       // 确保工具提示在屏幕范围内
       tooltipX = Math.max(20, Math.min(tooltipX, screenWidth - 20));
       tooltipY = Math.max(20, Math.min(tooltipY, screenHeight - 100));
-      
+
       setMobileTooltipPosition({ x: tooltipX, y: tooltipY });
       setShowMobileTooltip(true);
-      
+
       // 添加触觉反馈（如果支持）
       if (navigator.vibrate) {
         navigator.vibrate(50);
       }
-      
+
       // 2秒后自动隐藏
       setTimeout(() => {
         setShowMobileTooltip(false);
       }, 2000);
     }, 500); // 500ms长按触发
-    
+
     setLongPressTimer(timer);
   };
 
@@ -180,6 +194,79 @@ export default function ShortDramaCard({
       clearTimeout(longPressTimer);
       setLongPressTimer(null);
     }
+  };
+
+  const handleTitleMouseEnter = (e: React.MouseEvent<HTMLElement>) => {
+    if (isMobile() || !shouldShowTooltip(drama.name)) return;
+
+    const tempElement = document.createElement('span');
+    tempElement.style.visibility = 'hidden';
+    tempElement.style.position = 'absolute';
+    tempElement.style.fontSize = '14px';
+    tempElement.style.fontWeight = '600';
+    tempElement.style.whiteSpace = 'nowrap';
+    tempElement.style.padding = '8px 12px';
+    tempElement.textContent = drama.name;
+    document.body.appendChild(tempElement);
+
+    const textWidth = tempElement.offsetWidth;
+    document.body.removeChild(tempElement);
+
+    const finalWidth = Math.min(textWidth, window.innerWidth * 0.8);
+    setTooltipWidth(finalWidth);
+
+    const mouseX = e.clientX;
+    const mouseY = e.clientY;
+    const screenWidth = window.innerWidth;
+    const screenHeight = window.innerHeight;
+
+    let tooltipX = mouseX + 10;
+    let tooltipY = mouseY - 10;
+
+    if (mouseX + finalWidth + 20 > screenWidth) {
+      tooltipX = mouseX - finalWidth - 10;
+    }
+
+    if (mouseY - 40 < 0) {
+      tooltipY = mouseY + 20;
+    }
+
+    tooltipX = Math.max(10, Math.min(tooltipX, screenWidth - finalWidth - 10));
+    tooltipY = Math.max(10, Math.min(tooltipY, screenHeight - 50));
+
+    setShowTooltip(true);
+    setTooltipPosition({ x: tooltipX, y: tooltipY });
+  };
+
+  const handleTitleMouseMove = (e: React.MouseEvent<HTMLElement>) => {
+    if (isMobile() || !showTooltip || !tooltipWidth) return;
+
+    const mouseX = e.clientX;
+    const mouseY = e.clientY;
+    const screenWidth = window.innerWidth;
+    const screenHeight = window.innerHeight;
+
+    let tooltipX = mouseX + 10;
+    let tooltipY = mouseY - 10;
+
+    if (mouseX + tooltipWidth + 20 > screenWidth) {
+      tooltipX = mouseX - tooltipWidth - 10;
+    }
+
+    if (mouseY - 40 < 0) {
+      tooltipY = mouseY + 20;
+    }
+
+    tooltipX = Math.max(10, Math.min(tooltipX, screenWidth - tooltipWidth - 10));
+    tooltipY = Math.max(10, Math.min(tooltipY, screenHeight - 50));
+
+    setTooltipPosition({ x: tooltipX, y: tooltipY });
+  };
+
+  const handleTitleMouseLeave = () => {
+    if (isMobile()) return;
+    setShowTooltip(false);
+    setTooltipWidth(undefined);
   };
 
   return (
@@ -203,9 +290,8 @@ export default function ShortDramaCard({
           <img
             src={drama.cover}
             alt={drama.name}
-            className={`h-full w-full object-cover transition-all duration-700 ease-out ${
-              imageLoaded ? 'opacity-100 blur-0 scale-100 group-hover:scale-105' : 'opacity-0 blur-md scale-105'
-            }`}
+            className={`h-full w-full object-cover transition-all duration-700 ease-out ${imageLoaded ? 'opacity-100 blur-0 scale-100 group-hover:scale-105' : 'opacity-0 blur-md scale-105'
+              }`}
             loading="lazy"
             onLoad={() => setImageLoaded(true)}
             onError={(e) => {
@@ -240,7 +326,15 @@ export default function ShortDramaCard({
 
         {/* 信息区域 */}
         <div className="mt-2 space-y-1.5">
-          <h3 className="text-sm font-semibold text-gray-900 dark:text-white line-clamp-2 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-blue-600 group-hover:to-purple-600 dark:group-hover:from-blue-400 dark:group-hover:to-purple-400 transition-all duration-300">
+          <h3
+            className="text-sm font-semibold text-gray-900 dark:text-white line-clamp-2 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-blue-600 group-hover:to-purple-600 dark:group-hover:from-blue-400 dark:group-hover:to-purple-400 transition-all duration-300"
+            onClick={handleMobileTitleClick}
+            onTouchStart={handleMobileTouchStart}
+            onTouchEnd={handleMobileTouchEnd}
+            onMouseEnter={handleTitleMouseEnter}
+            onMouseMove={handleTitleMouseMove}
+            onMouseLeave={handleTitleMouseLeave}
+          >
             {drama.name}
           </h3>
 
@@ -261,7 +355,7 @@ export default function ShortDramaCard({
           )}
         </div>
       </Link>
-      
+
       {/* 跟随鼠标的标题提示 */}
       {showTooltip && (
         <div
