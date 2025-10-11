@@ -353,10 +353,10 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
     // 对于英文字符，长度超过15个字符就显示工具提示
     const chineseCharCount = (title.match(/[\u4e00-\u9fa5]/g) || []).length;
     const totalLength = title.length;
-    
+
     if (chineseCharCount > 8) return true;
     if (totalLength > 15) return true;
-    
+
     return false;
   }, []);
 
@@ -364,28 +364,28 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
   const handleMobileTitleClick = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     if (!isMobile() || !shouldShowTooltip(actualTitle)) return;
-    
+
     const rect = (e.target as HTMLElement).getBoundingClientRect();
     const screenWidth = window.innerWidth;
     const screenHeight = window.innerHeight;
-    
+
     // 计算最佳显示位置
     let tooltipX = rect.left + rect.width / 2;
     let tooltipY = rect.bottom + 10;
-    
+
     // 如果下方空间不够，显示在上方
     if (tooltipY + 100 > screenHeight) {
       tooltipY = rect.top - 10;
     }
-    
+
     // 水平居中，但确保不超出屏幕
     tooltipX = Math.max(20, Math.min(tooltipX, screenWidth - 20));
-    
+
     setMobileTooltipPosition({ x: tooltipX, y: tooltipY });
     setShowMobileTooltip(true);
-    
+
     // 3秒后自动隐藏
     setTimeout(() => {
       setShowMobileTooltip(false);
@@ -395,33 +395,33 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
   // 移动设备长按处理
   const handleMobileTouchStart = useCallback((e: React.TouchEvent) => {
     if (!isMobile() || !shouldShowTooltip(actualTitle)) return;
-    
+
     const timer = setTimeout(() => {
       const touch = e.touches[0];
       const screenWidth = window.innerWidth;
       const screenHeight = window.innerHeight;
-      
+
       let tooltipX = touch.clientX;
       let tooltipY = touch.clientY - 60;
-      
+
       // 确保工具提示在屏幕范围内
       tooltipX = Math.max(20, Math.min(tooltipX, screenWidth - 20));
       tooltipY = Math.max(20, Math.min(tooltipY, screenHeight - 100));
-      
+
       setMobileTooltipPosition({ x: tooltipX, y: tooltipY });
       setShowMobileTooltip(true);
-      
+
       // 添加触觉反馈（如果支持）
       if (navigator.vibrate) {
         navigator.vibrate(50);
       }
-      
+
       // 2秒后自动隐藏
       setTimeout(() => {
         setShowMobileTooltip(false);
       }, 2000);
     }, 500); // 500ms长按触发
-    
+
     setLongPressTimer(timer);
   }, [isMobile, actualTitle]);
 
@@ -743,9 +743,8 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
             src={processImageUrl(actualPoster)}
             alt={actualTitle}
             fill
-            className={`${origin === 'live' ? 'object-contain' : 'object-cover'} transition-all duration-700 ease-out ${
-              imageLoaded ? 'opacity-100 blur-0 scale-100' : 'opacity-0 blur-md scale-105'
-            }`}
+            className={`${origin === 'live' ? 'object-contain' : 'object-cover'} transition-all duration-700 ease-out ${imageLoaded ? 'opacity-100 blur-0 scale-100' : 'opacity-0 blur-md scale-105'
+              }`}
             referrerPolicy='no-referrer'
             loading='lazy'
             onLoadingComplete={() => {
@@ -1204,7 +1203,7 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
               onTouchEnd={handleMobileTouchEnd}
               onMouseEnter={(e: MouseEvent) => {
                 if (isMobile()) return; // 移动设备跳过鼠标事件
-                
+
                 if (shouldShowTooltip(actualTitle)) {
                   // 创建临时元素测量文本宽度
                   const tempElement = document.createElement('span');
@@ -1216,64 +1215,64 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
                   tempElement.style.padding = '8px 12px';
                   tempElement.textContent = actualTitle;
                   document.body.appendChild(tempElement);
-                  
+
                   const textWidth = tempElement.offsetWidth;
                   document.body.removeChild(tempElement);
-                  
+
                   const finalWidth = Math.min(textWidth, window.innerWidth * 0.8);
                   setTooltipWidth(finalWidth);
-                  
+
                   // 智能计算工具提示位置
                   const mouseX = e.clientX;
                   const mouseY = e.clientY;
                   const screenWidth = window.innerWidth;
                   const screenHeight = window.innerHeight;
-                  
+
                   let tooltipX = mouseX + 10; // 默认显示在右边
                   let tooltipY = mouseY - 10; // 默认显示在上方
-                  
+
                   // 如果右边空间不够，显示在左边
                   if (mouseX + finalWidth + 20 > screenWidth) {
                     tooltipX = mouseX - finalWidth - 10;
                   }
-                  
+
                   // 如果上方空间不够，显示在下方
                   if (mouseY - 40 < 0) {
                     tooltipY = mouseY + 20;
                   }
-                  
+
                   // 确保不超出屏幕边界
                   tooltipX = Math.max(10, Math.min(tooltipX, screenWidth - finalWidth - 10));
                   tooltipY = Math.max(10, Math.min(tooltipY, screenHeight - 50));
-                  
+
                   setShowTooltip(true);
                   setTooltipPosition({ x: tooltipX, y: tooltipY });
                 }
               }}
               onMouseMove={(e: MouseEvent) => {
                 if (isMobile()) return; // 移动设备跳过鼠标事件
-                
+
                 if (showTooltip && tooltipWidth) {
                   // 鼠标移动时也要重新计算位置
                   const mouseX = e.clientX;
                   const mouseY = e.clientY;
                   const screenWidth = window.innerWidth;
                   const screenHeight = window.innerHeight;
-                  
+
                   let tooltipX = mouseX + 10;
                   let tooltipY = mouseY - 10;
-                  
+
                   if (mouseX + tooltipWidth + 20 > screenWidth) {
                     tooltipX = mouseX - tooltipWidth - 10;
                   }
-                  
+
                   if (mouseY - 40 < 0) {
                     tooltipY = mouseY + 20;
                   }
-                  
+
                   tooltipX = Math.max(10, Math.min(tooltipX, screenWidth - tooltipWidth - 10));
                   tooltipY = Math.max(10, Math.min(tooltipY, screenHeight - 50));
-                  
+
                   setTooltipPosition({ x: tooltipX, y: tooltipY });
                 }
               }}

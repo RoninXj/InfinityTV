@@ -226,9 +226,12 @@ export default function ShortDramaCard({
     if (isMobile() || !titleRef.current) return;
 
     const titleElement = titleRef.current;
-    const isTruncated = titleElement.scrollHeight > titleElement.clientHeight + 1;
+    const hasEllipsis = titleElement.offsetHeight < titleElement.scrollHeight;
+    const isOverflowing = titleElement.scrollWidth > titleElement.clientWidth + 1;
 
-    if (!isTruncated) return;
+    if (!hasEllipsis && !isOverflowing) {
+      return;
+    }
 
     const textWidth = measureTitleWidth();
     if (!textWidth) return;
@@ -355,18 +358,17 @@ export default function ShortDramaCard({
 
         {/* 信息区域 */}
         <div className="mt-2 space-y-1.5">
-          <h3
-            className="text-sm font-semibold text-gray-900 dark:text-white line-clamp-2 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-blue-600 group-hover:to-purple-600 dark:group-hover:from-blue-400 dark:group-hover:to-purple-400 transition-all duration-300"
-            ref={titleRef}
-            onClick={handleMobileTitleClick}
-            onTouchStart={handleMobileTouchStart}
-            onTouchEnd={handleMobileTouchEnd}
-            onMouseEnter={handleTitleMouseEnter}
-            onMouseMove={handleTitleMouseMove}
-            onMouseLeave={handleTitleMouseLeave}
-          >
-            {drama.name}
-          </h3>
+          <div className="relative">
+            <h3
+              className="text-sm font-semibold text-gray-900 dark:text-white line-clamp-2"
+              ref={titleRef}
+              onMouseEnter={handleTitleMouseEnter}
+              onMouseMove={handleTitleMouseMove}
+              onMouseLeave={handleTitleMouseLeave}
+            >
+              {drama.name}
+            </h3>
+          </div>
 
           <div className="flex items-center gap-1.5 text-xs">
             <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-green-200/50 dark:border-green-700/50">
