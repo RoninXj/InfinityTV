@@ -223,15 +223,7 @@ export default function ShortDramaCard({
   };
 
   const handleTitleMouseEnter = (e: React.MouseEvent<HTMLElement>) => {
-    if (isMobile() || !titleRef.current) return;
-
-    const titleElement = titleRef.current;
-    const hasEllipsis = titleElement.offsetHeight < titleElement.scrollHeight;
-    const isOverflowing = titleElement.scrollWidth > titleElement.clientWidth + 1;
-
-    if (!hasEllipsis && !isOverflowing) {
-      return;
-    }
+    if (isMobile() || !titleRef.current || !shouldShowTooltip(drama.name)) return;
 
     const textWidth = measureTitleWidth();
     if (!textWidth) return;
@@ -362,12 +354,18 @@ export default function ShortDramaCard({
             <h3
               className="text-sm font-semibold text-gray-900 dark:text-white line-clamp-2"
               ref={titleRef}
+              onClick={handleMobileTitleClick}
+              onTouchStart={handleMobileTouchStart}
+              onTouchEnd={handleMobileTouchEnd}
               onMouseEnter={handleTitleMouseEnter}
               onMouseMove={handleTitleMouseMove}
               onMouseLeave={handleTitleMouseLeave}
             >
               {drama.name}
             </h3>
+            {shouldShowTooltip(drama.name) && (
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 top-auto h-6 translate-y-2 rounded-full bg-black/70 transition-all duration-200 opacity-0 group-hover:translate-y-0 group-hover:opacity-100" />
+            )}
           </div>
 
           <div className="flex items-center gap-1.5 text-xs">
