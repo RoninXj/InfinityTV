@@ -4,7 +4,7 @@
 
 import { Play, Star } from 'lucide-react';
 import Link from 'next/link';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { ShortDramaItem } from '@/lib/types';
 import {
@@ -27,13 +27,10 @@ export default function ShortDramaCard({
 }: ShortDramaCardProps) {
   const [realEpisodeCount, setRealEpisodeCount] = useState<number>(drama.episode_count);
   const [imageLoaded, setImageLoaded] = useState(false); // 图片加载状态
-  const [showTooltip, setShowTooltip] = useState(false);
-  const [tooltipPosition, setTooltipPosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
-  const [tooltipWidth, setTooltipWidth] = useState<number | undefined>(undefined);
   const [showMobileTooltip, setShowMobileTooltip] = useState(false);
   const [mobileTooltipPosition, setMobileTooltipPosition] = useState({ x: 0, y: 0 });
   const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(null);
-  const titleRef = useRef<HTMLHeadingElement | null>(null);
+  const [isHovered, setIsHovered] = useState(false);
 
   // 获取真实集数（带统一缓存）
   useEffect(() => {
@@ -197,110 +194,27 @@ export default function ShortDramaCard({
     }
   };
 
-  const measureTitleWidth = () => {
-    if (!titleRef.current) return undefined;
-
-    const titleElement = titleRef.current;
-    const computedStyle = window.getComputedStyle(titleElement);
-
-    const tempElement = document.createElement('span');
-    tempElement.style.visibility = 'hidden';
-    tempElement.style.position = 'absolute';
-    tempElement.style.top = '-9999px';
-    tempElement.style.left = '-9999px';
-    tempElement.style.fontSize = computedStyle.fontSize;
-    tempElement.style.fontWeight = computedStyle.fontWeight;
-    tempElement.style.fontFamily = computedStyle.fontFamily;
-    tempElement.style.letterSpacing = computedStyle.letterSpacing;
-    tempElement.style.whiteSpace = 'nowrap';
-    tempElement.textContent = drama.name;
-
-    document.body.appendChild(tempElement);
-    const textWidth = tempElement.offsetWidth;
-    document.body.removeChild(tempElement);
-
-    return textWidth;
-  };
-
-  const handleTitleMouseEnter = (e: React.MouseEvent<HTMLElement>) => {
-    if (isMobile() || !titleRef.current || !shouldShowTooltip(drama.name)) return;
-
-    const textWidth = measureTitleWidth();
-    if (!textWidth) return;
-
-    const finalWidth = Math.min(textWidth, window.innerWidth * 0.8);
-    setTooltipWidth(finalWidth);
-
-    const mouseX = e.clientX;
-    const mouseY = e.clientY;
-    const screenWidth = window.innerWidth;
-    const screenHeight = window.innerHeight;
-
-    let tooltipX = mouseX + 10;
-    let tooltipY = mouseY - 10;
-
-    if (mouseX + finalWidth + 20 > screenWidth) {
-      tooltipX = mouseX - finalWidth - 10;
-    }
-
-    if (mouseY - 40 < 0) {
-      tooltipY = mouseY + 20;
-    }
-
-    tooltipX = Math.max(10, Math.min(tooltipX, screenWidth - finalWidth - 10));
-    tooltipY = Math.max(10, Math.min(tooltipY, screenHeight - 50));
-
-    setShowTooltip(true);
-    setTooltipPosition({ x: tooltipX, y: tooltipY });
-  };
-
-  const handleTitleMouseMove = (e: React.MouseEvent<HTMLElement>) => {
-    if (isMobile() || !showTooltip) return;
-
-    let currentWidth = tooltipWidth;
-    if (!currentWidth) {
-      const measuredWidth = measureTitleWidth();
-      if (!measuredWidth) return;
-      currentWidth = Math.min(measuredWidth, window.innerWidth * 0.8);
-      setTooltipWidth(currentWidth);
-    }
-
-    const mouseX = e.clientX;
-    const mouseY = e.clientY;
-    const screenWidth = window.innerWidth;
-    const screenHeight = window.innerHeight;
-
-    let tooltipX = mouseX + 10;
-    let tooltipY = mouseY - 10;
-
-    if (mouseX + currentWidth + 20 > screenWidth) {
-      tooltipX = mouseX - currentWidth - 10;
-    }
-
-    if (mouseY - 40 < 0) {
-      tooltipY = mouseY + 20;
-    }
-
-    tooltipX = Math.max(10, Math.min(tooltipX, screenWidth - currentWidth - 10));
-    tooltipY = Math.max(10, Math.min(tooltipY, screenHeight - 50));
-
-    setTooltipPosition({ x: tooltipX, y: tooltipY });
-  };
-
-  const handleTitleMouseLeave = () => {
-    if (isMobile()) return;
-    setShowTooltip(false);
-    setTooltipWidth(undefined);
-  };
-
   return (
-    <div className={`group relative ${className} transition-all duration-300 ease-in-out hover:scale-[1.05] hover:z-[500] hover:drop-shadow-2xl`}>
+    <div
+      className={`group relative w-full rounded-lg bg-transparent cursor-pointer transition-all duration-300 ease-in-out hover:scale-[1.05] hover:z-[500] hover:drop-shadow-2xl ${className}`}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      {isHovered && (
+        <>
+          <div className="short-drama-glow-border" />
+          <div className="border-glow-top" />
+          <div className="border-glow-right" />
+          <div className="border-glow-bottom" />
+          <div className="border-glow-left" />
+        </>
+      )}
       <Link
         href={`/play?source=shortdrama&id=${drama.id}&title=${encodeURIComponent(drama.name)}`}
-        className="block"
+        className='relative block overflow-hidden rounded-lg bg-white/80 dark:bg-slate-900/80 shadow-[inset_0_0_20px_rgba(15,23,42,0.15)] backdrop-blur-sm transition-all duration-500 ease-out group-hover:shadow-[inset_0_0_25px_rgba(59,130,246,0.25)]'
       >
         {/* 封面图片 */}
-        <div className="relative aspect-[2/3] w-full overflow-hidden rounded-lg bg-gray-200 dark:bg-gray-800">
+        <div className="relative aspect-[2/3] w-full overflow-hidden rounded-xl bg-gray-200 transition-shadow duration-500 dark:bg-slate-900/80">
           {/* 渐变光泽动画层 */}
           <div
             className='absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none z-10'
@@ -350,22 +264,24 @@ export default function ShortDramaCard({
 
         {/* 信息区域 */}
         <div className="mt-2 space-y-1.5">
-          <div className="relative">
-            <h3
-              className="text-sm font-semibold text-gray-900 dark:text-white line-clamp-2"
-              ref={titleRef}
-              onClick={handleMobileTitleClick}
-              onTouchStart={handleMobileTouchStart}
-              onTouchEnd={handleMobileTouchEnd}
-              onMouseEnter={handleTitleMouseEnter}
-              onMouseMove={handleTitleMouseMove}
-              onMouseLeave={handleTitleMouseLeave}
-            >
-              {drama.name}
+          <div className="relative px-1">
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
+              <span
+                className='block text-sm font-semibold text-gray-900 dark:text-white transition-all duration-300 ease-in-out group-hover:scale-[1.02] relative z-10 group-hover:bg-gradient-to-r group-hover:from-green-600 group-hover:via-emerald-600 group-hover:to-teal-600 dark:group-hover:from-green-400 dark:group-hover:via-emerald-400 dark:group-hover:to-teal-400 group-hover:bg-clip-text group-hover:text-transparent group-hover:drop-shadow-[0_2px_8px_rgba(16,185,129,0.3)]'
+                style={{
+                  display: '-webkit-box',
+                  WebkitLineClamp: 2,
+                  WebkitBoxOrient: 'vertical',
+                  overflow: 'hidden',
+                  lineHeight: '1.4',
+                } as React.CSSProperties}
+                onClick={handleMobileTitleClick}
+                onTouchStart={handleMobileTouchStart}
+                onTouchEnd={handleMobileTouchEnd}
+              >
+                {drama.name}
+              </span>
             </h3>
-            {shouldShowTooltip(drama.name) && (
-              <div className="pointer-events-none absolute inset-x-0 bottom-0 top-auto h-6 translate-y-2 rounded-full bg-black/70 transition-all duration-200 opacity-0 group-hover:translate-y-0 group-hover:opacity-100" />
-            )}
           </div>
 
           <div className="flex items-center gap-1.5 text-xs">
@@ -385,21 +301,6 @@ export default function ShortDramaCard({
           )}
         </div>
       </Link>
-
-      {/* 跟随鼠标的标题提示 */}
-      {showTooltip && (
-        <div
-          className="mouse-tooltip"
-          style={{
-            left: tooltipPosition.x,
-            top: tooltipPosition.y,
-            opacity: 1,
-            width: tooltipWidth ? `${tooltipWidth}px` : 'fit-content',
-          }}
-        >
-          {drama.name}
-        </div>
-      )}
 
       {/* 移动设备标题提示 */}
       {showMobileTooltip && (
