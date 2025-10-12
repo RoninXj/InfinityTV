@@ -553,8 +553,8 @@ export default function TVBoxConfigPage() {
               <button
                 onClick={() => setActiveTab('basic')}
                 className={`px-4 py-2 font-medium transition-colors border-b-2 ${activeTab === 'basic'
-                    ? 'text-blue-600 dark:text-blue-400 border-blue-600 dark:border-blue-400'
-                    : 'text-gray-500 dark:text-gray-400 border-transparent hover:text-gray-700 dark:hover:text-gray-300'
+                  ? 'text-blue-600 dark:text-blue-400 border-blue-600 dark:border-blue-400'
+                  : 'text-gray-500 dark:text-gray-400 border-transparent hover:text-gray-700 dark:hover:text-gray-300'
                   }`}
               >
                 基础诊断
@@ -562,8 +562,8 @@ export default function TVBoxConfigPage() {
               <button
                 onClick={() => setActiveTab('smart-health')}
                 className={`px-4 py-2 font-medium transition-colors border-b-2 flex items-center gap-2 ${activeTab === 'smart-health'
-                    ? 'text-blue-600 dark:text-blue-400 border-blue-600 dark:border-blue-400'
-                    : 'text-gray-500 dark:text-gray-400 border-transparent hover:text-gray-700 dark:hover:text-gray-300'
+                  ? 'text-blue-600 dark:text-blue-400 border-blue-600 dark:border-blue-400'
+                  : 'text-gray-500 dark:text-gray-400 border-transparent hover:text-gray-700 dark:hover:text-gray-300'
                   }`}
               >
                 <Heart className="w-4 h-4" />
@@ -572,8 +572,8 @@ export default function TVBoxConfigPage() {
               <button
                 onClick={() => setActiveTab('jar-fix')}
                 className={`px-4 py-2 font-medium transition-colors border-b-2 flex items-center gap-2 ${activeTab === 'jar-fix'
-                    ? 'text-blue-600 dark:text-blue-400 border-blue-600 dark:border-blue-400'
-                    : 'text-gray-500 dark:text-gray-400 border-transparent hover:text-gray-700 dark:hover:text-gray-300'
+                  ? 'text-blue-600 dark:text-blue-400 border-blue-600 dark:border-blue-400'
+                  : 'text-gray-500 dark:text-gray-400 border-transparent hover:text-gray-700 dark:hover:text-gray-300'
                   }`}
               >
                 <Wrench className="w-4 h-4" />
@@ -582,8 +582,8 @@ export default function TVBoxConfigPage() {
               <button
                 onClick={() => setActiveTab('deep-diagnostic')}
                 className={`px-4 py-2 font-medium transition-colors border-b-2 flex items-center gap-2 ${activeTab === 'deep-diagnostic'
-                    ? 'text-blue-600 dark:text-blue-400 border-blue-600 dark:border-blue-400'
-                    : 'text-gray-500 dark:text-gray-400 border-transparent hover:text-gray-700 dark:hover:text-gray-300'
+                  ? 'text-blue-600 dark:text-blue-400 border-blue-600 dark:border-blue-400'
+                  : 'text-gray-500 dark:text-gray-400 border-transparent hover:text-gray-700 dark:hover:text-gray-300'
                   }`}
               >
                 <Search className="w-4 h-4" />
@@ -677,8 +677,8 @@ export default function TVBoxConfigPage() {
                             )}
                             {diagnosisResult.spiderSizeKB !== undefined && (
                               <span className={`px-2 py-1 rounded ${diagnosisResult.spiderSizeKB < 50
-                                  ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300'
-                                  : 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
+                                ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300'
+                                : 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
                                 }`}>
                                 {diagnosisResult.spiderSizeKB < 50 ? '⚠' : '✓'} {diagnosisResult.spiderSizeKB}KB
                               </span>
@@ -915,10 +915,10 @@ export default function TVBoxConfigPage() {
                             </div>
                             <div className="text-center">
                               <div className={`text-5xl font-bold ${smartHealthResult.reachability.health_score >= 75
-                                  ? 'text-green-600 dark:text-green-400'
-                                  : smartHealthResult.reachability.health_score >= 50
-                                    ? 'text-yellow-600 dark:text-yellow-400'
-                                    : 'text-red-600 dark:text-red-400'
+                                ? 'text-green-600 dark:text-green-400'
+                                : smartHealthResult.reachability.health_score >= 50
+                                  ? 'text-yellow-600 dark:text-yellow-400'
+                                  : 'text-red-600 dark:text-red-400'
                                 }`}>
                                 {smartHealthResult.reachability.health_score}
                               </div>
@@ -1075,10 +1075,10 @@ export default function TVBoxConfigPage() {
 
                         {/* 网络质量评估 */}
                         <div className={`p-4 rounded-lg border ${jarFixResult.status.network_quality === 'good'
-                            ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-700'
-                            : jarFixResult.status.network_quality === 'fair'
-                              ? 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-700'
-                              : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-700'
+                          ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-700'
+                          : jarFixResult.status.network_quality === 'fair'
+                            ? 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-700'
+                            : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-700'
                           }`}>
                           <div className="flex items-center justify-between">
                             <div>
@@ -1088,10 +1088,10 @@ export default function TVBoxConfigPage() {
                               </div>
                             </div>
                             <div className={`text-2xl font-bold ${jarFixResult.status.network_quality === 'good'
-                                ? 'text-green-600 dark:text-green-400'
-                                : jarFixResult.status.network_quality === 'fair'
-                                  ? 'text-yellow-600 dark:text-yellow-400'
-                                  : 'text-red-600 dark:text-red-400'
+                              ? 'text-green-600 dark:text-green-400'
+                              : jarFixResult.status.network_quality === 'fair'
+                                ? 'text-yellow-600 dark:text-yellow-400'
+                                : 'text-red-600 dark:text-red-400'
                               }`}>
                               {jarFixResult.status.network_quality === 'good'
                                 ? '优秀'
@@ -1136,8 +1136,8 @@ export default function TVBoxConfigPage() {
                           <div className="space-y-2 max-h-64 overflow-y-auto">
                             {jarFixResult.test_results.map((test, idx) => (
                               <div key={idx} className={`p-2 rounded border ${test.success
-                                  ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-700'
-                                  : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-700'
+                                ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-700'
+                                : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-700'
                                 }`}>
                                 <div className="flex items-center justify-between">
                                   <div className="flex items-center gap-2 flex-1">
@@ -1340,10 +1340,10 @@ export default function TVBoxConfigPage() {
                               <div
                                 key={idx}
                                 className={`p-3 rounded border ${test.status === 'success'
-                                    ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-700'
-                                    : test.status === 'timeout'
-                                      ? 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-700'
-                                      : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-700'
+                                  ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-700'
+                                  : test.status === 'timeout'
+                                    ? 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-700'
+                                    : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-700'
                                   }`}
                               >
                                 <div className="flex items-center justify-between mb-2">
@@ -1359,10 +1359,10 @@ export default function TVBoxConfigPage() {
                                   </div>
                                   <span
                                     className={`text-xs px-2 py-1 rounded ${test.status === 'success'
-                                        ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
-                                        : test.status === 'timeout'
-                                          ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300'
-                                          : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
+                                      ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
+                                      : test.status === 'timeout'
+                                        ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300'
+                                        : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
                                       }`}
                                   >
                                     {test.status === 'success'
@@ -1407,8 +1407,8 @@ export default function TVBoxConfigPage() {
                                       <span className="text-gray-500 dark:text-gray-400">验证:</span>
                                       <span
                                         className={`ml-1 font-medium ${test.isValidJar
-                                            ? 'text-green-600 dark:text-green-400'
-                                            : 'text-red-600 dark:text-red-400'
+                                          ? 'text-green-600 dark:text-green-400'
+                                          : 'text-red-600 dark:text-red-400'
                                           }`}
                                       >
                                         {test.isValidJar ? '✓ 有效JAR' : '✗ 无效'}
