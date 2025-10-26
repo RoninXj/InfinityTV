@@ -2,7 +2,7 @@
 
 ## 概述
 
-LunaTV 支持通过 Telegram Bot 实现无密码登录（Magic Link），用户只需输入 Telegram 用户名，即可通过 Bot 发送的链接完成登录。
+InfinityTV 支持通过 Telegram Bot 实现无密码登录（Magic Link），用户只需输入 Telegram 用户名，即可通过 Bot 发送的链接完成登录。
 
 ## 功能特性
 
@@ -30,7 +30,7 @@ LunaTV 支持通过 Telegram Bot 实现无密码登录（Magic Link），用户�
 NEXT_PUBLIC_STORAGE_TYPE=kvrocks
 
 # Kvrocks 连接 URL（如果使用 Kvrocks）
-KVROCKS_URL=redis://moontv-kvrocks:6666
+KVROCKS_URL=redis://infinitytv-kvrocks:6666
 
 # Redis 连接 URL（如果使用 Redis）
 # REDIS_URL=redis://localhost:6379
