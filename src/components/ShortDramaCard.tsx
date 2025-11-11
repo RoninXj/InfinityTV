@@ -4,7 +4,7 @@
 
 import { Play, Star } from 'lucide-react';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { memo, useEffect, useState } from 'react';
 
 import { ShortDramaItem } from '@/lib/types';
 import {
@@ -20,7 +20,7 @@ interface ShortDramaCardProps {
   className?: string;
 }
 
-export default function ShortDramaCard({
+function ShortDramaCard({
   drama,
   showDescription = false,
   className = '',
@@ -210,8 +210,8 @@ export default function ShortDramaCard({
         </>
       )}
       <Link
-        href={`/play?source=shortdrama&id=${drama.id}&title=${encodeURIComponent(drama.name)}`}
-        className='relative block overflow-hidden rounded-lg bg-white/80 dark:bg-slate-900/80 shadow-[inset_0_0_20px_rgba(15,23,42,0.15)] backdrop-blur-sm transition-all duration-500 ease-out group-hover:shadow-[inset_0_0_25px_rgba(59,130,246,0.25)]'
+        href={`/play?title=${encodeURIComponent(drama.name)}&shortdrama_id=${drama.id}`}
+        className="block"
       >
         {/* 封面图片 */}
         <div className="relative aspect-[2/3] w-full overflow-hidden rounded-xl bg-gray-200 transition-shadow duration-500 dark:bg-slate-900/80">
@@ -319,3 +319,5 @@ export default function ShortDramaCard({
     </div>
   );
 }
+
+export default memo(ShortDramaCard);

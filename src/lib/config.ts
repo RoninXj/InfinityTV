@@ -216,6 +216,7 @@ async function getInitConfig(configFile: string, subConfig: {
       DoubanImageProxy: process.env.NEXT_PUBLIC_DOUBAN_IMAGE_PROXY || '',
       DisableYellowFilter:
         process.env.NEXT_PUBLIC_DISABLE_YELLOW_FILTER === 'true',
+      ShowAdultContent: false, // 默认不显示成人内容，可在管理面板修改
       FluidSearch:
         process.env.NEXT_PUBLIC_FLUID_SEARCH !== 'false',
       // TMDB配置默认值
@@ -312,7 +313,7 @@ export async function getConfig(): Promise<AdminConfig> {
   if (!adminConfig) {
     adminConfig = await getInitConfig("");
   }
-  adminConfig = configSelfCheck(adminConfig);
+  adminConfig = await configSelfCheck(adminConfig);
   cachedConfig = adminConfig;
   db.saveAdminConfig(cachedConfig);
   return cachedConfig;
@@ -323,13 +324,43 @@ export function clearConfigCache(): void {
   cachedConfig = null as any;
 }
 
-export function configSelfCheck(adminConfig: AdminConfig): AdminConfig {
+export async function configSelfCheck(adminConfig: AdminConfig): Promise<AdminConfig> {
   // 确保必要的属性存在和初始化
   if (!adminConfig.UserConfig) {
     adminConfig.UserConfig = { AllowRegister: true, Users: [] };
   }
   if (!adminConfig.UserConfig.Users || !Array.isArray(adminConfig.UserConfig.Users)) {
     adminConfig.UserConfig.Users = [];
+  }
+
+  // 🔥 关键修复：每次都从数据库获取最新的用户列表
+  try {
+    const dbUsers = await db.getAllUsers();
+    const ownerUser = process.env.USERNAME;
+
+    // 创建用户列表：保留数据库中存在的用户的配置信息
+    const updatedUsers = dbUsers.map(username => {
+      // 查找现有配置中是否有这个用户
+      const existingUserConfig = adminConfig.UserConfig.Users.find(u => u.username === username);
+
+      if (existingUserConfig) {
+        // 保留现有配置
+        return existingUserConfig;
+      } else {
+        // 新用户，创建默认配置
+        return {
+          username,
+          role: username === ownerUser ? ('owner' as const) : ('user' as const),
+          banned: false,
+        };
+      }
+    });
+
+    // 更新用户列表
+    adminConfig.UserConfig.Users = updatedUsers;
+  } catch (e) {
+    console.error('获取最新用户列表失败:', e);
+    // 失败时继续使用现有配置
   }
   // 确保 AllowRegister 有默认值
   if (adminConfig.UserConfig.AllowRegister === undefined) {
@@ -466,7 +497,47 @@ export async function getCacheTime(): Promise<number> {
 
 export async function getAvailableApiSites(user?: string): Promise<ApiSite[]> {
   const config = await getConfig();
-  const allApiSites = config.SourceConfig.filter((s) => !s.disabled);
+
+  // 确定成人内容显示权限，优先级：用户 > 用户组 > 全局
+  let showAdultContent = config.SiteConfig.ShowAdultContent;
+
+  if (user) {
+    const userConfig = config.UserConfig.Users.find((u) => u.username === user);
+
+    if (userConfig) {
+      // 用户级别优先
+      if (userConfig.showAdultContent !== undefined) {
+        showAdultContent = userConfig.showAdultContent;
+      }
+      // 如果用户没有设置，检查用户组设置
+      else if (userConfig.tags && userConfig.tags.length > 0 && config.UserConfig.Tags) {
+        // 如果用户有多个用户组，只要有一个用户组允许就允许（取并集）
+        const hasAnyTagAllowAdult = userConfig.tags.some(tagName => {
+          const tagConfig = config.UserConfig.Tags?.find(t => t.name === tagName);
+          return tagConfig?.showAdultContent === true;
+        });
+        if (hasAnyTagAllowAdult) {
+          showAdultContent = true;
+        } else {
+          // 检查是否有任何用户组明确禁止
+          const hasAnyTagDenyAdult = userConfig.tags.some(tagName => {
+            const tagConfig = config.UserConfig.Tags?.find(t => t.name === tagName);
+            return tagConfig?.showAdultContent === false;
+          });
+          if (hasAnyTagDenyAdult) {
+            showAdultContent = false;
+          }
+        }
+      }
+    }
+  }
+
+  // 过滤掉禁用的源，如果未启用成人内容则同时过滤掉成人资源
+  const allApiSites = config.SourceConfig.filter((s) => {
+    if (s.disabled) return false;
+    if (!showAdultContent && s.is_adult) return false;
+    return true;
+  });
 
   if (!user) {
     return allApiSites;
