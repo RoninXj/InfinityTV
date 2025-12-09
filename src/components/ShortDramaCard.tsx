@@ -35,6 +35,10 @@ function ShortDramaCard({
   const [realEpisodeCount, setRealEpisodeCount] = useState<number>(drama.episode_count);
   const [imageLoaded, setImageLoaded] = useState(false); // 图片加载状态
   const [favorited, setFavorited] = useState(false); // 收藏状态
+  const [isHovered, setIsHovered] = useState(false);
+  const [showMobileTooltip, setShowMobileTooltip] = useState(false);
+  const [mobileTooltipPosition, setMobileTooltipPosition] = useState({ x: 0, y: 0 });
+  const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(null);
 
   // 短剧的source固定为shortdrama
   const source = 'shortdrama';
