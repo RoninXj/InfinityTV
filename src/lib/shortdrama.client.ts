@@ -11,6 +11,7 @@ import {
   getCache,
   setCache,
 } from './shortdrama-cache';
+import { DEFAULT_USER_AGENT } from './user-agent';
 
 const SHORTDRAMA_API_BASE = 'https://api.r2afosne.dpdns.org';
 
@@ -51,7 +52,7 @@ export async function getShortDramaCategories(): Promise<ShortDramaCategory[]> {
       // 移动端：让浏览器使用HTTP缓存，不添加破坏缓存的headers
     } : {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'User-Agent': DEFAULT_USER_AGENT,
         'Accept': 'application/json',
       },
     };
@@ -109,7 +110,7 @@ export async function getRecommendedShortDramas(
       // 移动端：让浏览器使用HTTP缓存，不添加破坏缓存的headers
     } : {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'User-Agent': DEFAULT_USER_AGENT,
         'Accept': 'application/json',
       },
     };
@@ -177,7 +178,7 @@ export async function getShortDramaList(
       // 移动端：让浏览器使用HTTP缓存，不添加破坏缓存的headers
     } : {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'User-Agent': DEFAULT_USER_AGENT,
         'Accept': 'application/json',
       },
     };
@@ -241,7 +242,7 @@ export async function searchShortDramas(
       // 移动端：让浏览器使用HTTP缓存，不添加破坏缓存的headers
     } : {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'User-Agent': DEFAULT_USER_AGENT,
         'Accept': 'application/json',
       },
     };
@@ -294,7 +295,8 @@ async function parseWithAlternativeApi(
   alternativeApiUrl: string
 ): Promise<ShortDramaParseResult> {
   try {
-    const alternativeApiBase = alternativeApiUrl;
+    // 规范化 API 基础地址，移除末尾斜杠
+    const alternativeApiBase = alternativeApiUrl.replace(/\/+$/, '');
 
     // 检查是否提供了备用API地址
     if (!alternativeApiBase) {
@@ -311,9 +313,10 @@ async function parseWithAlternativeApi(
 
     const searchResponse = await fetch(searchUrl, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'User-Agent': DEFAULT_USER_AGENT,
         'Accept': 'application/json',
       },
+      signal: AbortSignal.timeout(15000), // 15秒超时
     });
 
     console.log('[Alternative API] Step 1 - Response status:', searchResponse.status);
@@ -349,9 +352,10 @@ async function parseWithAlternativeApi(
     const episodesUrl = `${alternativeApiBase}/api/v1/drama/dramas?dramaId=${dramaId}`;
     const episodesResponse = await fetch(episodesUrl, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'User-Agent': DEFAULT_USER_AGENT,
         'Accept': 'application/json',
       },
+      signal: AbortSignal.timeout(15000), // 15秒超时
     });
 
     if (!episodesResponse.ok) {
@@ -360,9 +364,26 @@ async function parseWithAlternativeApi(
 
     const episodesData = await episodesResponse.json();
 
+    // 检查API是否返回错误消息（字符串格式）
+    if (typeof episodesData === 'string') {
+      if (episodesData.includes('未查询到该剧集')) {
+        return {
+          code: 1,
+          msg: `该短剧暂时无法播放，请稍后再试`,
+        };
+      }
+      return {
+        code: 1,
+        msg: `视频源暂时不可用`,
+      };
+    }
+
     // 验证集数数据
     if (!episodesData || !episodesData.data || !Array.isArray(episodesData.data)) {
-      throw new Error('备用API返回的集数列表格式错误');
+      return {
+        code: 1,
+        msg: '视频源暂时不可用',
+      };
     }
 
     if (episodesData.data.length === 0) {
@@ -390,31 +411,80 @@ async function parseWithAlternativeApi(
       };
     }
 
-    const targetEpisode = episodesData.data[episodeIndex];
-    if (!targetEpisode || !targetEpisode.id) {
-      throw new Error(`集数 ${episode} 的数据不完整`);
+    // Step 3: 尝试获取视频直链，如果当前集不存在则自动跳到下一集
+    // 最多尝试3集（防止无限循环）
+    let actualEpisodeIndex = episodeIndex;
+    let directData: any = null;
+    const maxRetries = 3;
+
+    for (let retry = 0; retry < maxRetries; retry++) {
+      const currentIndex = episodeIndex + retry;
+
+      // 检查是否超出集数范围
+      if (currentIndex >= episodesData.data.length) {
+        return {
+          code: 1,
+          msg: `该集暂时无法播放，请尝试其他集数`,
+        };
+      }
+
+      const targetEpisode = episodesData.data[currentIndex];
+      if (!targetEpisode || !targetEpisode.id) {
+        console.log(`[Alternative API] 第${episode + retry}集数据不完整，尝试下一集`);
+        continue;
+      }
+
+      const episodeId = targetEpisode.id;
+      const directUrl = `${alternativeApiBase}/api/v1/drama/direct?episodeId=${episodeId}`;
+
+      try {
+        const directResponse = await fetch(directUrl, {
+          headers: {
+            'User-Agent': DEFAULT_USER_AGENT,
+            'Accept': 'application/json',
+          },
+          signal: AbortSignal.timeout(15000), // 15秒超时
+        });
+
+        if (!directResponse.ok) {
+          console.log(`[Alternative API] 第${episode + retry}集HTTP错误: ${directResponse.status}，尝试下一集`);
+          continue;
+        }
+
+        const data = await directResponse.json();
+
+        // 检查是否返回 "未查询到该剧集" 错误
+        if (typeof data === 'string' && data.includes('未查询到该剧集')) {
+          console.log(`[Alternative API] 第${episode + retry}集视频源缺失，尝试下一集`);
+          continue;
+        }
+
+        // 验证播放链接数据
+        if (!data || !data.url) {
+          console.log(`[Alternative API] 第${episode + retry}集无播放链接，尝试下一集`);
+          continue;
+        }
+
+        // 成功获取到视频链接
+        directData = data;
+        actualEpisodeIndex = currentIndex;
+
+        if (retry > 0) {
+          console.log(`[Alternative API] ✅ 第${episode}集不可用，已自动跳转到第${episode + retry}集`);
+        }
+        break;
+      } catch (error) {
+        console.log(`[Alternative API] 第${episode + retry}集请求失败:`, error);
+        continue;
+      }
     }
 
-    const episodeId = targetEpisode.id;
-
-    // Step 3: Get the direct link for the episode
-    const directUrl = `${alternativeApiBase}/api/v1/drama/direct?episodeId=${episodeId}`;
-    const directResponse = await fetch(directUrl, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-        'Accept': 'application/json',
-      },
-    });
-
-    if (!directResponse.ok) {
-      throw new Error(`Direct link fetch failed: ${directResponse.status}`);
-    }
-
-    const directData = await directResponse.json();
-
-    // 验证播放链接数据
+    // 如果所有尝试都失败
     if (!directData || !directData.url) {
-      throw new Error('备用API未返回播放链接');
+      return {
+        code: 1,
+        msg: `该集暂时无法播放，请尝试其他集数`,
+      };
     }
 
     // 将 http:// 转换为 https:// 避免 Mixed Content 错误
@@ -423,23 +493,26 @@ async function parseWithAlternativeApi(
     // 备用API的视频链接通过代理访问（避免防盗链限制）
     const proxyUrl = `/api/proxy/shortdrama?url=${encodeURIComponent(videoUrl)}`;
 
+    // 计算实际播放的集数（从1开始）
+    const actualEpisode = actualEpisodeIndex + 1;
+
     return {
       code: 0,
       data: {
         videoId: dramaId,
         videoName: firstDrama.name,
-        currentEpisode: episode,
+        currentEpisode: actualEpisode, // 使用实际播放的集数
         totalEpisodes: episodesData.data.length,
         parsedUrl: proxyUrl,
         proxyUrl: proxyUrl,
         cover: directData.pic || firstDrama.pic || '',
         description: firstDrama.overview || '',
         episode: {
-          index: episode,
-          label: `第${episode}集`,
+          index: actualEpisode, // 使用实际播放的集数
+          label: `第${actualEpisode}集`,
           parsedUrl: proxyUrl,
           proxyUrl: proxyUrl,
-          title: directData.title || `第${episode}集`,
+          title: directData.title || `第${actualEpisode}集`,
         },
       },
       // 额外的元数据供其他地方使用
@@ -456,7 +529,7 @@ async function parseWithAlternativeApi(
     const errorMsg = error instanceof Error ? error.message : '备用API请求失败';
     return {
       code: -1,
-      msg: `备用API错误: ${errorMsg}`,
+      msg: `视频源暂时不可用，请稍后再试`,
     };
   }
 }
@@ -508,7 +581,7 @@ export async function parseShortDramaEpisode(
       }
     } : {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'User-Agent': DEFAULT_USER_AGENT,
         'Accept': 'application/json',
       },
     };
@@ -530,7 +603,7 @@ export async function parseShortDramaEpisode(
       }
       return {
         code: data.code,
-        msg: data.msg || '解析失败',
+        msg: data.msg || '该集暂时无法播放，请稍后再试',
       };
     }
 
@@ -567,7 +640,7 @@ export async function parseShortDramaEpisode(
     }
     return {
       code: -1,
-      msg: '网络请求失败',
+      msg: '网络连接失败，请检查网络后重试',
     };
   }
 }
@@ -602,7 +675,7 @@ export async function parseShortDramaBatch(
       }
     } : {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'User-Agent': DEFAULT_USER_AGENT,
         'Accept': 'application/json',
       },
     };
@@ -649,7 +722,7 @@ export async function parseShortDramaAll(
       }
     } : {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'User-Agent': DEFAULT_USER_AGENT,
         'Accept': 'application/json',
       },
     };
