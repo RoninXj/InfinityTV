@@ -34,8 +34,8 @@ function getClientIP(request: NextRequest): string {
     return cfConnectingIP;
   }
   
-  // 如果都没有，返回连接IP（可能是代理服务器IP）
-  return request.ip || '未知';
+  // 如果都没有，返回未知
+  return '未知';
 }
 
 // 更新用户登录信息
