@@ -444,20 +444,7 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
     }
   }, [showMobileActions, from, isAggregate, actualSource, actualId, searchFavorited, checkSearchFavoriteStatus]);
 
-  // 鼠标悬停效果处理
-  const handleMouseEnter = useCallback(() => {
-    setIsHovered(true);
-  }, []);
-
-  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    setIsHovered(true);
-  }, []);
-
-  const handleMouseLeave = useCallback(() => {
-    setIsHovered(false);
-  }, []);
-
-  // 检测是否为移动设备
+  // 检查是否为移动设备
   const isMobile = useCallback(() => {
     if (typeof window === 'undefined') return false;
     return window.innerWidth <= 768 || ('ontouchstart' in window && window.innerWidth <= 1024);
@@ -476,77 +463,18 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
     return false;
   }, []);
 
-  // 移动设备点击标题显示完整内容
+  // 移动设备点击标题显示完整内容（简化版本，不使用tooltip）
   const handleMobileTitleClick = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+    // 移动端不需要特殊处理，保持默认行为
+  }, []);
 
-    if (!isMobile() || !shouldShowTooltip(actualTitle)) return;
-
-    const rect = (e.target as HTMLElement).getBoundingClientRect();
-    const screenWidth = window.innerWidth;
-    const screenHeight = window.innerHeight;
-
-    // 计算最佳显示位置
-    let tooltipX = rect.left + rect.width / 2;
-    let tooltipY = rect.bottom + 10;
-
-    // 如果下方空间不够，显示在上方
-    if (tooltipY + 100 > screenHeight) {
-      tooltipY = rect.top - 10;
-    }
-
-    // 水平居中，但确保不超出屏幕
-    tooltipX = Math.max(20, Math.min(tooltipX, screenWidth - 20));
-
-    setMobileTooltipPosition({ x: tooltipX, y: tooltipY });
-    setShowMobileTooltip(true);
-
-    // 3秒后自动隐藏
-    setTimeout(() => {
-      setShowMobileTooltip(false);
-    }, 3000);
-  }, [isMobile, actualTitle]);
-
-  // 移动设备长按处理
   const handleMobileTouchStart = useCallback((e: React.TouchEvent) => {
-    if (!isMobile() || !shouldShowTooltip(actualTitle)) return;
-
-    const timer = setTimeout(() => {
-      const touch = e.touches[0];
-      const screenWidth = window.innerWidth;
-      const screenHeight = window.innerHeight;
-
-      let tooltipX = touch.clientX;
-      let tooltipY = touch.clientY - 60;
-
-      // 确保工具提示在屏幕范围内
-      tooltipX = Math.max(20, Math.min(tooltipX, screenWidth - 20));
-      tooltipY = Math.max(20, Math.min(tooltipY, screenHeight - 100));
-
-      setMobileTooltipPosition({ x: tooltipX, y: tooltipY });
-      setShowMobileTooltip(true);
-
-      // 添加触觉反馈（如果支持）
-      if (navigator.vibrate) {
-        navigator.vibrate(50);
-      }
-
-      // 2秒后自动隐藏
-      setTimeout(() => {
-        setShowMobileTooltip(false);
-      }, 2000);
-    }, 500); // 500ms长按触发
-
-    setLongPressTimer(timer);
-  }, [isMobile, actualTitle]);
+    // 移动端不需要特殊处理，保持默认行为
+  }, []);
 
   const handleMobileTouchEnd = useCallback(() => {
-    if (longPressTimer) {
-      clearTimeout(longPressTimer);
-      setLongPressTimer(null);
-    }
-  }, [longPressTimer]);
+    // 移动端不需要特殊处理，保持默认行为
+  }, []);
 
   // 长按手势hook
   const longPressProps = useLongPress({
@@ -821,9 +749,6 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
       <div
         className='@container group relative w-full rounded-lg bg-transparent cursor-pointer transition-all duration-300 ease-in-out hover:scale-[1.05] hover:z-30 hover:shadow-2xl'
         onClick={handleClick}
-        onMouseEnter={handleMouseEnter}
-        onMouseMove={handleMouseMove}
-        onMouseLeave={handleMouseLeave}
         {...longPressProps}
         style={{
           // 禁用所有默认的长按和选择效果
@@ -1488,89 +1413,6 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
                 overflow: 'hidden',
                 lineHeight: '1.4',
               } as React.CSSProperties}
-              onClick={handleMobileTitleClick}
-              onTouchStart={handleMobileTouchStart}
-              onTouchEnd={handleMobileTouchEnd}
-              onMouseEnter={(e: MouseEvent) => {
-                if (isMobile()) return; // 移动设备跳过鼠标事件
-
-                if (shouldShowTooltip(actualTitle)) {
-                  // 创建临时元素测量文本宽度
-                  const tempElement = document.createElement('span');
-                  tempElement.style.visibility = 'hidden';
-                  tempElement.style.position = 'absolute';
-                  tempElement.style.fontSize = '14px';
-                  tempElement.style.fontWeight = '500';
-                  tempElement.style.whiteSpace = 'nowrap';
-                  tempElement.style.padding = '8px 12px';
-                  tempElement.textContent = actualTitle;
-                  document.body.appendChild(tempElement);
-
-                  const textWidth = tempElement.offsetWidth;
-                  document.body.removeChild(tempElement);
-
-                  const finalWidth = Math.min(textWidth, window.innerWidth * 0.8);
-                  setTooltipWidth(finalWidth);
-
-                  // 智能计算工具提示位置
-                  const mouseX = e.clientX;
-                  const mouseY = e.clientY;
-                  const screenWidth = window.innerWidth;
-                  const screenHeight = window.innerHeight;
-
-                  let tooltipX = mouseX + 10; // 默认显示在右边
-                  let tooltipY = mouseY - 10; // 默认显示在上方
-
-                  // 如果右边空间不够，显示在左边
-                  if (mouseX + finalWidth + 20 > screenWidth) {
-                    tooltipX = mouseX - finalWidth - 10;
-                  }
-
-                  // 如果上方空间不够，显示在下方
-                  if (mouseY - 40 < 0) {
-                    tooltipY = mouseY + 20;
-                  }
-
-                  // 确保不超出屏幕边界
-                  tooltipX = Math.max(10, Math.min(tooltipX, screenWidth - finalWidth - 10));
-                  tooltipY = Math.max(10, Math.min(tooltipY, screenHeight - 50));
-
-                  setShowTooltip(true);
-                  setTooltipPosition({ x: tooltipX, y: tooltipY });
-                }
-              }}
-              onMouseMove={(e: MouseEvent) => {
-                if (isMobile()) return; // 移动设备跳过鼠标事件
-
-                if (showTooltip && tooltipWidth) {
-                  // 鼠标移动时也要重新计算位置
-                  const mouseX = e.clientX;
-                  const mouseY = e.clientY;
-                  const screenWidth = window.innerWidth;
-                  const screenHeight = window.innerHeight;
-
-                  let tooltipX = mouseX + 10;
-                  let tooltipY = mouseY - 10;
-
-                  if (mouseX + tooltipWidth + 20 > screenWidth) {
-                    tooltipX = mouseX - tooltipWidth - 10;
-                  }
-
-                  if (mouseY - 40 < 0) {
-                    tooltipY = mouseY + 20;
-                  }
-
-                  tooltipX = Math.max(10, Math.min(tooltipX, screenWidth - tooltipWidth - 10));
-                  tooltipY = Math.max(10, Math.min(tooltipY, screenHeight - 50));
-
-                  setTooltipPosition({ x: tooltipX, y: tooltipY });
-                }
-              }}
-              onMouseLeave={() => {
-                if (isMobile()) return; // 移动设备跳过鼠标事件
-                setShowTooltip(false);
-                setTooltipWidth(undefined);
-              }}
               onContextMenu={(e) => {
                 e.preventDefault();
                 return false;
