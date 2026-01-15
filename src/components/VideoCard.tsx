@@ -782,16 +782,6 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
           return false;
         }}
       >
-        {/* 影片卡片边框发光效果 */}
-        {isHovered && (
-          <>
-            <div className="video-card-glow-border" />
-            <div className="border-glow-top" />
-            <div className="border-glow-right" />
-            <div className="border-glow-bottom" />
-            <div className="border-glow-left" />
-          </>
-        )}
 
         {/* 海报容器 */}
         <div
@@ -1543,35 +1533,7 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
 
 
 
-      {/* 跟随鼠标的标题提示 */}
-      {showTooltip && (
-        <div
-          className="mouse-tooltip"
-          style={{
-            left: tooltipPosition.x,
-            top: tooltipPosition.y,
-            opacity: 1,
-            width: tooltipWidth ? `${tooltipWidth}px` : 'fit-content',
-          }}
-        >
-          {actualTitle}
-        </div>
-      )}
 
-      {/* 移动设备标题提示 */}
-      {showMobileTooltip && (
-        <div
-          className={`mobile-title-tooltip ${showMobileTooltip ? 'show' : ''}`}
-          style={{
-            left: mobileTooltipPosition.x,
-            top: mobileTooltipPosition.y,
-            transform: `translateX(-50%) ${showMobileTooltip ? 'scale(1) translateY(0)' : 'scale(0.9) translateY(10px)'}`,
-          }}
-          onClick={() => setShowMobileTooltip(false)}
-        >
-          {actualTitle}
-        </div>
-      )}
 
       {/* 操作菜单 - 支持右键和长按触发 */}
       <MobileActionSheet
