@@ -1,133 +1,64 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+@import '../styles/artplayer-hints.css';
+@import '../styles/artplayer-controls.css';
+@import '../styles/artplayer-mobile.css';
+@import '../styles/artplayer-liquid-glass.css';
 
-/* 跟随鼠标的标题提示 */
-.mouse-tooltip {
-  position: fixed;
-  background: rgba(0, 0, 0, 0.9);
-  color: white;
-  padding: 8px 12px;
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: 500;
-  white-space: nowrap;
-  pointer-events: none;
-  z-index: 10000;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  opacity: 0;
-  transition: opacity 0.2s ease;
-  /* 移除固定宽度限制，让背景自适应内容 */
-  width: fit-content;
-  min-width: 60px;
-  max-width: 80vw;
-  /* 最大不超过屏幕宽度的80% */
+/* Tailwind 4 Dark Mode Configuration - 使用 class 选择器而非媒体查询 */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ============================================
+   @property - 注册自定义属性支持动画
+   这是 Tailwind CSS 4.0 的新特性，提升性能
+   ============================================ */
+@property --shimmer-position {
+  syntax: '<percentage>';
+  initial-value: -200%;
+  inherits: false;
 }
 
-/* 移动设备长标题显示方案 */
-.mobile-title-tooltip {
-  position: fixed;
-  background: rgba(0, 0, 0, 0.95);
-  color: white;
-  padding: 12px 16px;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 500;
-  white-space: pre-wrap;
-  word-break: break-word;
-  pointer-events: none;
-  z-index: 10000;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  opacity: 0;
-  transform: scale(0.9) translateY(10px);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  max-width: 90vw;
-  max-height: 60vh;
-  overflow-y: auto;
-  line-height: 1.4;
-}
+/* Tailwind 4 Theme Configuration */
+@theme {
+  /* Font Family */
+  --font-primary:
+    'Inter', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
+    'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
 
-.mobile-title-tooltip.show {
-  opacity: 1;
-  transform: scale(1) translateY(0);
-}
+  /* Primary Colors */
+  --color-primary-50: #f0f9ff;
+  --color-primary-100: #e0f2fe;
+  --color-primary-200: #bae6fd;
+  --color-primary-300: #7dd3fc;
+  --color-primary-400: #38bdf8;
+  --color-primary-500: #0ea5e9;
+  --color-primary-600: #0284c7;
+  --color-primary-700: #0369a1;
+  --color-primary-800: #075985;
+  --color-primary-900: #0c4a6e;
+  --color-dark: #222222;
 
-/* 移动设备标题点击效果 */
-.mobile-title-clickable {
-  position: relative;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.mobile-title-clickable:active {
-  transform: scale(0.98);
-  opacity: 0.8;
-}
-
-/* 移动设备长按反馈效果 */
-.mobile-longpress-feedback {
-  position: relative;
-  overflow: hidden;
-}
-
-.mobile-longpress-feedback::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.2),
-    transparent
-  );
-  transition: left 0.5s ease;
-}
-
-.mobile-longpress-feedback.longpress-active::before {
-  left: 100%;
-}
-
-/* 响应式设计 - 移动设备优化 */
-@media (max-width: 768px) {
-  .mouse-tooltip {
-    display: none;
-    /* 移动设备隐藏鼠标工具提示 */
-  }
-
-  .mobile-title-tooltip {
-    padding: 16px 20px;
-    font-size: 16px;
-    border-radius: 12px;
-    max-width: 95vw;
-  }
-}
-
-/* 平板设备优化 */
-@media (min-width: 769px) and (max-width: 1024px) {
-  .mobile-title-tooltip {
-    max-width: 85vw;
-    font-size: 15px;
-  }
+  /* 修复 Tailwind 4 亮色模式下灰色过淡的问题，恢复高对比度灰色 */
+  --color-gray-50: #f9fafb;
+  --color-gray-100: #f3f4f6;
+  --color-gray-200: #e5e7eb;
+  --color-gray-300: #d1d5db;
+  --color-gray-400: #9ca3af;
+  --color-gray-500: #6b7280;
+  --color-gray-600: #4b5563;
+  --color-gray-700: #374151;
+  --color-gray-800: #1f2937;
+  --color-gray-900: #111827;
+  --color-gray-950: #030712;
 }
 
 @layer utilities {
   .scrollbar-hide {
-    -ms-overflow-style: none;
-    /* IE and Edge */
-    scrollbar-width: none;
-    /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
   }
 
   .scrollbar-hide::-webkit-scrollbar {
-    display: none;
-    /* Chrome, Safari and Opera */
+    display: none; /* Chrome, Safari and Opera */
   }
 
   /* 源浏览器动画 */
@@ -243,38 +174,34 @@ html:not(.dark) body {
 @media (max-width: 767px) {
   html,
   body {
-    -ms-overflow-style: none;
-    /* IE & Edge */
-    scrollbar-width: none;
-    /* Firefox */
+    -ms-overflow-style: none; /* IE & Edge */
+    scrollbar-width: none; /* Firefox */
   }
 
   html::-webkit-scrollbar,
   body::-webkit-scrollbar {
-    display: none;
-    /* Chrome Safari */
+    display: none; /* Chrome Safari */
   }
 }
 
 /* 隐藏所有滚动条（兼容 WebKit、Firefox、IE/Edge）- 排除ArtPlayer */
 *:not(.artplayer):not(.artplayer *) {
-  -ms-overflow-style: none;
-  /* IE & Edge */
-  scrollbar-width: none;
-  /* Firefox */
+  -ms-overflow-style: none; /* IE & Edge */
+  scrollbar-width: none; /* Firefox */
 }
 
 *:not(.artplayer):not(.artplayer *)::-webkit-scrollbar {
-  display: none;
-  /* Chrome, Safari, Opera */
+  display: none; /* Chrome, Safari, Opera */
 }
 
-/* View Transitions API 动画 */
+/* ============================================
+   View Transitions API 动画
+   优化：0.8s → 0.6s (更流畅的过渡体验)
+   ============================================ */
 @keyframes slide-from-top {
   from {
     clip-path: polygon(0 0, 100% 0, 100% 0, 0 0);
   }
-
   to {
     clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
   }
@@ -284,7 +211,6 @@ html:not(.dark) body {
   from {
     clip-path: polygon(0 100%, 100% 100%, 100% 100%, 0 100%);
   }
-
   to {
     clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
   }
@@ -292,7 +218,7 @@ html:not(.dark) body {
 
 ::view-transition-old(root),
 ::view-transition-new(root) {
-  animation-duration: 0.8s;
+  animation-duration: 0.6s; /* 优化：从 0.8s 减少到 0.6s */
   animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   animation-fill-mode: both;
 }
@@ -321,143 +247,25 @@ div[data-media-provider] video {
   object-fit: contain;
 }
 
-.art-poster {
-  background-size: contain !important;
-  /* 使图片完整展示 */
-  background-position: center center !important;
-  /* 居中显示 */
-  background-repeat: no-repeat !important;
-  /* 防止重复 */
-  background-color: #000 !important;
-  /* 其余区域填充为黑色 */
-}
-
-/* 移动端控制按钮优化 */
-/* 使用liquid-glass插件 + 按钮自动缩小方案，所有按钮都能显示 */
-/* 调整媒体查询从1024px到768px，让平板设备可以使用更多功能 */
-@media (max-width: 768px) {
-  /* PiP按钮保留 - 移动端用户需要画中画功能 */
-  /* 通过flex-shrink: 1让按钮自动缩小，避免溢出 */
-
-  /* 网页全屏在移动端意义不大，继续隐藏节省空间 */
-  .art-control-fullscreenWeb {
-    display: none !important;
-  }
-
-  /* 音量控制在移动端有物理按键，隐藏以节省空间 */
-  .art-control-volume {
-    display: none !important;
-  }
-}
-
-/* 超小屏幕适配 - 确保控制按钮完整显示 */
-@media (max-width: 380px) {
-  /* 减小控制按钮的间距和尺寸 */
-  .art-controls button,
-  .art-control {
-    min-width: 28px !important;
-    padding: 0 4px !important;
-    font-size: 13px !important;
-  }
-
-  /* 减小控制栏的内边距 */
-  .art-controls {
-    padding: 0 4px !important;
-  }
-
-  /* 确保全屏按钮始终可见 */
-  .art-control-fullscreen {
-    display: flex !important;
-    min-width: 32px !important;
-  }
-
-  /* 调整播放器时间显示更紧凑 */
-  .art-control-time {
-    font-size: 11px !important;
-    padding: 0 2px !important;
-  }
-
-  /* 减小进度条高度以节省空间 */
-  .art-progress {
-    height: 3px !important;
-  }
-}
-
-/* 修复音量控制hover区域 - 精确控制触发范围 */
-@media (hover: hover) {
-  .art-control-volume {
-    position: relative !important;
-    padding: 3px;
-    /* 和弹幕按钮一样的hover区域 */
-  }
-
-  /* 缩小hover检测区域，只稍微扩展到面板方向 */
-  .art-control-volume::before {
-    content: '';
-    position: absolute;
-    top: -20px;
-    /* 只扩展20px，避免过早触发 */
-    left: -5px;
-    right: -5px;
-    bottom: -3px;
-    z-index: -1;
-    pointer-events: auto;
-  }
-
-  /* 按钮或面板hover时都显示音量面板 */
-  .art-control-volume:hover .art-volume-panel,
-  .art-volume-panel:hover {
-    opacity: 1 !important;
-    transform: translateY(0) !important;
-    pointer-events: auto !important;
-    transition:
-      opacity 0.15s ease 0.1s,
-      transform 0.15s ease 0.1s !important;
-    /* 0.1s显示延迟 */
-  }
-
-  /* 音量面板默认隐藏状态，和弹幕一样的延迟 */
-  .art-volume-panel {
-    transition:
-      opacity 0.15s ease 0.3s,
-      transform 0.15s ease 0.3s !important;
-    /* 0.3s隐藏延迟 */
-  }
-}
-
-/* 修复移动端弹幕面板定位问题 - 根据不同挂载位置处理 */
-@media (max-width: 768px) {
-  /* 当弹幕插件挂载到控制栏中心时（横屏，宽度>=512px） */
-  .art-controls-center .artplayer-plugin-danmuku .apd-config-panel,
-  .art-controls-center .artplayer-plugin-danmuku .apd-style-panel {
-    position: absolute !important;
-    /* 加上这个关键属性！ */
-    left: 10% !important;
-    transform: translateX(-50%) !important;
-    right: auto !important;
-    max-width: calc(100vw - 40px) !important;
-  }
-
-  /* 当弹幕插件挂载到播放器容器时（竖屏，宽度<512px） */
-  .art-video-player .artplayer-plugin-danmuku .apd-config-panel,
-  .art-video-player .artplayer-plugin-danmuku .apd-style-panel {
-    position: absolute !important;
-    left: 50% !important;
-    /* 竖屏时居中 */
-    transform: translateX(-50%) !important;
-    right: auto !important;
-    max-width: calc(100vw - 40px) !important;
-  }
-}
-
-/* VideoCard 光泽扫过动画 */
+/* VideoCard 光泽扫过动画 - 使用 @property 优化 */
 @keyframes card-shimmer {
+  to {
+    --shimmer-position: 200%;
+  }
+}
+
+/* Netflix风格进度条闪烁动画 */
+@keyframes shimmer {
   0% {
-    background-position: -200% 0;
+    transform: translateX(-100%);
   }
   100% {
-    background-position: 200% 0;
+    transform: translateX(100%);
   }
+}
+
+.animate-shimmer {
+  animation: shimmer 2s infinite;
 }
 
 /* 平滑动画效果 */
@@ -466,7 +274,6 @@ div[data-media-provider] video {
     opacity: 0;
     transform: translateY(8px);
   }
-
   to {
     opacity: 1;
     transform: translateY(0);
@@ -495,8 +302,7 @@ div[data-media-provider] video {
   /* 扩大按钮的实际hover区域，但不影响视觉 */
   .artplayer-plugin-danmuku .apd-config {
     position: relative;
-    padding: 3px;
-    /* 增加一点内边距扩大hover区域 */
+    padding: 3px; /* 增加一点内边距扩大hover区域 */
   }
 
   /* 按钮或面板hover时都显示面板 */
@@ -505,8 +311,7 @@ div[data-media-provider] video {
     opacity: 1 !important;
     pointer-events: auto !important;
     visibility: visible !important;
-    transition: opacity 0.15s ease 0.1s !important;
-    /* 添加0.1s显示延迟 */
+    transition: opacity 0.15s ease 0.1s !important; /* 添加0.1s显示延迟 */
   }
 
   /* 确保面板默认状态是隐藏的，隐藏时有延迟 */
@@ -514,10 +319,7 @@ div[data-media-provider] video {
     opacity: 0;
     pointer-events: none;
     visibility: hidden;
-    transition:
-      opacity 0.15s ease 0.3s,
-      visibility 0s ease 0.45s;
-    /* 0.3s隐藏延迟 */
+    transition: opacity 0.15s ease 0.3s, visibility 0s ease 0.45s; /* 0.3s隐藏延迟 */
   }
 
   /* 面板内部元素在显示时可交互 */
@@ -526,278 +328,144 @@ div[data-media-provider] video {
   }
 
   /* 防止进度条拖拽时弹窗干扰 */
-  .artplayer[data-dragging='true'] .artplayer-plugin-danmuku .apd-config-panel {
+  .artplayer[data-dragging="true"] .artplayer-plugin-danmuku .apd-config-panel {
     opacity: 0 !important;
     pointer-events: none !important;
     visibility: hidden !important;
     transition: none !important;
   }
+}
 
-  /* 视频卡片发光边框渐隐闪烁效果 */
-  .glow-border-top,
-  .glow-border-right,
-  .glow-border-bottom,
-  .glow-border-left {
-    position: absolute;
-    pointer-events: none;
-    z-index: 10;
-    opacity: 0;
-    transition: opacity 0.5s ease;
+/* 亮色模式文字颜色强制覆盖 - 修复 Tailwind 4 OKLCH 灰色过淡问题 */
+html:not(.dark) {
+  /* 覆盖 Tailwind 4 OKLCH 灰色，使用传统高对比度 HEX 值 */
+  --tw-text-opacity: 1;
+}
+
+/* 强制使用深色文字 - 确保亮色模式下可读性 */
+html:not(.dark) .text-gray-900 {
+  color: #111827 !important;
+}
+
+html:not(.dark) .text-gray-800 {
+  color: #1f2937 !important;
+}
+
+html:not(.dark) .text-gray-700 {
+  color: #374151 !important;
+}
+
+html:not(.dark) .text-gray-600 {
+  color: #4b5563 !important;
+}
+
+html:not(.dark) .text-gray-500 {
+  color: #6b7280 !important;
+}
+
+html:not(.dark) .text-slate-900 {
+  color: #0f172a !important;
+}
+
+html:not(.dark) .text-slate-800 {
+  color: #1e293b !important;
+}
+
+html:not(.dark) .text-slate-700 {
+  color: #334155 !important;
+}
+
+html:not(.dark) .text-slate-600 {
+  color: #475569 !important;
+}
+
+html:not(.dark) .text-slate-500 {
+  color: #64748b !important;
+}
+
+/* 亮色模式背景颜色强制覆盖 */
+html:not(.dark) .bg-slate-50 {
+  background-color: #f8fafc !important;
+}
+
+html:not(.dark) .bg-slate-100 {
+  background-color: #f1f5f9 !important;
+}
+
+html:not(.dark) .border-slate-200 {
+  border-color: #e2e8f0 !important;
+}
+
+html:not(.dark) .from-slate-50 {
+  --tw-gradient-from: #f8fafc !important;
+}
+
+html:not(.dark) .to-slate-100 {
+  --tw-gradient-to: #f1f5f9 !important;
+}
+
+html:not(.dark) .hover\:bg-slate-100:hover {
+  background-color: #f1f5f9 !important;
+}
+
+html:not(.dark) .hover\:bg-slate-50:hover {
+  background-color: #f8fafc !important;
+}
+
+/* ============================================
+   Backdrop Filter Fallback for Old Browsers
+   修复旧版手机系统（Android <5.0, iOS <9.3）不支持backdrop-filter的问题
+   为不支持的浏览器提供更不透明的纯色背景
+   ============================================ */
+
+/* 检测不支持backdrop-filter的浏览器，提供fallback背景 */
+@supports not (backdrop-filter: blur(1px)) {
+  /* 白色半透明背景的fallback - 提高不透明度确保可读性 */
+  .backdrop-blur,
+  .backdrop-blur-sm,
+  .backdrop-blur-md,
+  .backdrop-blur-lg,
+  .backdrop-blur-xl,
+  .backdrop-blur-2xl,
+  .backdrop-blur-3xl {
+    background-color: rgba(255, 255, 255, 0.95) !important;
   }
 
-  .glow-border-top.active,
-  .glow-border-right.active,
-  .glow-border-bottom.active,
-  .glow-border-left.active {
-    opacity: 1;
-    animation: glow-fade-pulse 3s ease-in-out infinite;
+  /* 深色模式下的fallback */
+  .dark .backdrop-blur,
+  .dark .backdrop-blur-sm,
+  .dark .backdrop-blur-md,
+  .dark .backdrop-blur-lg,
+  .dark .backdrop-blur-xl,
+  .dark .backdrop-blur-2xl,
+  .dark .backdrop-blur-3xl {
+    background-color: rgba(24, 24, 27, 0.95) !important; /* zinc-900 */
   }
 
-  @keyframes glow-fade-pulse {
-    0% {
-      opacity: 0.2;
-      box-shadow: 0 0 5px rgba(0, 255, 150, 0.4);
-    }
-
-    25% {
-      opacity: 0.8;
-      box-shadow:
-        0 0 12px rgba(0, 255, 150, 0.8),
-        0 0 18px rgba(0, 255, 150, 0.6);
-    }
-
-    50% {
-      opacity: 1;
-      box-shadow:
-        0 0 15px rgba(0, 255, 150, 1),
-        0 0 25px rgba(0, 255, 150, 0.8);
-    }
-
-    75% {
-      opacity: 0.8;
-      box-shadow:
-        0 0 12px rgba(0, 255, 150, 0.8),
-        0 0 18px rgba(0, 255, 150, 0.6);
-    }
-
-    100% {
-      opacity: 0.2;
-      box-shadow: 0 0 5px rgba(0, 255, 150, 0.4);
-    }
+  /* 处理带有透明度的背景色 + backdrop-blur组合 */
+  /* 例如: bg-white/80 backdrop-blur */
+  [class*="bg-white/"] {
+    background-color: rgba(255, 255, 255, 0.95) !important;
   }
 
-  /* 四周边框同时渐隐闪烁发光效果 */
-  .animate-pulse-glow {
-    animation: pulse-glow-fade 3s ease-in-out infinite;
+  [class*="bg-zinc-"][class*="/"] {
+    background-color: rgba(24, 24, 27, 0.95) !important;
   }
 
-  @keyframes pulse-glow-fade {
-    0% {
-      opacity: 0.2;
-      filter: brightness(0.6);
-    }
-
-    25% {
-      opacity: 0.7;
-      filter: brightness(1.2);
-    }
-
-    50% {
-      opacity: 1;
-      filter: brightness(1.5);
-    }
-
-    75% {
-      opacity: 0.7;
-      filter: brightness(1.2);
-    }
-
-    100% {
-      opacity: 0.2;
-      filter: brightness(0.6);
-    }
+  [class*="bg-gray-"][class*="/"] {
+    background-color: rgba(31, 41, 55, 0.95) !important;
   }
 
-  /* 影片卡片专用边框发光样式 */
-  .video-card-glow-border {
-    position: absolute;
-    top: -2px;
-    left: -2px;
-    right: -2px;
-    bottom: -2px;
-    border-radius: 14px;
-    pointer-events: none;
-    z-index: 10;
-    opacity: 0;
-    transition: opacity 0.5s ease;
-    border: 2px solid transparent;
-    background: transparent;
-    animation: border-glow-fade 3s ease-in-out infinite;
+  /* 渐变背景的fallback - 登录页面主卡片 */
+  .from-white\/95.backdrop-blur-2xl,
+  .from-white\/85.backdrop-blur-2xl,
+  .from-white\/75.backdrop-blur-2xl {
+    background: rgba(255, 255, 255, 0.98) !important;
   }
 
-  @keyframes border-glow-fade {
-    0% {
-      opacity: 0.2;
-      box-shadow:
-        inset 0 0 5px rgba(0, 255, 150, 0.3),
-        0 0 5px rgba(0, 255, 150, 0.3);
-    }
-
-    25% {
-      opacity: 0.6;
-      box-shadow:
-        inset 0 0 10px rgba(0, 255, 150, 0.6),
-        0 0 10px rgba(0, 255, 150, 0.6);
-    }
-
-    50% {
-      opacity: 0.9;
-      box-shadow:
-        inset 0 0 15px rgba(0, 255, 150, 0.9),
-        0 0 15px rgba(0, 255, 150, 0.9);
-    }
-
-    75% {
-      opacity: 0.6;
-      box-shadow:
-        inset 0 0 10px rgba(0, 255, 150, 0.6),
-        0 0 10px rgba(0, 255, 150, 0.6);
-    }
-
-    100% {
-      opacity: 0.2;
-      box-shadow:
-        inset 0 0 5px rgba(0, 255, 150, 0.3),
-        0 0 5px rgba(0, 255, 150, 0.3);
-    }
-  }
-
-  /* 四周边框单独发光效果 */
-  .border-glow-top {
-    position: absolute;
-    top: -2px;
-    left: 0;
-    right: 0;
-    height: 3px;
-    border-radius: 2px;
-    pointer-events: none;
-    z-index: 10;
-    opacity: 0;
-    background: linear-gradient(
-      90deg,
-      transparent 0%,
-      rgba(0, 255, 150, 0.8) 50%,
-      transparent 100%
-    );
-    animation: border-top-glow 3s ease-in-out infinite;
-  }
-
-  .border-glow-right {
-    position: absolute;
-    top: 0;
-    right: -2px;
-    bottom: 0;
-    width: 3px;
-    border-radius: 2px;
-    pointer-events: none;
-    z-index: 10;
-    opacity: 0;
-    background: linear-gradient(
-      180deg,
-      transparent 0%,
-      rgba(0, 255, 150, 0.8) 50%,
-      transparent 100%
-    );
-    animation: border-right-glow 3s ease-in-out infinite;
-  }
-
-  .border-glow-bottom {
-    position: absolute;
-    bottom: -2px;
-    left: 0;
-    right: 0;
-    height: 3px;
-    border-radius: 2px;
-    pointer-events: none;
-    z-index: 10;
-    opacity: 0;
-    background: linear-gradient(
-      90deg,
-      transparent 0%,
-      rgba(0, 255, 150, 0.8) 50%,
-      transparent 100%
-    );
-    animation: border-bottom-glow 3s ease-in-out infinite;
-  }
-
-  .border-glow-left {
-    position: absolute;
-    top: 0;
-    left: -2px;
-    bottom: 0;
-    width: 3px;
-    border-radius: 2px;
-    pointer-events: none;
-    z-index: 10;
-    opacity: 0;
-    background: linear-gradient(
-      180deg,
-      transparent 0%,
-      rgba(0, 255, 150, 0.8) 50%,
-      transparent 100%
-    );
-    animation: border-left-glow 3s ease-in-out infinite;
-  }
-
-  @keyframes border-top-glow {
-    0%,
-    100% {
-      opacity: 0.2;
-      transform: scaleX(0.8);
-    }
-
-    50% {
-      opacity: 0.9;
-      transform: scaleX(1);
-    }
-  }
-
-  @keyframes border-right-glow {
-    0%,
-    100% {
-      opacity: 0.2;
-      transform: scaleY(0.8);
-    }
-
-    50% {
-      opacity: 0.9;
-      transform: scaleY(1);
-    }
-  }
-
-  @keyframes border-bottom-glow {
-    0%,
-    100% {
-      opacity: 0.2;
-      transform: scaleX(0.8);
-    }
-
-    50% {
-      opacity: 0.9;
-      transform: scaleX(1);
-    }
-  }
-
-  @keyframes border-left-glow {
-    0%,
-    100% {
-      opacity: 0.2;
-      transform: scaleY(0.8);
-    }
-
-    50% {
-      opacity: 0.9;
-      transform: scaleY(1);
-    }
+  .dark .from-zinc-900\/95.backdrop-blur-2xl,
+  .dark .from-zinc-900\/85.backdrop-blur-2xl,
+  .dark .from-zinc-900\/75.backdrop-blur-2xl {
+    background: rgba(24, 24, 27, 0.98) !important;
   }
 }
