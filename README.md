@@ -217,7 +217,7 @@
 
 - **注意**：部署后项目为**空壳项目**，**无内置播放源和直播源**，需要自行收集配置
 - **演示站**：
-  - Zeabur 部署：[https://infinitytv.zeabur.app](https://infinitytv.zeabur.app)
+  - Zeabur 部署：[https://roninxj.zeabur.app](https://roninxj.zeabur.app)
   - Vercel 部署：[https://movie.roninxj.qzz.io](https://movie.roninxj.qzz.io)
   - 供短期体验，数据库定时清理
 
