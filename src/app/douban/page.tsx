@@ -7,6 +7,7 @@ import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import { isAIRecommendFeatureDisabled } from '@/lib/ai-recommend.client';
 import { GetBangumiCalendarData } from '@/lib/bangumi.client';
 import {
   getDoubanCategories,
@@ -37,6 +38,10 @@ function DoubanPageClient() {
   const [showBackToTop, setShowBackToTop] = useState(false);
   // VirtualDoubanGrid ref for scroll control
   const virtualGridRef = useRef<VirtualDoubanGridRef>(null);
+
+  // AI功能状态
+  const [aiEnabled, setAiEnabled] = useState(false);
+  const [aiCheckComplete, setAiCheckComplete] = useState(false);
 
   // 虚拟化开关状态
   const [useVirtualization, setUseVirtualization] = useState(() => {
@@ -119,6 +124,41 @@ function DoubanPageClient() {
       setCustomCategories(runtimeConfig.CUSTOM_CATEGORIES);
     }
   }, []);
+
+  // 页面级别的AI权限检测 - 只检测一次
+  useEffect(() => {
+    if (isAIRecommendFeatureDisabled()) {
+      setAiEnabled(false);
+      setAiCheckComplete(true);
+      return;
+    }
+
+    let cancelled = false;
+    (async () => {
+      try {
+        const response = await fetch('/api/ai-recommend', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            messages: [{ role: 'user', content: 'ping' }],
+          }),
+        });
+        if (!cancelled) {
+          setAiEnabled(response.status !== 403);
+          setAiCheckComplete(true);
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setAiEnabled(false);
+          setAiCheckComplete(true);
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []); // 只在组件挂载时检测一次
 
   // 同步最新参数值到 ref
   useEffect(() => {
@@ -920,6 +960,8 @@ function DoubanPageClient() {
               loading={loading || !selectorsReady}
               primarySelection={primarySelection}
               isBangumi={type === 'anime' && primarySelection === '每日放送'}
+              aiEnabled={aiEnabled}
+              aiCheckComplete={aiCheckComplete}
             />
           ) : (
             <>

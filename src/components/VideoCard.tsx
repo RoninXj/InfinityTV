@@ -15,6 +15,8 @@ import React, {
   MouseEvent,
 } from 'react';
 
+import { useLongPress } from '@/hooks/useLongPress';
+import { isAIRecommendFeatureDisabled } from '@/lib/ai-recommend.client';
 import {
   deleteFavorite,
   deletePlayRecord,
@@ -24,7 +26,6 @@ import {
   subscribeToDataUpdates,
 } from '@/lib/db.client';
 import { processImageUrl, isSeriesCompleted } from '@/lib/utils';
-import { useLongPress } from '@/hooks/useLongPress';
 
 import { ImagePlaceholder } from '@/components/ImagePlaceholder';
 import MobileActionSheet from '@/components/MobileActionSheet';
@@ -214,6 +215,12 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
   useEffect(() => {
     // 如果父组件已传递aiEnabled，跳过本地检测
     if (aiEnabledProp !== undefined || aiCheckCompleteProp !== undefined) {
+      return;
+    }
+
+    if (isAIRecommendFeatureDisabled()) {
+      setAiEnabledLocal(false);
+      setAiCheckCompleteLocal(true);
       return;
     }
 
