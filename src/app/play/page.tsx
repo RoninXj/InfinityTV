@@ -63,6 +63,10 @@ import {
   useDoubanDetailsQuery,
   useDoubanCommentsQuery,
 } from './hooks/usePlayPageQueries';
+import {
+  usePrefetchNextEpisode,
+  usePrefetchDoubanData,
+} from './hooks/usePlayPagePrefetch';
 
 // 扩展 HTMLVideoElement 类型以支持 hls 属性
 declare global {
@@ -222,12 +226,14 @@ function PlayPageClient() {
     canvas: HTMLCanvasElement | null;
     weightsCache: Map<string, any>;
     isActive: boolean;
+    renderLoopActive: boolean;
   }>({
     instance: null,
     gpu: null,
     canvas: null,
     weightsCache: new Map(),
     isActive: false,
+    renderLoopActive: false,
   });
 
   const websrEnabledRef = useRef(websrEnabled);
@@ -781,6 +787,22 @@ function PlayPageClient() {
     videoDoubanId: videoDoubanId,  // 传入豆瓣ID
     searchTitle: searchTitle,  // 传入搜索标题
     setCurrentEpisodeIndex,  // 传入切换集数的函数
+  });
+
+  // 🚀 数据预取 - 下一集预取（当播放进度达到80%时）
+  usePrefetchNextEpisode({
+    detail,
+    currentEpisodeIndex,
+    currentTime: currentPlayTime,
+    duration: videoDuration,
+    source: currentSource,
+    id: currentId,
+  });
+
+  // 🚀 数据预取 - 豆瓣数据预取（当视频加载时）
+  usePrefetchDoubanData({
+    videoDoubanId: videoDoubanId ? String(videoDoubanId) : null,
+    enabled: !!videoDoubanId,
   });
 
   // -----------------------------------------------------------------------------
@@ -1982,7 +2004,6 @@ function PlayPageClient() {
       const networkName = getWebsrNetworkName(websrModeRef.current, websrNetworkSizeRef.current);
 
       const websr = new WebSR({
-        source: video,
         canvas: canvas,
         weights: weights,
         network_name: networkName,
@@ -1992,9 +2013,23 @@ function PlayPageClient() {
       websrRef.current.instance = websr;
       websrRef.current.canvas = canvas;
       websrRef.current.isActive = true;
+      websrRef.current.renderLoopActive = true;
 
-      // 启动渲染
-      await websr.start();
+      // 使用 requestVideoFrameCallback 手动渲染循环
+      const renderFrame = () => {
+        if (!websrRef.current.renderLoopActive || !websrRef.current.instance) return;
+        websrRef.current.instance.render(video).then(() => {
+          if (websrRef.current.renderLoopActive) {
+            video.requestVideoFrameCallback(renderFrame);
+          }
+        }).catch((err: any) => {
+          console.warn('WebSR render error:', err);
+          if (websrRef.current.renderLoopActive) {
+            video.requestVideoFrameCallback(renderFrame);
+          }
+        });
+      };
+      video.requestVideoFrameCallback(renderFrame);
 
       // 隐藏原始视频
       video.style.opacity = '0';
@@ -2032,6 +2067,7 @@ function PlayPageClient() {
   const destroyWebSR = async () => {
     const ref = websrRef.current;
     ref.isActive = false;
+    ref.renderLoopActive = false;
 
     try {
       if (ref.instance) {
