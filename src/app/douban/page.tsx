@@ -22,7 +22,7 @@ import DoubanCustomSelector from '@/components/DoubanCustomSelector';
 import DoubanSelector from '@/components/DoubanSelector';
 import PageLayout from '@/components/PageLayout';
 import VideoCard from '@/components/VideoCard';
-import VirtualDoubanGrid, { VirtualDoubanGridRef } from '@/components/VirtualDoubanGrid';
+import VirtualGrid from '@/components/VirtualGrid';
 
 function DoubanPageClient() {
   const searchParams = useSearchParams();
@@ -39,10 +39,10 @@ function DoubanPageClient() {
   const isFirstMountRef = useRef(true);
   // 🛡️ 请求生命周期管理：防止同一 cacheKey 的并发请求
   const pendingCacheKeyRef = useRef<string | null>(null);
+  // 🔒 同步锁：防止 endReached 连续触发时 isLoadingMore state 未更新导致跳页
+  const isLoadingMoreRef = useRef(false);
   // 返回顶部按钮显示状态
   const [showBackToTop, setShowBackToTop] = useState(false);
-  // VirtualDoubanGrid ref for scroll control
-  const virtualGridRef = useRef<VirtualDoubanGridRef>(null);
 
   // AI功能状态
   const [aiEnabled, setAiEnabled] = useState(false);
@@ -692,8 +692,11 @@ function DoubanPageClient() {
             );
 
             if (keyParamsMatch) {
-              // 🚀 使用 flushSync 强制同步更新，确保数据立即渲染
+              // Reset lock before data update so endReached fires with
+              // the new totalCount while isLoadingMore is already false.
+              isLoadingMoreRef.current = false;
               flushSync(() => {
+                setIsLoadingMore(false);
                 // 🔧 双重去重逻辑：防止跨批次和批次内重复数据
                 setDoubanData((prev) => {
                   const existingIds = new Set(prev.map((item) => item.id));
@@ -723,8 +726,10 @@ function DoubanPageClient() {
           }
         } catch (err) {
           console.error(err);
-        } finally {
+          isLoadingMoreRef.current = false;
           setIsLoadingMore(false);
+        } finally {
+          // lock already cleared on success path above
         }
       };
 
@@ -740,13 +745,8 @@ function DoubanPageClient() {
     selectedWeekday,
   ]);
 
-  // 设置滚动监听（只在非虚拟化模式下启用）
+  // 设置滚动监听
   useEffect(() => {
-    // 如果启用了虚拟化，则不使用传统的滚动监听
-    if (useVirtualization) {
-      return;
-    }
-
     // 如果没有更多数据或正在加载，则不设置监听
     if (!hasMore || isLoadingMore || loading) {
       return;
@@ -763,7 +763,10 @@ function DoubanPageClient() {
           setCurrentPage((prev) => prev + 1);
         }
       },
-      { threshold: 0.1 }
+      {
+        threshold: 0.1,
+        rootMargin: '800px' // 提前 800px 触发加载，实现无感加载
+      }
     );
 
     observer.observe(loadingRef.current);
@@ -774,7 +777,7 @@ function DoubanPageClient() {
         observerRef.current.disconnect();
       }
     };
-  }, [hasMore, isLoadingMore, loading, useVirtualization]);
+  }, [hasMore, isLoadingMore, loading]);
 
   // 处理选择器变化
   const handlePrimaryChange = useCallback(
@@ -879,13 +882,6 @@ function DoubanPageClient() {
     setSelectedWeekday(weekday);
   }, []);
 
-  // 处理虚拟化组件的加载更多请求
-  const handleVirtualLoadMore = useCallback(() => {
-    if (hasMore && !isLoadingMore) {
-      setCurrentPage(prev => prev + 1);
-    }
-  }, [hasMore, isLoadingMore]);
-
   const getPageTitle = () => {
     // 根据 type 生成标题
     return type === 'movie'
@@ -923,11 +919,6 @@ function DoubanPageClient() {
         top: 0,
         behavior: 'smooth',
       });
-
-      // 2. 重置虚拟列表到第一项
-      if (virtualGridRef.current) {
-        virtualGridRef.current.scrollToTop();
-      }
     } catch (error) {
       // 如果平滑滚动完全失败，使用立即滚动
       document.body.scrollTop = 0;
@@ -1016,19 +1007,129 @@ function DoubanPageClient() {
         <div className='max-w-[95%] mx-auto mt-8 overflow-visible'>
           {/* 条件渲染：虚拟化 vs 传统网格 */}
           {useVirtualization ? (
-            <VirtualDoubanGrid
-              ref={virtualGridRef}
-              doubanData={doubanData}
-              hasMore={hasMore}
-              isLoadingMore={isLoadingMore}
-              onLoadMore={handleVirtualLoadMore}
-              type={type}
-              loading={loading || !selectorsReady}
-              primarySelection={primarySelection}
-              isBangumi={type === 'anime' && primarySelection === '每日放送'}
-              aiEnabled={aiEnabled}
-              aiCheckComplete={aiCheckComplete}
-            />
+            <>
+              {loading || !selectorsReady
+                ? <div className='justify-start grid grid-cols-3 gap-x-2 gap-y-12 px-0 sm:px-2 sm:grid-cols-[repeat(auto-fill,minmax(160px,1fr))] sm:gap-x-8 sm:gap-y-20'>
+                  {skeletonData.map((index) => <DoubanCardSkeleton key={index} />)}
+                </div>
+                : <VirtualGrid
+                  items={doubanData}
+                  className='grid-cols-3 gap-x-2 px-0 sm:px-2 sm:grid-cols-[repeat(auto-fill,minmax(160px,1fr))] sm:gap-x-8'
+                  rowGapClass='pb-12 sm:pb-20'
+                  estimateRowHeight={320}
+                  endReached={() => {
+                    if (hasMore && !isLoadingMore && !loading) {
+                      setCurrentPage((prev) => prev + 1);
+                    }
+                  }}
+                  endReachedThreshold={3}
+                  renderItem={(item, index) => {
+                    const mappedType = type === 'movie' ? 'movie' : type === 'show' ? 'variety' : type === 'tv' ? 'tv' : type === 'anime' ? 'anime' : '';
+                    return (
+                      <div key={`${item.title}-${index}`} className='w-full'>
+                        <VideoCard
+                          from='douban'
+                          source='douban'
+                          id={item.id}
+                          source_name='豆瓣'
+                          title={item.title}
+                          poster={item.poster}
+                          douban_id={Number(item.id)}
+                          rate={item.rate}
+                          year={item.year}
+                          type={mappedType}
+                          isBangumi={type === 'anime' && primarySelection === '每日放送'}
+                          aiEnabled={aiEnabled}
+                          aiCheckComplete={aiCheckComplete}
+                          priority={index < 30}
+                        />
+                      </div>
+                    );
+                  }}
+                />
+              }
+
+              {/* 加载更多指示器 / sentinel */}
+              {hasMore && !loading && (
+                <div
+                  ref={(el) => {
+                    if (el && el.offsetParent !== null) {
+                      (loadingRef as React.MutableRefObject<HTMLDivElement | null>).current = el;
+                    }
+                  }}
+                  className='flex justify-center mt-12 py-8'
+                >
+                  {isLoadingMore && (
+                    <div className='relative px-8 py-4 rounded-2xl bg-linear-to-r from-green-50 via-emerald-50 to-teal-50 dark:from-green-900/20 dark:via-emerald-900/20 dark:to-teal-900/20 border border-green-200/50 dark:border-green-700/50 shadow-lg backdrop-blur-sm overflow-hidden'>
+                      <div className='absolute inset-0 bg-linear-to-r from-green-400/10 via-emerald-400/10 to-teal-400/10 animate-pulse'></div>
+                      <div className='relative flex items-center gap-3'>
+                        <div className='relative'>
+                          <div className='animate-spin rounded-full h-8 w-8 border-[3px] border-green-200 dark:border-green-800'></div>
+                          <div className='absolute inset-0 animate-spin rounded-full h-8 w-8 border-[3px] border-transparent border-t-green-500 dark:border-t-green-400'></div>
+                        </div>
+                        <div className='flex items-center gap-1'>
+                          <span className='text-sm font-medium text-gray-700 dark:text-gray-300'>加载中</span>
+                          <span className='flex gap-0.5'>
+                            <span className='animate-bounce' style={{ animationDelay: '0ms' }}>.</span>
+                            <span className='animate-bounce' style={{ animationDelay: '150ms' }}>.</span>
+                            <span className='animate-bounce' style={{ animationDelay: '300ms' }}>.</span>
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* 没有更多数据提示 */}
+              {!hasMore && doubanData.length > 0 && (
+                <div className='flex justify-center mt-8 py-8'>
+                  <div className='relative px-8 py-5 rounded-2xl bg-linear-to-r from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-900/20 dark:via-indigo-900/20 dark:to-purple-900/20 border border-blue-200/50 dark:border-blue-700/50 shadow-lg backdrop-blur-sm overflow-hidden'>
+                    <div className='absolute inset-0 bg-linear-to-br from-blue-100/20 to-purple-100/20 dark:from-blue-800/10 dark:to-purple-800/10'></div>
+                    <div className='relative flex flex-col items-center gap-2'>
+                      <div className='relative'>
+                        <div className='w-12 h-12 rounded-full bg-linear-to-br from-blue-500 to-purple-500 flex items-center justify-center shadow-lg'>
+                          <svg className='w-7 h-7 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth='2.5' d='M5 13l4 4L19 7'></path>
+                          </svg>
+                        </div>
+                        <div className='absolute inset-0 rounded-full bg-blue-400/30 animate-ping'></div>
+                      </div>
+                      <div className='text-center'>
+                        <p className='text-base font-semibold text-gray-800 dark:text-gray-200 mb-1'>已加载全部内容</p>
+                        <p className='text-xs text-gray-600 dark:text-gray-400'>共 {doubanData.length} 项</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* 空状态 */}
+              {!loading && selectorsReady && doubanData.length === 0 && (
+                <div className='flex justify-center py-16'>
+                  <div className='relative px-12 py-10 rounded-3xl bg-linear-to-br from-gray-50 via-slate-50 to-gray-100 dark:from-gray-800/40 dark:via-slate-800/40 dark:to-gray-800/50 border border-gray-200/50 dark:border-gray-700/50 shadow-xl backdrop-blur-sm overflow-hidden max-w-md'>
+                    <div className='absolute top-0 left-0 w-32 h-32 bg-linear-to-br from-blue-200/20 to-purple-200/20 rounded-full blur-3xl'></div>
+                    <div className='absolute bottom-0 right-0 w-32 h-32 bg-linear-to-br from-pink-200/20 to-orange-200/20 rounded-full blur-3xl'></div>
+                    <div className='relative flex flex-col items-center gap-4'>
+                      <div className='relative'>
+                        <div className='w-24 h-24 rounded-full bg-linear-to-br from-gray-100 to-slate-200 dark:from-gray-700 dark:to-slate-700 flex items-center justify-center shadow-lg'>
+                          <svg className='w-12 h-12 text-gray-400 dark:text-gray-500' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth='1.5' d='M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4'></path>
+                          </svg>
+                        </div>
+                        <div className='absolute -top-1 -right-1 w-3 h-3 bg-blue-400 rounded-full animate-ping'></div>
+                        <div className='absolute -bottom-1 -left-1 w-2 h-2 bg-purple-400 rounded-full animate-pulse'></div>
+                      </div>
+                      <div className='text-center space-y-2'>
+                        <h3 className='text-xl font-bold text-gray-800 dark:text-gray-200'>暂无相关内容</h3>
+                        <p className='text-sm text-gray-600 dark:text-gray-400 max-w-xs'>尝试调整筛选条件或切换其他分类查看更多内容</p>
+                      </div>
+                      <div className='w-16 h-1 bg-linear-to-r from-transparent via-gray-300 to-transparent dark:via-gray-600 rounded-full'></div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </>
           ) : (
             <>
               {/* 传统网格渲染 */}
