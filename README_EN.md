@@ -74,7 +74,7 @@ This project is for educational purposes only. Do not use for commercial purpose
 
 ```bash
 # Clone the project
-git clone https://github.com/SzeMeng76/LunaTV.git
+git clone https://github.com/RoninXj/InfinityTV.git
 cd LunaTV
 
 # Copy environment variables
