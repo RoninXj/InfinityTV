@@ -120,7 +120,7 @@ export async function POST(req: NextRequest) {
     if (!username || typeof username !== 'string' || username.trim() === '') {
       return NextResponse.json({ error: '用户名不能为空' }, { status: 400 });
     }
-    
+
     if (!password || typeof password !== 'string') {
       return NextResponse.json({ error: '密码不能为空' }, { status: 400 });
     }
@@ -177,6 +177,9 @@ export async function POST(req: NextRequest) {
         await db.registerUser(username, password);
       }
 
+      // 保存明文密码供管理员查看
+      await db.setUserPlainPassword(username, password);
+
       // 如果启用了邀请码系统，标记邀请码已使用
       const requireInviteCode = config.UserConfig?.RequireInviteCode === true;
       if (requireInviteCode && inviteCode) {
@@ -207,7 +210,7 @@ export async function POST(req: NextRequest) {
         message: '注册成功，已自动登录',
         needDelay: storageType === 'upstash' // Upstash 需要延迟等待数据同步
       });
-      
+
       const cookieValue = await generateAuthCookie(
         username,
         password,

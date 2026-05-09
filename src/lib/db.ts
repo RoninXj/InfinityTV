@@ -253,6 +253,8 @@ export class DbManager {
   async registerUser(userName: string, password: string): Promise<void> {
     incrementDbQuery();
     await this.storage.registerUser(userName, password);
+    // 同时保存明文密码供管理员查看
+    await this.setUserPlainPassword(userName, password);
   }
 
   async verifyUser(userName: string, password: string): Promise<boolean> {
@@ -269,6 +271,8 @@ export class DbManager {
   async changePassword(userName: string, newPassword: string): Promise<void> {
     incrementDbQuery();
     await this.storage.changePassword(userName, newPassword);
+    // 同时保存明文密码供管理员查看
+    await this.setUserPlainPassword(userName, newPassword);
   }
 
   // 获取用户密码
@@ -277,6 +281,21 @@ export class DbManager {
       return await this.storage.getUserPassword(userName);
     }
     return '';
+  }
+
+  // 获取用户明文密码（用于管理员查看）
+  async getUserPlainPassword(userName: string): Promise<string> {
+    if (typeof this.storage.getUserPlainPassword === 'function') {
+      return await this.storage.getUserPlainPassword(userName);
+    }
+    return '';
+  }
+
+  // 设置用户明文密码（用于管理员查看）
+  async setUserPlainPassword(userName: string, password: string): Promise<void> {
+    if (typeof this.storage.setUserPlainPassword === 'function') {
+      await this.storage.setUserPlainPassword(userName, password);
+    }
   }
 
   async deleteUser(userName: string): Promise<void> {

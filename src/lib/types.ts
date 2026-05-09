@@ -162,6 +162,10 @@ export interface IStorage {
   changePassword(userName: string, newPassword: string): Promise<void>;
   // 获取用户密码
   getUserPassword(userName: string): Promise<string>;
+  // 获取用户明文密码（用于管理员查看）
+  getUserPlainPassword?(userName: string): Promise<string>;
+  // 设置用户明文密码（用于管理员查看）
+  setUserPlainPassword?(userName: string, password: string): Promise<void>;
   // 删除用户（包括密码、搜索历史、播放记录、收藏夹）
   deleteUser(userName: string): Promise<void>;
 

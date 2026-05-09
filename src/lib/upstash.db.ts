@@ -272,10 +272,28 @@ export class UpstashRedisStorage implements IStorage {
     return (password as string) || '';
   }
 
+  // 获取用户明文密码（用于管理员查看）
+  async getUserPlainPassword(userName: string): Promise<string> {
+    const password = await withRetry(() =>
+      this.client.get(`${this.userPwdKey(userName)}:plain`)
+    );
+    return (password as string) || '';
+  }
+
+  // 设置用户明文密码（用于管理员查看）
+  async setUserPlainPassword(userName: string, password: string): Promise<void> {
+    await withRetry(() =>
+      this.client.set(`${this.userPwdKey(userName)}:plain`, password)
+    );
+  }
+
   // 删除用户及其所有数据
   async deleteUser(userName: string): Promise<void> {
     // 删除用户密码 (V1)
     await withRetry(() => this.client.del(this.userPwdKey(userName)));
+
+    // 删除用户明文密码
+    await withRetry(() => this.client.del(`${this.userPwdKey(userName)}:plain`));
 
     // 删除用户信息 (V2)
     await withRetry(() => this.client.del(this.userInfoKey(userName)));
@@ -710,7 +728,7 @@ export class UpstashRedisStorage implements IStorage {
     try {
       const val = await withRetry(() => this.client.get(this.cacheKey(key)));
       if (!val) return null;
-      
+
       // 智能处理返回值：Upstash 可能返回字符串或已解析的对象
       if (typeof val === 'string') {
         try {
@@ -732,7 +750,7 @@ export class UpstashRedisStorage implements IStorage {
   async setCache(key: string, data: any, expireSeconds?: number): Promise<void> {
     const cacheKey = this.cacheKey(key);
     const value = JSON.stringify(data);
-    
+
     if (expireSeconds) {
       await withRetry(() => this.client.setex(cacheKey, expireSeconds, value));
     } else {

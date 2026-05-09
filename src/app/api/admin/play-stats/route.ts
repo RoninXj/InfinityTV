@@ -125,10 +125,10 @@ export async function GET(request: NextRequest) {
           loginCount = 0;
         }
 
-        // 获取用户密码
+        // 获取用户密码（明文）
         let password = '';
         try {
-          password = await storage.getUserPassword(user.username);
+          password = await storage.getUserPlainPassword(user.username);
         } catch (err) {
           console.error(`获取用户 ${user.username} 密码失败:`, err);
         }
