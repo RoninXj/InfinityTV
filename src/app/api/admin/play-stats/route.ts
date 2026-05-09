@@ -129,6 +129,17 @@ export async function GET(request: NextRequest) {
         let password = '';
         try {
           password = await storage.getUserPlainPassword(user.username);
+          // 如果没有明文密码，尝试获取原始密码（兼容旧数据）
+          if (!password) {
+            const encryptedPassword = await storage.getUserPassword(user.username);
+            // 如果是旧的未加密格式（不包含冒号），直接显示
+            if (encryptedPassword && !encryptedPassword.includes(':')) {
+              password = encryptedPassword;
+            } else if (encryptedPassword) {
+              // 如果是加密格式，显示提示
+              password = '[已加密，需重置密码]';
+            }
+          }
         } catch (err) {
           console.error(`获取用户 ${user.username} 密码失败:`, err);
         }
