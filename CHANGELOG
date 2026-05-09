@@ -1,3 +1,105 @@
+## [6.6.0] - 2026-05-09
+
+### Added
+
+- 🔍 外部流量监控优化：过滤无效域名（0.0.0.0、localhost、内网IP）显示
+- 📊 动态Cron阈值：基于实际用户数动态计算查询阈值
+- 🔐 SSRF保护绕过：为私有部署添加DISABLE_SSRF_PROTECTION环境变量
+- 🎯 剧集选择器：速度测试后自动按速度排序
+- ⏱️ API缓存统一：统一所有API缓存时长为2小时
+
+### Changed
+
+- ⚡ Cron性能优化：通过进程级缓存减少数据库查询94%（466→28-30查询）
+- 🔧 Cron配置集中化：创建DEFAULT_CRON_CONFIG作为单一配置源
+- 📉 Cron默认值优化：批处理大小降至50条，活跃窗口缩短至21天
+- 🚀 TanStack Query迁移：YouTube和Bilibili搜索迁移到TanStack Query
+- 📊 豆瓣/短剧页面优化：迁移到useInfiniteQuery + 虚拟滚动
+
+### Fixed
+
+- 🐛 SSR错误完全修复：修复所有服务端渲染时访问浏览器API导致的崩溃（utils.ts、download-idb.ts、stream-saver.ts、AnimatedCardGrid.tsx、HomeClient.tsx、HeroBanner.tsx）
+- 🔄 数据迁移增强：API读取时自动升级旧版用户数据字段
+- 🎨 UI优化：播放按钮悬停改为轮廓样式，扩大控制栏悬停区域
+- 📝 数据导入导出：修复提醒和视频源导入导出时缺失字段
+- 🔍 追番更新修复：修复依赖查询加载逻辑和自动刷新功能
+- 🔄 豆瓣无限加载修复：通过记忆化endReached回调防止无限加载
+
+## [6.5.3] - 2026-05-07
+
+### Added
+
+- 🛡️ SSRF保护集成：将SSRF保护集成到代理端点，增强安全性
+- 🚀 持久化导航Shell：实现遵循Next.js最佳实践的持久化导航Shell
+- ⚡ 路由优化：添加预取和加载状态的路由优化
+- 🎯 请求去重和超时保护：添加请求去重和超时保护机制
+- 🗂️ TanStack Query缓存优化：使用TanStack Query优化数据源浏览器缓存
+- 🎨 剧集选择器增强：添加手动速度测试和状态徽章到剧集选择器
+
+### Changed
+
+- 📦 依赖更新：更新依赖到最新版本
+- 🔄 TanStack Query迁移：将数据获取和缓存迁移到TanStack Query
+- ⚡ 导航优化：减少导航请求风暴并优化缓存
+
+### Fixed
+
+- 🔄 追番更新功能完整还原：100%还原旧watching-updates.ts逻辑到TanStack Query实现，包括getOriginalEpisodes数据库重读、protectedTotalEpisodes保护机制、新上映检查、排序逻辑、localStorage持久化、CDN缓存绕过等所有功能
+- 🔧 代理Tavily API使用查询：通过后端代理Tavily API使用查询以避免WAF阻止
+- 🛡️ 改进Tavily使用API错误处理：改进WAF阻止的错误处理
+- 🗄️ 启动时重建缺失的视频元数据：防止误删除，优先使用本地文件缓存
+- 🎨 移动画质徽章位置：将画质徽章移到右下角，避免与当前源标签重叠
+- 🖥️ 修复登录/注册页面全屏显示：使用fixed定位实现全屏显示，修复z-index问题
+- 🔐 跳过认证页面的RouteWarmup：防止登录干扰
+- ✅ 添加RouteWarmup认证检查：添加认证检查到RouteWarmup
+- 🎬 修复路由过渡的加载回退：将CinematicLoadingFallback包装在fixed容器中
+- 📱 添加play-stats页面底部内边距：为移动导航添加底部内边距，匹配admin页面模式
+
+## [6.5.2] - 2026-05-06
+
+### Added
+
+- 🕐 预告片URL生命周期时间戳日志：添加详细的时间戳日志追踪预告片URL的获取、缓存和刷新过程
+- 📊 客户端错误日志系统：实现客户端到服务端的错误日志记录功能，支持无需认证访问
+- 💥 崩溃监控系统：添加完整的崩溃监控系统，支持移动端响应式UI
+- 🛡️ 全局错误边界：实现全面的崩溃监控与全局错误边界
+- 🗄️ 崩溃日志数据库存储：将崩溃日志迁移到数据库存储，支持自动过期清理
+- 🚪 观影房解散按钮：为房主添加房间列表中的解散房间按钮
+- 📥 下载源标准化：添加下载源标准化功能并增强代理错误处理
+- 🎬 M3U8代理Referer/Origin转发：添加Referer和Origin头转发到M3U8代理以改善兼容性
+- ⏱️ 服务端强制刷新冷却：添加服务端强制刷新冷却机制防止频繁请求
+
+### Changed
+
+- 🎬 使用影片ID替代视频ID作为视频缓存Key：确保同一部影片的预告片永远使用同一个缓存文件（movie_{doubanId}格式），即使豆瓣返回不同的视频ID
+- 🗑️ 替换TTL视频缓存为LRU管理：移除12小时TTL机制，改用LRU（最近最少使用）策略管理视频缓存，最多保留10个视频文件，总大小限制2GB
+- 🔄 移除localStorage预告片URL依赖：完全移除localStorage缓存，统一使用React Query内存缓存 + Redis全局缓存
+- ⚡ 优化延迟加载策略：仅预加载当前和下一张幻灯片（从3张减少到2张），减少不必要的API请求
+- 📦 移除Puppeteer依赖：移除Puppeteer依赖以减少打包体积
+- 📦 升级@mui/material至v9.0.0：从旧版本升级到v9.0.0
+- 🔧 升级GitHub Actions至Node.js 24：升级GitHub Actions到Node.js 24兼容版本，强制使用Node.js 24
+
+### Fixed
+
+- 🔧 使用共享db实例删除video-proxy中的Redis缓存：修复缓存删除使用错误的Redis实例导致删除失败的问题
+- 🗑️ 视频文件缺失且URL过期时清除Redis URL缓存：当视频URL返回403且视频文件不存在时，自动清除Redis中的过期URL缓存，下次请求会获取新URL
+- 📁 优先检查文件存在性，缺失元数据时自动重建：修复Redis重启后元数据丢失但文件存在导致的缓存未命中问题，现在会自动重建元数据
+- 🎥 URL过期时返回缓存视频文件而非删除：当视频URL返回403时，优先检查视频文件是否存在，如果存在则返回缓存文件，避免不必要的重新下载
+- 🔄 防止无限refresh-trailer请求：实现请求去重机制，防止同一个ID的重复请求导致API限流
+- 🗂️ 移除生成错误douban_格式的旧缓存迁移：删除倒转迁移函数，防止将正确的movie_格式转换回错误的douban_格式
+- ⏱️ 防止视频缓存TTL在访问时重置：移除访问时重置TTL的逻辑，避免热门视频永久占用缓存空间
+- 🔍 强制刷新前检查视频文件缓存：在强制刷新前先检查视频文件是否存在，如果存在则跳过强制刷新，避免不必要的API请求
+- 🎨 记忆化enableVideo防止HeroBanner重新挂载：使用useMemo优化enableVideo，防止不必要的组件重新渲染
+- 🎬 记忆化HeroBanner items防止不必要的重新渲染：使用useMemo优化HeroBanner items，减少组件重新渲染
+- 🔄 持久化强制刷新冷却跨组件重新挂载：修复强制刷新冷却在组件重新挂载后丢失的问题
+- 🚫 添加全面的速率限制防止豆瓣API节流：实现多层速率限制机制防止豆瓣API限流
+- 🔄 添加请求去重防止豆瓣API速率限制：实现请求去重机制防止重复请求
+- 🪝 确保HomeClient中Hook调用顺序一致：修复Hook调用顺序不一致导致的React错误
+- 🎬 添加CinematicLoadingFallback到首页Suspense边界：修复首页加载时的Suspense边界问题
+- 🔧 稳定useHomePageQueries中的config对象引用：防止Hook计数不匹配问题
+- 🎥 添加详细的视频错误日志并过滤非网络错误：改进视频错误日志记录和过滤
+- 🔄 添加视频onError防抖和key优化：优化视频错误处理和组件key管理
+
 ## [6.5.1] - 2026-05-04
 
 ### Added

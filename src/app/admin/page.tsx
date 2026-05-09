@@ -51,7 +51,7 @@ import { pinyin } from 'pinyin-pro';
 import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 
-import { AdminConfig, AdminConfigResult } from '@/lib/admin.types';
+import { AdminConfig, AdminConfigResult, DEFAULT_CRON_CONFIG } from '@/lib/admin.types';
 import { getAuthInfoFromBrowserCookie } from '@/lib/auth';
 
 import AIRecommendConfig from '@/components/AIRecommendConfig';
@@ -3657,7 +3657,7 @@ const VideoSourceConfig = ({
       const timestamp = now.toISOString().replace(/[:.]/g, '-').slice(0, 19);
 
       if (exportFormat === 'array') {
-        // 数组格式：[{name, key, api, detail, disabled, is_adult}]
+        // 数组格式：[{name, key, api, detail, disabled, is_adult, type, weight}]
         exportData = sourcesToExport.map((source) => ({
           name: source.name,
           key: source.key,
@@ -3665,10 +3665,12 @@ const VideoSourceConfig = ({
           detail: source.detail || '',
           disabled: source.disabled || false,
           is_adult: source.is_adult || false,
+          type: source.type || 'vod',
+          weight: source.weight ?? 50,
         }));
         filename = `video_sources_${timestamp}.json`;
       } else {
-        // 配置文件格式：{"api_site": {"key": {name, api, detail?, is_adult?}}}
+        // 配置文件格式：{"api_site": {"key": {name, api, detail?, is_adult?, type?, weight?}}}
         exportData = { api_site: {} };
         sourcesToExport.forEach((source) => {
           const sourceData: any = {
@@ -3681,6 +3683,12 @@ const VideoSourceConfig = ({
           }
           if (source.is_adult) {
             sourceData.is_adult = source.is_adult;
+          }
+          if (source.type && source.type !== 'vod') {
+            sourceData.type = source.type;
+          }
+          if (source.weight !== undefined && source.weight !== 50) {
+            sourceData.weight = source.weight;
           }
           exportData.api_site[source.key] = sourceData;
         });
@@ -3788,6 +3796,8 @@ const VideoSourceConfig = ({
             api: item.api,
             detail: item.detail || '',
             is_adult: item.is_adult || false,
+            type: item.type || 'vod',
+            weight: item.weight ?? 50,
           });
 
           result.success++;
@@ -5217,13 +5227,7 @@ const SiteConfigComponent = ({ config, refreshConfig }: { config: AdminConfig | 
   });
 
   // Cron 配置状态
-  const [cronSettings, setCronSettings] = useState<CronConfig>({
-    enableAutoRefresh: true,
-    maxRecordsPerRun: 100,
-    onlyRefreshRecent: true,
-    recentDays: 30,
-    onlyRefreshOngoing: true,
-  });
+  const [cronSettings, setCronSettings] = useState<CronConfig>(DEFAULT_CRON_CONFIG);
 
   // 豆瓣数据源相关状态
   const [isDoubanDropdownOpen, setIsDoubanDropdownOpen] = useState(false);
@@ -5302,11 +5306,11 @@ const SiteConfigComponent = ({ config, refreshConfig }: { config: AdminConfig | 
   useEffect(() => {
     if (config?.CronConfig) {
       setCronSettings({
-        enableAutoRefresh: config.CronConfig.enableAutoRefresh ?? true,
-        maxRecordsPerRun: config.CronConfig.maxRecordsPerRun ?? 100,
-        onlyRefreshRecent: config.CronConfig.onlyRefreshRecent ?? true,
-        recentDays: config.CronConfig.recentDays ?? 30,
-        onlyRefreshOngoing: config.CronConfig.onlyRefreshOngoing ?? true,
+        enableAutoRefresh: config.CronConfig.enableAutoRefresh ?? DEFAULT_CRON_CONFIG.enableAutoRefresh,
+        maxRecordsPerRun: config.CronConfig.maxRecordsPerRun ?? DEFAULT_CRON_CONFIG.maxRecordsPerRun,
+        onlyRefreshRecent: config.CronConfig.onlyRefreshRecent ?? DEFAULT_CRON_CONFIG.onlyRefreshRecent,
+        recentDays: config.CronConfig.recentDays ?? DEFAULT_CRON_CONFIG.recentDays,
+        onlyRefreshOngoing: config.CronConfig.onlyRefreshOngoing ?? DEFAULT_CRON_CONFIG.onlyRefreshOngoing,
       });
     }
   }, [config]);

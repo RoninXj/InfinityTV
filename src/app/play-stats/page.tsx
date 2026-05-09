@@ -8,14 +8,7 @@ import { ChevronUp } from 'lucide-react';
 import { getAuthInfoFromBrowserCookie } from '@/lib/auth';
 import { PlayRecord, ReleaseCalendarItem } from '@/lib/types';
 import { getIpLocation } from '@/lib/utils';
-import {
-  getCachedWatchingUpdates,
-  getDetailedWatchingUpdates,
-  checkWatchingUpdates,
-  markUpdatesAsViewed,
-  forceClearWatchingUpdatesCache,
-  type WatchingUpdate,
-} from '@/lib/watching-updates';
+import type { WatchingUpdate } from '@/hooks/useWatchingUpdates';
 
 import PageLayout from '@/components/PageLayout';
 import VideoCard from '@/components/VideoCard';
@@ -319,7 +312,6 @@ const PlayStatsPage: React.FC = () => {
         updateTimeout = null;
       }, 1000);
 
-      forceClearWatchingUpdatesCache();
       invalidatePlayStats();
     };
 
@@ -365,7 +357,6 @@ const PlayStatsPage: React.FC = () => {
   // 关闭追番更新详情
   const handleCloseWatchingUpdates = () => {
     setShowWatchingUpdates(false);
-    markUpdatesAsViewed();
   };
 
   // 格式化更新时间
@@ -524,7 +515,7 @@ const PlayStatsPage: React.FC = () => {
   if (storageType === 'localstorage') {
     return (
       <PageLayout activePath="/play-stats">
-        <div className='max-w-6xl mx-auto px-4 py-8'>
+        <div className='max-w-6xl mx-auto px-4 py-8 pb-40 md:pb-safe-bottom'>
           <div className='mb-8'>
             <h1 className='text-3xl font-bold text-gray-900 dark:text-white'>
               {isAdmin ? '播放统计' : '个人统计'}
@@ -572,7 +563,7 @@ const PlayStatsPage: React.FC = () => {
   if (isAdmin && statsData && userStats) {
     return (
       <PageLayout activePath="/play-stats">
-        <div className='max-w-7xl mx-auto px-4 py-8'>
+        <div className='max-w-7xl mx-auto px-4 py-8 pb-40 md:pb-safe-bottom'>
           {/* 页面标题和描述 */}
           <div className='mb-6'>
             <h1 className='text-3xl font-bold text-gray-900 dark:text-white'>
@@ -591,8 +582,8 @@ const PlayStatsPage: React.FC = () => {
                 <button
                   onClick={() => setActiveTab('admin')}
                   className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === 'admin'
-                      ? 'border-blue-500 text-blue-600 dark:text-blue-400'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
+                    ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
                     }`}
                 >
                   全站统计
@@ -600,8 +591,8 @@ const PlayStatsPage: React.FC = () => {
                 <button
                   onClick={() => setActiveTab('personal')}
                   className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === 'personal'
-                      ? 'border-blue-500 text-blue-600 dark:text-blue-400'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
+                    ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
                     }`}
                 >
                   我的统计
@@ -886,8 +877,8 @@ const PlayStatsPage: React.FC = () => {
                                         }
                                       }}
                                       className={`p-1 transition-colors ${copiedPasswords[userStat.username]
-                                          ? 'text-green-500'
-                                          : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'
+                                        ? 'text-green-500'
+                                        : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'
                                         }`}
                                       title={copiedPasswords[userStat.username] ? "已复制" : "复制密码"}
                                       aria-label={copiedPasswords[userStat.username] ? "已复制密码" : "复制密码"}
@@ -1003,8 +994,8 @@ const PlayStatsPage: React.FC = () => {
                             <div className='shrink-0'>
                               <svg
                                 className={`w-5 h-5 text-gray-400 transition-transform ${expandedUsers.has(userStat.username)
-                                    ? 'rotate-180'
-                                    : ''
+                                  ? 'rotate-180'
+                                  : ''
                                   }`}
                                 fill='none'
                                 stroke='currentColor'
@@ -1297,19 +1288,19 @@ const PlayStatsPage: React.FC = () => {
                 {/* 新集数更新 */}
                 <div
                   className={`p-4 rounded-lg border transition-all ${(watchingUpdates?.updatedCount || 0) > 0
-                      ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
-                      : 'bg-gray-50 dark:bg-gray-900/20 border-gray-200 dark:border-gray-800'
+                    ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
+                    : 'bg-gray-50 dark:bg-gray-900/20 border-gray-200 dark:border-gray-800'
                     }`}
                 >
                   <div className={`text-2xl font-bold ${(watchingUpdates?.updatedCount || 0) > 0
-                      ? 'text-red-800 dark:text-red-300'
-                      : 'text-gray-800 dark:text-gray-300'
+                    ? 'text-red-800 dark:text-red-300'
+                    : 'text-gray-800 dark:text-gray-300'
                     }`}>
                     {watchingUpdates?.updatedCount || 0}
                   </div>
                   <div className={`text-sm ${(watchingUpdates?.updatedCount || 0) > 0
-                      ? 'text-red-600 dark:text-red-400'
-                      : 'text-gray-600 dark:text-gray-400'
+                    ? 'text-red-600 dark:text-red-400'
+                    : 'text-gray-600 dark:text-gray-400'
                     }`}>
                     新集数更新
                   </div>
@@ -1323,19 +1314,19 @@ const PlayStatsPage: React.FC = () => {
                 {/* 继续观看提醒 */}
                 <div
                   className={`p-4 rounded-lg border transition-all ${(watchingUpdates?.continueWatchingCount || 0) > 0
-                      ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800'
-                      : 'bg-gray-50 dark:bg-gray-900/20 border-gray-200 dark:border-gray-800'
+                    ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800'
+                    : 'bg-gray-50 dark:bg-gray-900/20 border-gray-200 dark:border-gray-800'
                     }`}
                 >
                   <div className={`text-2xl font-bold ${(watchingUpdates?.continueWatchingCount || 0) > 0
-                      ? 'text-blue-800 dark:text-blue-300'
-                      : 'text-gray-800 dark:text-gray-300'
+                    ? 'text-blue-800 dark:text-blue-300'
+                    : 'text-gray-800 dark:text-gray-300'
                     }`}>
                     {watchingUpdates?.continueWatchingCount || 0}
                   </div>
                   <div className={`text-sm ${(watchingUpdates?.continueWatchingCount || 0) > 0
-                      ? 'text-blue-600 dark:text-blue-400'
-                      : 'text-gray-600 dark:text-gray-400'
+                    ? 'text-blue-600 dark:text-blue-400'
+                    : 'text-gray-600 dark:text-gray-400'
                     }`}>
                     继续观看
                   </div>
@@ -1739,7 +1730,7 @@ const PlayStatsPage: React.FC = () => {
   if (!isAdmin && userStats) {
     return (
       <PageLayout activePath="/play-stats">
-        <div className='max-w-6xl mx-auto px-4 py-8'>
+        <div className='max-w-6xl mx-auto px-4 py-8 pb-40 md:pb-safe-bottom'>
           {/* 页面标题和刷新按钮 */}
           <div className='flex justify-between items-start mb-8'>
             <div>
@@ -1891,19 +1882,19 @@ const PlayStatsPage: React.FC = () => {
             {/* 新集数更新 */}
             <div
               className={`p-4 rounded-lg border transition-all ${(watchingUpdates?.updatedCount || 0) > 0
-                  ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
-                  : 'bg-gray-50 dark:bg-gray-900/20 border-gray-200 dark:border-gray-800'
+                ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
+                : 'bg-gray-50 dark:bg-gray-900/20 border-gray-200 dark:border-gray-800'
                 }`}
             >
               <div className={`text-2xl font-bold ${(watchingUpdates?.updatedCount || 0) > 0
-                  ? 'text-red-800 dark:text-red-300'
-                  : 'text-gray-800 dark:text-gray-300'
+                ? 'text-red-800 dark:text-red-300'
+                : 'text-gray-800 dark:text-gray-300'
                 }`}>
                 {watchingUpdates?.updatedCount || 0}
               </div>
               <div className={`text-sm ${(watchingUpdates?.updatedCount || 0) > 0
-                  ? 'text-red-600 dark:text-red-400'
-                  : 'text-gray-600 dark:text-gray-400'
+                ? 'text-red-600 dark:text-red-400'
+                : 'text-gray-600 dark:text-gray-400'
                 }`}>
                 新集数更新
               </div>
@@ -1917,19 +1908,19 @@ const PlayStatsPage: React.FC = () => {
             {/* 继续观看提醒 */}
             <div
               className={`p-4 rounded-lg border transition-all ${(watchingUpdates?.continueWatchingCount || 0) > 0
-                  ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800'
-                  : 'bg-gray-50 dark:bg-gray-900/20 border-gray-200 dark:border-gray-800'
+                ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800'
+                : 'bg-gray-50 dark:bg-gray-900/20 border-gray-200 dark:border-gray-800'
                 }`}
             >
               <div className={`text-2xl font-bold ${(watchingUpdates?.continueWatchingCount || 0) > 0
-                  ? 'text-blue-800 dark:text-blue-300'
-                  : 'text-gray-800 dark:text-gray-300'
+                ? 'text-blue-800 dark:text-blue-300'
+                : 'text-gray-800 dark:text-gray-300'
                 }`}>
                 {watchingUpdates?.continueWatchingCount || 0}
               </div>
               <div className={`text-sm ${(watchingUpdates?.continueWatchingCount || 0) > 0
-                  ? 'text-blue-600 dark:text-blue-400'
-                  : 'text-gray-600 dark:text-gray-400'
+                ? 'text-blue-600 dark:text-blue-400'
+                : 'text-gray-600 dark:text-gray-400'
                 }`}>
                 继续观看
               </div>
@@ -2331,7 +2322,7 @@ const PlayStatsPage: React.FC = () => {
   // 加载中或错误状态
   return (
     <PageLayout activePath="/play-stats">
-      <div className='max-w-6xl mx-auto px-4 py-8'>
+      <div className='max-w-6xl mx-auto px-4 py-8 pb-40 md:pb-safe-bottom'>
         <div className='text-center py-12'>
           {error ? (
             <div className='text-red-600 dark:text-red-400'>{error}</div>
