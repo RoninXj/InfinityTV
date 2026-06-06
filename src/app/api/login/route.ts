@@ -13,6 +13,7 @@ const STORAGE_TYPE =
     | 'redis'
     | 'upstash'
     | 'kvrocks'
+    | 'sqlite'
     | undefined) || 'localstorage';
 
 // 获取客户端IP地址

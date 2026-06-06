@@ -362,7 +362,7 @@ export interface UserPlayStat {
   activeStreak?: number; // 连续活跃天数
   continuousLoginDays?: number; // 连续登录天数
 
-  // 新增密码和登录IP信息
+  // 新增密码和登录IP信息（本地扩展）
   password?: string; // 用户密码
   lastLoginIP?: string; // 最后登录IP
   loginHistory?: { // 登录历史记录
@@ -370,6 +370,12 @@ export interface UserPlayStat {
     time: string;
     userAgent?: string;
   }[];
+  // 登入归属地与设备信息（来自上游）
+  lastLoginIp?: string; // 最后登入IP
+  lastLoginLocation?: string; // 最后登入归属地（如"广东广州"）
+  lastLoginDevice?: string; // 最后登入设备类型（mobile/desktop/tablet）
+  lastLoginBrowser?: string; // 最后登入浏览器
+  lastLoginOs?: string; // 最后登入操作系统
 }
 
 // 全站播放统计数据结构
@@ -398,6 +404,11 @@ export interface PlayStatsResult {
       time: string;
       userAgent?: string;
     }[];
+    lastLoginIp?: string; // 最后登入IP
+    lastLoginLocation?: string; // 最后登入归属地
+    lastLoginDevice?: string; // 最后登入设备
+    lastLoginBrowser?: string; // 最后登入浏览器
+    lastLoginOs?: string; // 最后登入操作系统
   }>; // 每个用户的统计
   topSources: Array<{
     // 热门来源统计（前5名）
