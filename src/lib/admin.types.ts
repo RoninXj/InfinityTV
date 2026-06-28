@@ -73,6 +73,7 @@ export interface AdminConfig {
           appendMediaSourceId?: boolean;     // 拼接MediaSourceId参数
           transcodeMp4?: boolean;            // 转码mp4
           proxyPlay?: boolean;               // 视频播放代理
+          embyAuthorizationHeader?: string;  // 自定义 X-Emby-Authorization 头
         }>;
       };
     }[];
@@ -251,6 +252,7 @@ export interface AdminConfig {
       appendMediaSourceId?: boolean;     // 拼接MediaSourceId参数
       transcodeMp4?: boolean;            // 转码mp4
       proxyPlay?: boolean;               // 视频播放代理开关
+      embyAuthorizationHeader?: string;  // 自定义 X-Emby-Authorization 头
     }>;
   };
   CustomSpiderJar?: string;              // 自定义 Spider JAR URL（全局配置）
