@@ -18,25 +18,47 @@ const STORAGE_TYPE =
 
 // 获取客户端IP地址
 function getClientIP(request: NextRequest): string {
-  // 优先级按照：代理服务器设置的头部 -> 直连 IP
-  const forwarded = request.headers.get('x-forwarded-for');
-  if (forwarded) {
-    // x-forwarded-for 可能包含多个IP，取第一个（最原始的客户端IP）
-    return forwarded.split(',')[0].trim();
+  const forwardedFor = request.headers.get('x-forwarded-for');
+  if (forwardedFor) {
+    return forwardedFor.split(',')[0].trim();
   }
-  
-  const realIP = request.headers.get('x-real-ip');
-  if (realIP) {
-    return realIP;
+  return (
+    request.headers.get('x-real-ip') ||
+    request.headers.get('cf-connecting-ip') ||
+    'unknown'
+  );
+}
+
+// 登录暴力破解限流：同一 IP 在时间窗口内密码错误次数超限则直接拒绝，
+// 不等数据库/密码比较，避免 IP 被无限次尝试穷举密码。
+const LOGIN_RATE_LIMIT = 5;
+const LOGIN_RATE_WINDOW_MS = 30 * 60 * 1000; // 30 分钟
+
+async function isLoginRateLimited(ip: string): Promise<boolean> {
+  // localstorage 模式没有持久化存储（db.storage 为 null），限流无处记录，直接跳过
+  if (STORAGE_TYPE === 'localstorage') return false;
+
+  const key = `login-rate-limit:${ip}`;
+  try {
+    const currentCount = (await db.getCache(key)) || 0;
+    return currentCount >= LOGIN_RATE_LIMIT;
+  } catch (error) {
+    console.error('登录限流检查失败:', error);
+    // 数据库故障时不能因此锁死正常登录，fail-open
+    return false;
   }
-  
-  const cfConnectingIP = request.headers.get('cf-connecting-ip'); // Cloudflare
-  if (cfConnectingIP) {
-    return cfConnectingIP;
+}
+
+async function recordLoginFailure(ip: string): Promise<void> {
+  if (STORAGE_TYPE === 'localstorage') return;
+
+  const key = `login-rate-limit:${ip}`;
+  try {
+    const currentCount = (await db.getCache(key)) || 0;
+    await db.setCache(key, currentCount + 1, Math.ceil(LOGIN_RATE_WINDOW_MS / 1000));
+  } catch (error) {
+    console.error('登录失败计数写入失败:', error);
   }
-  
-  // 如果都没有，返回未知
-  return '未知';
 }
 
 // 更新用户登录信息
@@ -44,7 +66,7 @@ async function updateUserLoginInfo(username: string, ip: string, userAgent?: str
   try {
     const config = await getConfig();
     let user = config.UserConfig.Users.find(u => u.username === username);
-    
+
     // 如果用户不存在（比如站长），创建一个新的用户记录
     if (!user) {
       const newUser = {
@@ -54,32 +76,32 @@ async function updateUserLoginInfo(username: string, ip: string, userAgent?: str
       config.UserConfig.Users.push(newUser);
       user = newUser;
     }
-    
+
     const now = new Date().toISOString();
-    
+
     // 更新登录信息
     user.lastLoginTime = now;
     user.lastLoginIP = ip;
-    
+
     // 添加到登录历史（保留最近10条记录）
     if (!user.loginHistory) {
       user.loginHistory = [];
     }
-    
+
     user.loginHistory.unshift({
       ip,
       time: now,
       userAgent: userAgent || undefined
     });
-    
+
     // 只保留最近10条登录历史
     if (user.loginHistory.length > 10) {
       user.loginHistory = user.loginHistory.slice(0, 10);
     }
-    
+
     // 保存配置
     await db.saveAdminConfig(config);
-    
+
     console.log(`用户 ${username} 登录信息已更新，IP: ${ip}`);
   } catch (error) {
     console.error('更新用户登录信息失败:', error);
@@ -140,6 +162,14 @@ async function generateAuthCookie(
 }
 
 export async function POST(req: NextRequest) {
+  const clientIP = getClientIP(req);
+  if (await isLoginRateLimited(clientIP)) {
+    return NextResponse.json(
+      { error: '登录尝试次数过多，请 30 分钟后再试' },
+      { status: 429 }
+    );
+  }
+
   try {
     // 本地 / localStorage 模式——仅校验固定密码
     if (STORAGE_TYPE === 'localstorage') {
@@ -167,6 +197,7 @@ export async function POST(req: NextRequest) {
       }
 
       if (password !== envPassword) {
+        await recordLoginFailure(clientIP);
         return NextResponse.json(
           { ok: false, error: '密码错误' },
           { status: 401 }
@@ -238,6 +269,7 @@ export async function POST(req: NextRequest) {
 
       return response;
     } else if (username === process.env.USERNAME) {
+      await recordLoginFailure(clientIP);
       return NextResponse.json({ error: '用户名或密码错误' }, { status: 401 });
     }
 
@@ -252,6 +284,7 @@ export async function POST(req: NextRequest) {
       const pass = await db.verifyUser(username, password);
 
       if (!pass) {
+        await recordLoginFailure(clientIP);
         return NextResponse.json(
           { error: '用户名或密码错误' },
           { status: 401 }
