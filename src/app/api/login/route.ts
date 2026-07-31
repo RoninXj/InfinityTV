@@ -241,13 +241,10 @@ export async function POST(req: NextRequest) {
       username === process.env.USERNAME &&
       password === process.env.PASSWORD
     ) {
-      // 获取登录IP地址
-      const clientIP = getClientIP(req);
-      const userAgent = req.headers.get('user-agent') || undefined;
-      
       // 更新用户登录信息
+      const userAgent = req.headers.get('user-agent') || undefined;
       await updateUserLoginInfo(username, clientIP, userAgent);
-      
+
       // 验证成功，设置认证cookie
       const response = NextResponse.json({ ok: true });
       const cookieValue = await generateAuthCookie(
@@ -291,11 +288,8 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      // 获取登录IP地址
-      const clientIP = getClientIP(req);
-      const userAgent = req.headers.get('user-agent') || undefined;
-      
       // 更新用户登录信息
+      const userAgent = req.headers.get('user-agent') || undefined;
       await updateUserLoginInfo(username, clientIP, userAgent);
       
       // 验证成功，设置认证cookie
