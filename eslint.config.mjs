@@ -1,3 +1,4 @@
+// eslint-config-next@16 原生导出 flat config 数组，不能再用 FlatCompat 按旧格式加载
 import nextVitals from 'eslint-config-next/core-web-vitals';
 import nextTs from 'eslint-config-next/typescript';
 import prettier from 'eslint-config-prettier';
