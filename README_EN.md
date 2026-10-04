@@ -77,7 +77,7 @@ This project is for educational purposes only. Do not use for commercial purpose
 
 ### 🤖 AI Recommendation System
 
-- **AI Assistant**: GPT-5/o series models support, streaming → [Documentation](docs/features/AI_FEATURES.md)
+- **AI Assistant**: GPT-6/o series models support, streaming → [Documentation](docs/features/AI_FEATURES.md)
 - **Tavily Search Mode**: Search mode without AI API
 - **TMDB Actor Search**: Complete actor search, filtering, and caching
 - **Release Calendar**: Preview and track upcoming content
