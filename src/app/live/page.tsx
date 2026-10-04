@@ -20,13 +20,14 @@ import {
   Suspense,
   useCallback,
   useEffect,
-  useMemo,
   useRef,
   useState,
   useSyncExternalStore,
 } from 'react';
 
-import { debounce } from '@/lib/channel-search';
+import {
+  debounce,
+} from '@/lib/channel-search';
 import {
   deleteFavorite,
   generateStorageKey,
@@ -34,8 +35,12 @@ import {
   saveFavorite,
   subscribeToDataUpdates,
 } from '@/lib/db.client';
+import OptimizedHlsLoader from '@/lib/hls-loader';
 import { parseCustomTimeFormat } from '@/lib/time';
-import { devicePerformance, isMobile, isSafari } from '@/lib/utils';
+import {
+  devicePerformance,
+  isMobile,
+  isSafari} from '@/lib/utils';
 import { useInView } from '@/hooks/useInView';
 import { useLiveSync } from '@/hooks/useLiveSync';
 import { useTabsDragScroll } from '@/hooks/useTabsDragScroll';
@@ -180,55 +185,6 @@ function getHealthBadgeStyle(status: ChannelHealthStatus) {
     return 'bg-cyan-100 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-300 border-cyan-200 dark:border-cyan-800';
   }
   return 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-700';
-}
-
-// class 声明必须放在组件外（React Compiler 不支持组件内联 class），
-// 通过 ref 参数读取当前直播源，替代原先的闭包捕获
-function createLiveHlsLoader(
-  currentSourceRef: React.RefObject<LiveSource | null>,
-) {
-  return class CustomHlsJsLoader extends Hls.DefaultConfig.loader {
-    constructor(config: any) {
-      super(config);
-      const load = this.load.bind(this);
-      this.load = function (context: any, config: any, callbacks: any) {
-        // 所有的请求都带一个 source 参数
-        try {
-          const url = new URL(context.url);
-          url.searchParams.set(
-            'moontv-source',
-            currentSourceRef.current?.key || '',
-          );
-          context.url = url.toString();
-        } catch {
-          // ignore
-        }
-        // 拦截manifest和level请求
-        if (
-          (context as any).type === 'manifest' ||
-          (context as any).type === 'level'
-        ) {
-          // 判断是否浏览器直连
-          const isLiveDirectConnectStr =
-            localStorage.getItem('liveDirectConnect');
-          const isLiveDirectConnect = isLiveDirectConnectStr === 'true';
-          if (isLiveDirectConnect) {
-            // 浏览器直连，使用 URL 对象处理参数
-            try {
-              const url = new URL(context.url);
-              url.searchParams.set('allowCORS', 'true');
-              context.url = url.toString();
-            } catch {
-              // 如果 URL 解析失败，回退到字符串拼接
-              context.url = context.url + '&allowCORS=true';
-            }
-          }
-        }
-        // 执行原始load方法
-        load(context, config, callbacks);
-      };
-    }
-  };
 }
 
 function LivePageClient() {
@@ -1831,11 +1787,6 @@ function LivePageClient() {
     }
   }, [selectedGroup, groupedChannels]);
 
-  const CustomHlsJsLoader = useMemo(
-    () => createLiveHlsLoader(currentSourceRef),
-    [],
-  );
-
   // 错误重试状态管理
   let keyLoadErrorCount = 0;
   let lastErrorTime = 0;
@@ -1947,7 +1898,17 @@ function LivePageClient() {
         },
       }),
 
-      loader: CustomHlsJsLoader,
+      /* 优化的 HLS Loader：直连模式 + 源标识 + 并发分片预取 */
+      loader: class extends OptimizedHlsLoader {
+        constructor(config: any) {
+          super({
+            ...config,
+            filterAds: false,
+            enableDirectConnect: localStorage.getItem('liveDirectConnect') === 'true',
+            sourceKey: currentSourceRef.current?.key || '',
+          });
+        }
+      },
     };
 
     const hls = new Hls(hlsConfig);

@@ -24,10 +24,12 @@ import {
   subscribeToDataUpdates,
 } from '@/lib/db.client';
 import { normalizeDownloadSource } from '@/lib/download';
+import OptimizedHlsLoader from '@/lib/hls-loader';
 import { SearchResult } from '@/lib/types';
 import {
   applyFirstPartyM3u8Proxy,
   applyVideoPlayProxy,
+  getArtPlayerType,
   getVideoResolutionFromM3u8,
   isFirstPartyM3u8Proxy,
   stripVideoPlayProxy,
@@ -1864,12 +1866,9 @@ function PlayPageClient() {
   };
 
   // 完整测速（桌面设备）
-  const fullSpeedTest = async (
-    sources: SearchResult[],
-    weights: Record<string, number> = {},
-  ): Promise<SearchResult> => {
-    // 桌面设备使用小批量并发，避免创建过多实例（降低并发数提高稳定性）
-    const concurrency = 2;
+  const fullSpeedTest = async (sources: SearchResult[], weights: Record<string, number> = {}): Promise<SearchResult> => {
+    // 固定并发数测速，避免源数量多时同时创建大量 hls 实例拖垮设备
+    const MAX_CONCURRENT_TEST = 4;
     // 限制最大测试数量为20个源（平衡速度和覆盖率）
     const maxTestCount = 20;
     const topPriorityCount = 5; // 前5个优先级最高的源（已按权重排序）
@@ -1898,87 +1897,53 @@ function PlayPageClient() {
     const allResults: Array<{
       source: SearchResult;
       testResult: VideoSourceTestResult;
-    } | null> = [];
+    } | null> = new Array(sourcesToTest.length).fill(null);
 
     let shouldStop = false; // 早停标志
-    let testedCount = 0; // 已测试数量
 
-    for (let i = 0; i < sourcesToTest.length && !shouldStop; i += concurrency) {
-      const batch = sourcesToTest.slice(i, i + concurrency);
-      console.log(
-        `测速批次 ${Math.floor(i / concurrency) + 1}/${Math.ceil(sourcesToTest.length / concurrency)}: ${batch.length} 个源`,
-      );
+    const testOne = async (index: number) => {
+      if (shouldStop) return;
 
-      const batchResults = await Promise.all(
-        batch.map(async (source, batchIndex) => {
-          try {
-            // 更新进度：显示当前正在测试的源
-            const currentIndex = i + batchIndex + 1;
-            setSpeedTestProgress({
-              current: currentIndex,
-              total: sourcesToTest.length,
-              currentSource: source.source_name,
-            });
+      const source = sourcesToTest[index];
+      try {
+        // 更新进度：显示当前正在测试的源
+        setSpeedTestProgress({
+          current: index + 1,
+          total: sourcesToTest.length,
+          currentSource: source.source_name,
+        });
 
-            if (!source.episodes || source.episodes.length === 0) {
-              return null;
-            }
+        if (!source.episodes || source.episodes.length === 0) {
+          return;
+        }
 
-            const episodeUrl =
-              source.episodes.length > 1
-                ? source.episodes[1]
-                : source.episodes[0];
+        const episodeUrl = source.episodes.length > 1
+          ? source.episodes[1]
+          : source.episodes[0];
 
-            const testResult = await getVideoResolutionFromM3u8(episodeUrl, {
-              timeoutMs: 9000,
-            });
+        const testResult = await getVideoResolutionFromM3u8(episodeUrl, {
+          timeoutMs: 9000,
+        });
 
-            // 更新进度：显示测试结果
-            setSpeedTestProgress({
-              current: currentIndex,
-              total: sourcesToTest.length,
-              currentSource: source.source_name,
-              result: `${testResult.quality} | ${testResult.loadSpeed} | ${testResult.pingTime}ms`,
-            });
+        // 更新进度：显示测试结果
+        setSpeedTestProgress({
+          current: index + 1,
+          total: sourcesToTest.length,
+          currentSource: source.source_name,
+          result: `${testResult.quality} | ${testResult.loadSpeed} | ${testResult.pingTime}ms`,
+        });
 
-            return { source, testResult };
-          } catch (error) {
-            console.warn(`测速失败: ${source.source_name}`, error);
+        allResults[index] = { source, testResult };
 
-            // 更新进度：显示失败
-            const currentIndex = i + batchIndex + 1;
-            setSpeedTestProgress({
-              current: currentIndex,
-              total: sourcesToTest.length,
-              currentSource: source.source_name,
-              result: '测速失败',
-            });
-
-            return null;
-          }
-        }),
-      );
-
-      allResults.push(...batchResults);
-      // eslint-disable-next-line unused-imports/no-unused-vars
-      testedCount += batch.length;
-
-      // 🎯 保守策略早停判断：找到高质量源
-      const successfulInBatch = batchResults.filter(Boolean) as Array<{
-        source: SearchResult;
-        testResult: VideoSourceTestResult;
-      }>;
-
-      for (const result of successfulInBatch) {
-        const { quality, speedKBps } = result.testResult;
+        // 🎯 保守策略早停判断：找到高质量源
+        const { quality, speedKBps } = testResult;
 
         // 优先使用 speedKBps 字段，降级到解析 loadSpeed
         let speedMBps = 0;
         if (speedKBps && Number.isFinite(speedKBps) && speedKBps > 0) {
           speedMBps = speedKBps / 1024;
         } else {
-          const speedMatch =
-            result.testResult.loadSpeed.match(/^([\d.]+)\s*MB\/s$/);
+          const speedMatch = testResult.loadSpeed.match(/^([\d.]+)\s*MB\/s$/);
           speedMBps = speedMatch ? parseFloat(speedMatch[1]) : 0;
         }
 
@@ -1987,19 +1952,39 @@ function PlayPageClient() {
         const is2KHighSpeed = quality === '2K' && speedMBps >= 6;
 
         if (is4KHighSpeed || is2KHighSpeed) {
-          console.log(
-            `✓ 找到顶级优质源: ${result.source.source_name} (${quality}, ${result.testResult.loadSpeed})，停止测速`,
-          );
+          console.log(`✓ 找到顶级优质源: ${source.source_name} (${quality}, ${testResult.loadSpeed})，停止测速`);
           shouldStop = true;
-          break;
+        }
+      } catch (error) {
+        console.warn(`测速失败: ${source.source_name}`, error);
+
+        // 更新进度：显示失败
+        setSpeedTestProgress({
+          current: index + 1,
+          total: sourcesToTest.length,
+          currentSource: source.source_name,
+          result: '测速失败',
+        });
+
+        allResults[index] = null;
+      }
+    };
+
+    let cursor = 0;
+    const workers = Array.from(
+      { length: Math.min(MAX_CONCURRENT_TEST, sourcesToTest.length) },
+      async () => {
+        while (cursor < sourcesToTest.length && !shouldStop) {
+          const current = cursor++;
+          await testOne(current);
+          // 任务间延迟，让资源有时间清理
+          if (cursor < sourcesToTest.length && !shouldStop) {
+            await new Promise(resolve => setTimeout(resolve, 200));
+          }
         }
       }
-
-      // 批次间延迟，让资源有时间清理（减少延迟时间）
-      if (i + concurrency < sourcesToTest.length && !shouldStop) {
-        await new Promise((resolve) => setTimeout(resolve, 200));
-      }
-    }
+    );
+    await Promise.all(workers);
 
     // 等待所有测速完成，包含成功和失败的结果
     // 保存所有测速结果到 precomputedVideoInfo，供 EpisodeSelector 使用（包含错误结果）
@@ -3116,37 +3101,6 @@ function PlayPageClient() {
         .padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
     }
   };
-
-  // eslint-disable-next-line react-hooks/unsupported-syntax
-  class CustomHlsJsLoader extends Hls.DefaultConfig.loader {
-    constructor(config: any) {
-      super(config);
-      const load = this.load.bind(this);
-      this.load = function (context: any, config: any, callbacks: any) {
-        // 拦截manifest和level请求
-        if (
-          (context as any).type === 'manifest' ||
-          (context as any).type === 'level'
-        ) {
-          const onSuccess = callbacks.onSuccess;
-          callbacks.onSuccess = function (
-            response: any,
-            stats: any,
-            context: any,
-          ) {
-            // 如果是m3u8文件，处理内容以移除广告分段
-            if (response.data && typeof response.data === 'string') {
-              // 过滤掉广告段 - 实现更精确的广告过滤逻辑
-              response.data = filterAdsFromM3U8(response.data);
-            }
-            return onSuccess(response, stats, context, null);
-          };
-        }
-        // 执行原始load方法
-        load(context, config, callbacks);
-      };
-    }
-  }
 
   // 🚀 优化的集数变化处理（防抖 + 状态保护）
   useEffect(() => {
@@ -4794,8 +4748,10 @@ function PlayPageClient() {
           // 🔥 修复：标记切换中，阻止 video:ratechange 将浏览器重置的 1.0 保存到 localStorage
           isSourceSwitchingRef.current = true;
 
-          // ☁️ 新地址切换，重置 Worker 代理降级标记（非 m3u8 路径用）
-          artPlayerRef.current._proxyFallbackDone = false;
+        // ☁️ 新地址切换，重置 Worker 代理降级标记（非 m3u8 路径用）
+        artPlayerRef.current._proxyFallbackDone = false;
+        // 切换的新地址可能是 m3u8 代理地址，也可能是普通格式，每次都要重新指定 type
+        artPlayerRef.current.option.type = getArtPlayerType(videoUrl);
 
           let switchPromise: Promise<any>;
           if (isEpisodeChange) {
@@ -4944,50 +4900,52 @@ function PlayPageClient() {
         // 重新启用5.3.0内存优化功能，但使用false参数避免清空DOM
         Artplayer.REMOVE_SRC_WHEN_DESTROY = true;
 
-        artPlayerRef.current = new Artplayer({
-          container: artRef.current,
-          url: videoUrl,
-          poster: videoCover,
-          volume: 0.7,
-          isLive: false,
-          // iOS设备需要静音才能自动播放，参考ArtPlayer源码处理
-          muted: isIOS || isSafari,
-          autoplay: true,
-          pip: true,
-          autoSize: false,
-          autoMini: false,
-          screenshot: !isMobile, // 桌面端启用截图功能
-          setting: true,
-          loop: false,
-          flip: false,
-          playbackRate: true,
-          aspectRatio: false,
-          fullscreen: true,
-          fullscreenWeb: true,
-          subtitleOffset: false,
-          miniProgressBar: false,
-          mutex: true,
-          playsInline: true,
-          autoPlayback: false,
-          theme: '#22c55e',
-          lang: 'zh-cn',
-          hotkey: false,
-          fastForward: true,
-          autoOrientation: true,
-          lock: true,
-          // AirPlay 仅在支持 WebKit API 的浏览器中启用
-          // 主要是 Safari (桌面和移动端) 和 iOS 上的其他浏览器
-          airplay: isIOS || isSafari,
-          moreVideoAttr: {
-            crossOrigin: 'anonymous',
-          },
-          // HLS 支持配置
-          customType: {
-            m3u8: function (video: HTMLVideoElement, url: string) {
-              if (!Hls) {
-                console.error('HLS.js 未加载');
-                return;
-              }
+      artPlayerRef.current = new Artplayer({
+        container: artRef.current,
+        url: videoUrl,
+        // 代理地址的扩展名无法被 ArtPlayer 识别为 m3u8，必须显式指定
+        type: getArtPlayerType(videoUrl),
+        poster: videoCover,
+        volume: 0.7,
+        isLive: false,
+        // iOS设备需要静音才能自动播放，参考ArtPlayer源码处理
+        muted: isIOS || isSafari,
+        autoplay: true,
+        pip: true,
+        autoSize: false,
+        autoMini: false,
+        screenshot: !isMobile, // 桌面端启用截图功能
+        setting: true,
+        loop: false,
+        flip: false,
+        playbackRate: true,
+        aspectRatio: false,
+        fullscreen: true,
+        fullscreenWeb: true,
+        subtitleOffset: false,
+        miniProgressBar: false,
+        mutex: true,
+        playsInline: true,
+        autoPlayback: false,
+        theme: '#22c55e',
+        lang: 'zh-cn',
+        hotkey: false,
+        fastForward: true,
+        autoOrientation: true,
+        lock: true,
+        // AirPlay 仅在支持 WebKit API 的浏览器中启用
+        // 主要是 Safari (桌面和移动端) 和 iOS 上的其他浏览器
+        airplay: isIOS || isSafari,
+        moreVideoAttr: {
+          crossOrigin: 'anonymous',
+        },
+        // HLS 支持配置
+        customType: {
+          m3u8: function (video: HTMLVideoElement, url: string) {
+            if (!Hls) {
+              console.error('HLS.js 未加载');
+              return;
+            }
 
               if (video.hls) {
                 video.hls.destroy();
@@ -5082,11 +5040,20 @@ function PlayPageClient() {
                   },
                 },
 
-                /* 自定义loader */
-                loader: blockAdEnabledRef.current
-                  ? CustomHlsJsLoader
-                  : Hls.DefaultConfig.loader,
-              });
+              /* 优化的 HLS Loader：广告过滤 + 并发分片预取 */
+              loader: blockAdEnabledRef.current
+                ? class extends OptimizedHlsLoader {
+                    constructor(config: any) {
+                      super({
+                        ...config,
+                        filterAds: true,
+                        enableDirectConnect: false,
+                        sourceKey: '',
+                      });
+                    }
+                  }
+                : Hls.DefaultConfig.loader,
+            });
 
               hls.loadSource(url);
               hls.attachMedia(video);
@@ -6844,20 +6811,24 @@ function PlayPageClient() {
             return;
           }
 
-          // ☁️ 非 m3u8 格式（走原生 <video src>）Worker 代理失败时，自动降级为直连原始地址
-          // m3u8 格式的降级在 customType.m3u8 的 Hls.Events.ERROR 处理里完成，此处跳过避免重复
-          if (!artPlayerRef.current._proxyFallbackDone) {
+          // ☁️ Worker 代理播放失败时，自动降级为直连原始地址
+          // hls.js 已接管时（video.hls 存在），降级在 customType.m3u8 的 Hls.Events.ERROR 里完成，此处跳过避免重复；
+          // 但 hls.js 没启动（如 type 未识别）时没有任何人会降级，必须在这里兜底
+          if (!artPlayerRef.current._proxyFallbackDone && !artPlayerRef.current.video?.hls) {
             const rawUrl = stripVideoPlayProxy(videoUrl);
-            if (rawUrl && !/\.m3u8(\?|#|$)/i.test(videoUrl)) {
+            if (rawUrl) {
               console.warn('Worker 代理播放错误，降级为直连:', rawUrl);
               artPlayerRef.current._proxyFallbackDone = true;
+              artPlayerRef.current.option.type = getArtPlayerType(rawUrl);
               artPlayerRef.current.switchUrl(rawUrl);
             }
           }
         });
 
-        // 监听视频播放结束事件，自动播放下一集
+        // 监听视频播放结束事件，释放 Wake Lock 并自动播放下一集
         artPlayerRef.current.on('video:ended', () => {
+          releaseWakeLock();
+
           const idx = currentEpisodeIndexRef.current;
 
           // 🔥 关键修复：首先检查这个 video:ended 事件是否已经被处理过
@@ -6932,12 +6903,12 @@ function PlayPageClient() {
             videoUrl,
           );
         }
-      } catch (err) {
-        console.error('创建播放器失败:', err);
-        // 重置集数切换标识
-        isEpisodeChangingRef.current = false;
-        setError('播放器初始化失败');
-      }
+    } catch (err) {
+      console.error('创建播放器失败:', err);
+      // 重置集数切换标识
+      isEpisodeChangingRef.current = false;
+      setError('播放器初始化失败');
+    }
     }; // 结束 initPlayer 函数
 
     // 动态导入 ArtPlayer 并初始化
